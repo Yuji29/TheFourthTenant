@@ -18,6 +18,14 @@ public class MainMenu extends javax.swing.JFrame {
     public MainMenu() {
         initComponents();
         
+        try {
+            java.awt.Image icon = javax.imageio.ImageIO.read(
+                getClass().getResourceAsStream("/Images/logo.png"));
+            setIconImage(icon);
+        } catch (Exception e) {
+            System.out.println("Logo not found: " + e.getMessage());
+        }   
+        
         // Play the menu music on loop
         playSound("/audio/music.wav", true);
         
