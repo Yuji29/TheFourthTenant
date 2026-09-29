@@ -82,9 +82,11 @@ public class MainMenu extends javax.swing.JFrame {
         
         // Make the credits button highlight gray when hovered (optional, but nice)
         jButton5.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 jButton5.setForeground(java.awt.Color.WHITE);
             }
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 jButton5.setForeground(java.awt.Color.GRAY);
             }
