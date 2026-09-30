@@ -216,6 +216,7 @@ public class MainMenu extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("The Fourth Tenant");
         setResizable(false);
 
         jPanel1.setPreferredSize(new java.awt.Dimension(1150, 680));
@@ -244,7 +245,7 @@ public class MainMenu extends javax.swing.JFrame {
         jButton5.setText("CREDITS");
         jButton5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jButton5.addActionListener(this::jButton5ActionPerformed);
-        jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 640, 240, 40));
+        jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 0, 240, 40));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/background.gif"))); // NOI18N
         jLabel1.setText("jLabel1");
@@ -269,7 +270,14 @@ public class MainMenu extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         playSound("/audio/select.wav", false);
         System.out.println("START button clicked!");
-        // Later: Code to open the game screen goes here
+        
+        TransitionOverlay.play(this, () -> {
+            Backstory bs = new Backstory();
+            bs.show();
+            bs.setLocation(getLocation());
+            bs.setVisible(true);
+            dispose();
+        });   
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
