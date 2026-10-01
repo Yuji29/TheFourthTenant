@@ -27,6 +27,22 @@ public class Backstory extends javax.swing.JFrame {
     private static final long TYPEWRITER_KEY_DURATION_MS = 1500;   // key clicks stop after this
     private boolean navigationLocked = false;
     private static final int NAV_LOCK_MS = 600;   // how long between allowed clicks
+    private PauseMenu pauseMenu;
+    private javax.swing.Timer ringDelayTimer;
+    private javax.swing.Timer cutsceneDelayTimer; 
+    
+    // Typewriter resume state
+    private double savedCharsShown = 0;
+    private long   savedStartTime  = 0;
+    private long   savedTickMs     = 25;
+    private double savedCharsPerTick = 1;
+    private int    savedTotalChars = 0;
+    private SubtitleBox savedBox;
+    private Runnable savedOnDone;
+    private boolean typewriterWasRunning = false;
+
+    // Voice resume state
+    private long savedClipMicros = 0;
 
     private static class Slide {
         final String imagePath;
@@ -274,6 +290,101 @@ public class Backstory extends javax.swing.JFrame {
         } catch (Exception e) {
             System.out.println("Key click not loaded: " + e.getMessage());
         }
+        
+        // --- Pause menu ---
+        pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
+
+            @Override public void onPause() {
+                // ---- 1) Voice / narration clip ----
+                if (currentClip != null) {
+                    savedClipMicros = currentClip.getMicrosecondPosition();
+                    currentClip.stop();
+                }
+
+                // ---- 2) Looping ambience ----
+                if (rainClip      != null) rainClip.stop();
+                if (thunderClip   != null) thunderClip.stop();
+                if (intenseClip   != null) intenseClip.stop();
+
+                // ---- 3) One-shot SFX that may still be playing ----
+                if (phoneRingClip != null) phoneRingClip.stop();
+                if (typewriterKeyClip != null) typewriterKeyClip.stop();
+
+                // NOTE: any other one-shot SFX (siren_distant, wind_gust, receiver_click,
+                // door_creak) are fire-and-forget Clips — they'll naturally finish on their
+                // own. If you want to pause those too, see the "hardening" section below.
+
+                // ---- 4) Typewriter timer ----
+                if (typewriterTimer != null && typewriterTimer.isRunning()) {
+                    typewriterWasRunning = true;
+                    typewriterTimer.stop();
+                }
+
+                // ---- 5) Kill any pending delayed timers (ring delay, cutscene fade) ----
+                // These are one-shot timers scheduled inside showSlide(); if we don't
+                // stop them they'll fire while paused.
+                // (See the hardening section below for how to track them.)
+            }
+
+            @Override public void onResume() {
+                // ---- 1) Voice / narration ----
+                if (currentClip != null && savedClipMicros > 0) {
+                    currentClip.setMicrosecondPosition(savedClipMicros);
+                    currentClip.start();
+                    savedClipMicros = 0;
+                }
+
+                // ---- 2) Looping ambience ----
+                // start() resumes from where stop() left it — cleaner than loop().
+                if (rainClip != null) rainClip.start();
+
+                // Slide 0 loops thunder; slide 12 loops intense music.
+                if (thunderClip != null && currentSlide == 0) {
+                    thunderClip.start();
+                }
+                if (intenseClip != null && currentSlide == 12) {
+                    intenseClip.start();
+                }
+
+                // ---- 3) Typewriter ----
+                if (typewriterWasRunning && savedBox != null) {
+                    resumeTypewriter();
+                }
+
+                // ---- 4) Re-fire one-shot SFX if still relevant ----
+                // (For now, skip — the clip already finished or will finish naturally.
+                // If you want them to resume too, use the hardening pattern below.)
+            }
+
+            @Override public void onMainMenu() {
+                // 0) Hide the pause overlay FIRST so the transition is visible
+                pauseMenu.hideOverlay();
+
+                // 1) Stop every audio clip this frame owns
+                if (currentClip       != null) { currentClip.stop();       currentClip.close();       currentClip = null; }
+                if (rainClip          != null) { rainClip.stop();          rainClip.close();          rainClip = null; }
+                if (thunderClip       != null) { thunderClip.stop();       thunderClip.close();       thunderClip = null; }
+                if (intenseClip       != null) { intenseClip.stop();       intenseClip.close();       intenseClip = null; }
+                if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip.close();     phoneRingClip = null; }
+                if (typewriterKeyClip != null) { typewriterKeyClip.stop(); typewriterKeyClip.close(); typewriterKeyClip = null; }
+                if (typewriterTimer   != null) { typewriterTimer.stop();   typewriterTimer = null; }
+                if (ringDelayTimer    != null) { ringDelayTimer.stop();    ringDelayTimer = null; }
+                if (cutsceneDelayTimer!= null) { cutsceneDelayTimer.stop();cutsceneDelayTimer = null; }
+
+                // 2) Transition, then open MainMenu
+                TransitionOverlay.play(Backstory.this, () -> {
+                    MainMenu menu = new MainMenu();
+                    menu.setLocation(getLocation());
+                    menu.setVisible(true);
+                    Backstory.this.dispose();
+                });
+            }
+
+            @Override public void onOptions() {
+                // Optional — do nothing for now, or open an options dialog
+                System.out.println("Options clicked");
+            }
+        });
     }
 
     /**
@@ -357,19 +468,23 @@ public class Backstory extends javax.swing.JFrame {
             intenseClip = null;
         }
 
-        // Fire this slide's one-shot SFX
-        if (s.sfxPath != null) {
+        // Fire this slide's one-shot SFX — but skip if this slide handles its own SFX
+        if (s.sfxPath != null && currentSlide != 0) {
             playSfx(s.sfxPath);
         }
 
         // Slide 1: loop thunder + delayed phone ring
         if (currentSlide == 0) {
+            if (thunderClip != null) { thunderClip.stop(); thunderClip.close(); }
             thunderClip = playLooping("/audio/backstory/sfx/thunder.wav");
-            javax.swing.Timer ringDelay = new javax.swing.Timer(600, e -> {
+
+            if (ringDelayTimer != null) ringDelayTimer.stop();
+            ringDelayTimer = new javax.swing.Timer(600, e -> {
+                if (pauseMenu != null && pauseMenu.isPaused()) return;   // don't ring while paused
                 phoneRingClip = playSfx("/audio/backstory/sfx/phone_ring.wav");
             });
-            ringDelay.setRepeats(false);
-            ringDelay.start();
+            ringDelayTimer.setRepeats(false);
+            ringDelayTimer.start();
         }
 
         // Slide 13: thunder + intense music
@@ -378,9 +493,11 @@ public class Backstory extends javax.swing.JFrame {
             intenseClip = playLooping("/audio/backstory/sfx/intense.wav");
 
             jLabel4.setVisible(false);
-            javax.swing.Timer delay = new javax.swing.Timer(3000, e -> fadeInCutscene());
-            delay.setRepeats(false);
-            delay.start();
+
+            if (cutsceneDelayTimer != null) cutsceneDelayTimer.stop();
+            cutsceneDelayTimer = new javax.swing.Timer(3000, e -> fadeInCutscene());
+            cutsceneDelayTimer.setRepeats(false);
+            cutsceneDelayTimer.start();
         } else {
             jLabel4.setVisible(false);
         }
@@ -475,7 +592,10 @@ public class Backstory extends javax.swing.JFrame {
         jPanel1.repaint();
     }
     
-    private void navigate(int direction) {   // ← add this method
+    private void navigate(int direction) {
+        // Block navigation while the pause menu is open
+        if (pauseMenu != null && pauseMenu.isPaused()) return;
+
         if (navigationLocked) return;
         int next = currentSlide + direction;
         if (next < 0 || next >= slides.length) return;
@@ -527,6 +647,35 @@ public class Backstory extends javax.swing.JFrame {
             if (p >= 1f) ((javax.swing.Timer) e.getSource()).stop();
         });
         t.start();
+    }
+    
+    private void resumeTypewriter() {
+        if (savedBox == null) return;
+
+        final double charsPerTick = savedCharsPerTick;
+        final int    totalChars   = savedTotalChars;
+        final SubtitleBox box     = savedBox;
+        final Runnable onDone     = savedOnDone;
+        final double[] accumulated = { savedCharsShown };
+
+        // Don't replay key clicks on resume — reset the "typing started" marker
+        typewriterStartTime = System.currentTimeMillis() - TYPEWRITER_KEY_DURATION_MS;
+
+        typewriterTimer = new javax.swing.Timer((int) savedTickMs, null);
+        typewriterTimer.addActionListener(e -> {
+            accumulated[0] += charsPerTick;
+            int toShow = (int) accumulated[0];
+            savedCharsShown = toShow;
+            box.setVisibleChars(toShow);
+
+            if (toShow >= totalChars) {
+                typewriterTimer.stop();
+                box.showAllChars();
+                typewriterWasRunning = false;
+                if (onDone != null) onDone.run();
+            }
+        });
+        typewriterTimer.start();
     }
     
     /**
@@ -601,15 +750,25 @@ public class Backstory extends javax.swing.JFrame {
          final double charsPerTick = charsPerSecond * (tickMs / 1000.0);
          final double[] accumulated = {0.0};
 
+        // Save state for pause/resume
+        savedBox          = box;
+        savedOnDone       = onDone;
+        savedTotalChars   = totalChars;
+        savedTickMs       = tickMs;
+        savedCharsPerTick = charsPerTick;
+        savedCharsShown   = 0;
+        savedStartTime    = System.currentTimeMillis();
+        typewriterWasRunning = true;
+
         typewriterTimer = new javax.swing.Timer(tickMs, null);
         typewriterTimer.addActionListener(e -> {
-            // Key click for the first 1.5s
             if (System.currentTimeMillis() - typewriterStartTime < TYPEWRITER_KEY_DURATION_MS) {
                 playKeyClick();
             }
 
             accumulated[0] += charsPerTick;
             int toShow = (int) accumulated[0];
+            savedCharsShown = toShow;   // remember for pause
             box.setVisibleChars(toShow);
 
             if (toShow >= totalChars) {
@@ -617,6 +776,7 @@ public class Backstory extends javax.swing.JFrame {
                 box.showAllChars();
                 if (clipToStop != null) clipToStop.stop();
                 if (onDone != null) onDone.run();
+                typewriterWasRunning = false;
             }
         });
         typewriterStartTime = System.currentTimeMillis();
@@ -702,13 +862,15 @@ public class Backstory extends javax.swing.JFrame {
     
     @Override
     public void dispose() {
-        if (rainClip      != null) { rainClip.stop();      rainClip.close(); }
-        if (phoneRingClip != null) { phoneRingClip.stop(); phoneRingClip.close(); }
-        if (thunderClip   != null) { thunderClip.stop();   thunderClip.close(); }
-        if (intenseClip   != null) { intenseClip.stop();   intenseClip.close(); }
+        if (rainClip          != null) { rainClip.stop();          rainClip.close(); }
+        if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip.close(); }
+        if (thunderClip       != null) { thunderClip.stop();       thunderClip.close(); }
+        if (intenseClip       != null) { intenseClip.stop();       intenseClip.close(); }
         if (typewriterKeyClip != null) { typewriterKeyClip.stop(); typewriterKeyClip.close(); }
-        if (currentClip   != null) { currentClip.stop();   currentClip.close(); }
-        if (typewriterTimer != null) { typewriterTimer.stop(); }
+        if (currentClip       != null) { currentClip.stop();       currentClip.close(); }
+        if (typewriterTimer   != null) { typewriterTimer.stop(); }
+        if (ringDelayTimer    != null) { ringDelayTimer.stop(); }
+        if (cutsceneDelayTimer!= null) { cutsceneDelayTimer.stop(); }
         super.dispose();
     }
     
