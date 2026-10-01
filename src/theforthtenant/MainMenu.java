@@ -11,7 +11,8 @@ package theforthtenant;
 public class MainMenu extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainMenu.class.getName());
-
+    private javax.sound.sampled.Clip musicClip;
+    
     /**
      * Creates new form MainMenu
      */
@@ -27,7 +28,7 @@ public class MainMenu extends javax.swing.JFrame {
         }   
         
         // Play the menu music on loop
-        playSound("/audio/music.wav", true);
+        musicClip = playSound("/audio/music.wav", true);
         
         // 1. Load the custom font
         java.awt.Font customFont = getCustomFont(25f);
@@ -271,6 +272,13 @@ public class MainMenu extends javax.swing.JFrame {
         playSound("/audio/select.wav", false);
         System.out.println("START button clicked!");
         
+        // Stop the menu music
+        if (musicClip != null) {
+            musicClip.stop();
+            musicClip.close();
+            musicClip = null;
+        }
+        
         TransitionOverlay.play(this, () -> {
             Backstory bs = new Backstory();
             bs.show();
@@ -322,10 +330,10 @@ public class MainMenu extends javax.swing.JFrame {
     }
     
     // This method loads and plays a sound file
-    private void playSound(String filepath, boolean loop) {
+    private javax.sound.sampled.Clip playSound(String filepath, boolean loop) {
         try {
             java.io.InputStream is = getClass().getResourceAsStream(filepath);
-            javax.sound.sampled.AudioInputStream audioStream = 
+            javax.sound.sampled.AudioInputStream audioStream =
                 javax.sound.sampled.AudioSystem.getAudioInputStream(is);
             javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
             clip.open(audioStream);
@@ -334,8 +342,10 @@ public class MainMenu extends javax.swing.JFrame {
             } else {
                 clip.start();
             }
+            return clip;
         } catch (Exception e) {
             System.out.println("Audio not found: " + filepath);
+            return null;
         }
     }
     
