@@ -11,8 +11,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.InputStream;
@@ -56,6 +54,7 @@ public class PauseMenu {
     private PauseOverlay overlay;
     private boolean paused = false;
     private int selectedIndex = 0;
+    private boolean subPopupOpen = false;   // true while Options is open on top
 
     private Font menuFont;
 
@@ -85,17 +84,11 @@ public class PauseMenu {
         layered.add(overlay, JLayeredPane.POPUP_LAYER);
         layered.repaint();
 
-        // ESC key toggles pause
         javax.swing.JRootPane root = frame.getRootPane();
+
+        // ---- InputMap bindings ----
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "togglePause");
-        root.getActionMap().put("togglePause", new AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (paused) resume(); else pause();
-            }
-        });
-
-        // Up/Down/Enter keys work while paused
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP, 0), "pauseUp");
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
@@ -103,23 +96,33 @@ public class PauseMenu {
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "pauseEnter");
 
+        // ---- ActionMap handlers (all guarded against subPopupOpen) ----
+        root.getActionMap().put("togglePause", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (subPopupOpen) return;              // Options on top → let it handle ESC
+                if (paused) resume(); else pause();
+            }
+        });
+
         root.getActionMap().put("pauseUp", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (!paused) return;
+                if (!paused || subPopupOpen) return;
                 selectedIndex = (selectedIndex - 1 + MENU_ITEMS.length) % MENU_ITEMS.length;
                 overlay.repaint();
             }
         });
+
         root.getActionMap().put("pauseDown", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (!paused) return;
+                if (!paused || subPopupOpen) return;
                 selectedIndex = (selectedIndex + 1) % MENU_ITEMS.length;
                 overlay.repaint();
             }
         });
+
         root.getActionMap().put("pauseEnter", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (!paused) return;
+                if (!paused || subPopupOpen) return;
                 activate(selectedIndex);
             }
         });
@@ -131,6 +134,7 @@ public class PauseMenu {
         if (paused) return;
         paused = true;
         selectedIndex = 0;              // default back to "Resume"
+        overlay.setVisible(true);
         overlay.startPopupAnim();
         if (callbacks != null) callbacks.onPause();
     }
@@ -141,11 +145,26 @@ public class PauseMenu {
         overlay.repaint();
         if (callbacks != null) callbacks.onResume();
     }
-    
+
+    /** Full teardown used when leaving the screen entirely (e.g. Main Menu). */
     public void hideOverlay() {
         paused = false;
+        subPopupOpen = false;
+        if (overlay != null) overlay.setVisible(false);
+    }
+
+    /** Hide the pause popup only — keep the game paused. Used when opening Options. */
+    public void hidePopupOnly() {
+        subPopupOpen = true;
+        if (overlay != null) overlay.setVisible(false);
+    }
+
+    /** Re-show the pause popup. Called when Options closes. */
+    public void showPopupOnly() {
+        subPopupOpen = false;
         if (overlay != null) {
-            overlay.setVisible(false);
+            overlay.setVisible(true);
+            overlay.startPopupAnim();
         }
     }
 
@@ -175,7 +194,7 @@ public class PauseMenu {
         }
     }
 
-    // ---- Overlay ----
+    // ---- Overlay (drawing + mouse only) ----
 
     private class PauseOverlay extends JComponent {
         private Image icon;
@@ -277,10 +296,8 @@ public class PauseMenu {
             return -1;
         }
 
-        /** Compute the draw rectangle for the popup image (centered, scaled). */
         private Rectangle computePopupRect() {
             if (popup == null) {
-                // Fallback: a fixed-size centered rect
                 int w = 420, h = 260;
                 return new Rectangle((getWidth() - w) / 2, (getHeight() - h) / 2, w, h);
             }
@@ -315,7 +332,7 @@ public class PauseMenu {
             g2.setColor(new Color(0, 0, 0, 170));
             g2.fillRect(0, 0, getWidth(), getHeight());
 
-            // Draw the popup art (if any)
+            // Popup art
             Rectangle pr = computePopupRect();
             if (popup != null) {
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, popupAlpha));
@@ -323,7 +340,7 @@ public class PauseMenu {
                 g2.setComposite(AlphaComposite.SrcOver);
             }
 
-            // ---- Layout the menu items ----
+            // ---- Menu items ----
             g2.setFont(menuFont);
             FontMetrics fm = g2.getFontMetrics();
 
@@ -337,7 +354,6 @@ public class PauseMenu {
                 String label = MENU_ITEMS[i];
                 boolean selected = (i == selectedIndex);
 
-                // Indicator arrows ONLY on the selected row
                 String display = selected
                         ? "> " + label + " <"
                         : "  " + label + "  ";
@@ -346,24 +362,26 @@ public class PauseMenu {
                 int tx = centerX - textW / 2;
                 int ty = firstRowY + i * rowH;
 
-                // ---- Background ONLY when selected ----
                 int pad = 12;
                 int barX = tx - pad;
                 int barY = ty - fm.getAscent() - 6;
                 int barW = textW + pad * 2;
                 int barH = fm.getHeight() + 12;
 
+                // Same red as OptionsMenu
+                final Color MENU_RED = new Color(110, 30, 30);
+                final Color MENU_RED_SELECTED = new Color(200, 60, 50);   // brighter red for the selected row
+
                 if (selected) {
-                    // dark bar so white text pops
+                    // Dark bar behind the selected row so the brighter red pops
                     g2.setColor(new Color(30, 30, 30, 220));
                     g2.fillRoundRect(barX, barY, barW, barH, 8, 8);
                 }
 
-                // ---- Text color ----
-                g2.setColor(selected ? Color.WHITE : Color.BLACK);
+                g2.setColor(selected ? Color.WHITE : MENU_RED);
                 g2.drawString(display, tx, ty);
 
-                // Store clickable bounds (always, so hover/click still work)
+                
                 itemBounds[i] = new Rectangle(barX, barY, barW, barH);
             }
 

@@ -30,6 +30,7 @@ public class Backstory extends javax.swing.JFrame {
     private PauseMenu pauseMenu;
     private javax.swing.Timer ringDelayTimer;
     private javax.swing.Timer cutsceneDelayTimer; 
+    private OptionsMenu optionsMenu;
     
     // Typewriter resume state
     private double savedCharsShown = 0;
@@ -40,6 +41,9 @@ public class Backstory extends javax.swing.JFrame {
     private SubtitleBox savedBox;
     private Runnable savedOnDone;
     private boolean typewriterWasRunning = false;
+    
+    private final java.util.List<javax.sound.sampled.Clip> ambienceClips =
+        new java.util.ArrayList<>();
 
     // Voice resume state
     private long savedClipMicros = 0;
@@ -184,9 +188,9 @@ public class Backstory extends javax.swing.JFrame {
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 // Stop all audio immediately
-                if (rainClip      != null) { rainClip.stop();      rainClip.close();      rainClip = null; }
-                if (thunderClip   != null) { thunderClip.stop();   thunderClip.close();   thunderClip = null; }
-                if (intenseClip   != null) { intenseClip.stop();   intenseClip.close();   intenseClip = null; }
+                stopAndClose(rainClip);      rainClip = null;
+                stopAndClose(thunderClip);   thunderClip = null;
+                stopAndClose(intenseClip);   intenseClip = null;
 
                 TransitionOverlay.play(Backstory.this, () -> {
                     CrimeScene cs = new CrimeScene();
@@ -291,6 +295,26 @@ public class Backstory extends javax.swing.JFrame {
             System.out.println("Key click not loaded: " + e.getMessage());
         }
         
+        optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
+
+            @Override public void onMusicChanged(int percent) {
+                // Backstory has no dedicated music clip — ambience (rain/thunder/intense)
+                // is treated as SFX and controlled by the SOUND slider.
+            }
+
+            @Override public void onSoundChanged(int percent) {
+                // SfxManager is already updated — now update any currently-playing loops
+                for (javax.sound.sampled.Clip c : new java.util.ArrayList<>(ambienceClips)) {
+                    SfxManager.applyVolume(c, percent);
+                }
+                SfxManager.playOneShot(Backstory.this.getClass(), "/audio/hover.wav");
+            }
+
+            @Override public void onClose() {
+                pauseMenu.showPopupOnly();
+            }
+        });
+        
         // --- Pause menu ---
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
 
@@ -362,9 +386,9 @@ public class Backstory extends javax.swing.JFrame {
 
                 // 1) Stop every audio clip this frame owns
                 if (currentClip       != null) { currentClip.stop();       currentClip.close();       currentClip = null; }
-                if (rainClip          != null) { rainClip.stop();          rainClip.close();          rainClip = null; }
-                if (thunderClip       != null) { thunderClip.stop();       thunderClip.close();       thunderClip = null; }
-                if (intenseClip       != null) { intenseClip.stop();       intenseClip.close();       intenseClip = null; }
+                if (rainClip    != null) { rainClip.stop();    rainClip.close();    rainClip = null; }
+                if (thunderClip != null) { thunderClip.stop(); thunderClip.close(); thunderClip = null; }
+                if (intenseClip != null) { intenseClip.stop(); intenseClip.close(); intenseClip = null; }
                 if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip.close();     phoneRingClip = null; }
                 if (typewriterKeyClip != null) { typewriterKeyClip.stop(); typewriterKeyClip.close(); typewriterKeyClip = null; }
                 if (typewriterTimer   != null) { typewriterTimer.stop();   typewriterTimer = null; }
@@ -381,7 +405,8 @@ public class Backstory extends javax.swing.JFrame {
             }
 
             @Override public void onOptions() {
-                // Optional — do nothing for now, or open an options dialog
+                pauseMenu.hidePopupOnly();
+                optionsMenu.show();
                 System.out.println("Options clicked");
             }
         });
@@ -457,16 +482,9 @@ public class Backstory extends javax.swing.JFrame {
             phoneRingClip.close();
             phoneRingClip = null;
         }
-        if (thunderClip != null) {
-            thunderClip.stop();
-            thunderClip.close();
-            thunderClip = null;
-        }
-        if (intenseClip != null) {
-            intenseClip.stop();
-            intenseClip.close();
-            intenseClip = null;
-        }
+
+        stopAndClose(thunderClip);   thunderClip = null;
+        stopAndClose(intenseClip);   intenseClip = null;
 
         // Fire this slide's one-shot SFX — but skip if this slide handles its own SFX
         if (s.sfxPath != null && currentSlide != 0) {
@@ -475,7 +493,7 @@ public class Backstory extends javax.swing.JFrame {
 
         // Slide 1: loop thunder + delayed phone ring
         if (currentSlide == 0) {
-            if (thunderClip != null) { thunderClip.stop(); thunderClip.close(); }
+            stopAndClose(thunderClip);
             thunderClip = playLooping("/audio/backstory/sfx/thunder.wav");
 
             if (ringDelayTimer != null) ringDelayTimer.stop();
@@ -702,6 +720,7 @@ public class Backstory extends javax.swing.JFrame {
                          javax.sound.sampled.AudioSystem.getAudioInputStream(is);
                      clip = javax.sound.sampled.AudioSystem.getClip();
                      clip.open(ais);
+                     SfxManager.applyVolume(clip, SfxManager.getVolumePercent());
                      audioDurationMs = clip.getMicrosecondLength() / 1000;
                      currentClip = clip;
                  }
@@ -829,12 +848,21 @@ public class Backstory extends javax.swing.JFrame {
                 javax.sound.sampled.AudioSystem.getAudioInputStream(is);
             javax.sound.sampled.Clip c = javax.sound.sampled.AudioSystem.getClip();
             c.open(ais);
+            SfxManager.applyVolume(c, SfxManager.getVolumePercent());
             c.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
+            ambienceClips.add(c);          // ← register
             return c;
         } catch (Exception e) {
             System.out.println("SFX loop not found: " + path);
             return null;
         }
+    }
+    
+    private void stopAndClose(javax.sound.sampled.Clip c) {
+        if (c == null) return;
+        c.stop();
+        c.close();
+        ambienceClips.remove(c);
     }
 
     /** Loads and plays a one-shot clip. Returns the clip so you can stop it if needed. */
@@ -845,6 +873,7 @@ public class Backstory extends javax.swing.JFrame {
                 javax.sound.sampled.AudioSystem.getAudioInputStream(is);
             javax.sound.sampled.Clip c = javax.sound.sampled.AudioSystem.getClip();
             c.open(ais);
+            SfxManager.applyVolume(c, SfxManager.getVolumePercent());   // ← ADD
             c.start();
             return c;
         } catch (Exception e) {
@@ -856,16 +885,17 @@ public class Backstory extends javax.swing.JFrame {
     /** Plays the typewriter key click once. Reuses the same loaded clip. */
     private void playKeyClick() {
         if (typewriterKeyClip == null) return;
+        SfxManager.applyVolume(typewriterKeyClip, SfxManager.getVolumePercent());  // ← ADD
         typewriterKeyClip.setFramePosition(0);
         typewriterKeyClip.start();
     }
     
     @Override
     public void dispose() {
-        if (rainClip          != null) { rainClip.stop();          rainClip.close(); }
+        stopAndClose(rainClip);      rainClip = null;
         if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip.close(); }
-        if (thunderClip       != null) { thunderClip.stop();       thunderClip.close(); }
-        if (intenseClip       != null) { intenseClip.stop();       intenseClip.close(); }
+        stopAndClose(thunderClip);   thunderClip = null;
+        stopAndClose(intenseClip);   intenseClip = null;
         if (typewriterKeyClip != null) { typewriterKeyClip.stop(); typewriterKeyClip.close(); }
         if (currentClip       != null) { currentClip.stop();       currentClip.close(); }
         if (typewriterTimer   != null) { typewriterTimer.stop(); }

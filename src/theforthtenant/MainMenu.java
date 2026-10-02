@@ -12,6 +12,7 @@ public class MainMenu extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainMenu.class.getName());
     private javax.sound.sampled.Clip musicClip;
+    private OptionsMenu optionsMenu;
     
     /**
      * Creates new form MainMenu
@@ -29,6 +30,7 @@ public class MainMenu extends javax.swing.JFrame {
         
         // Play the menu music on loop
         musicClip = playSound("/audio/music.wav", true);
+        applyMusicVolume(SfxManager.getMusicVolumePercent());
         
         // 1. Load the custom font
         java.awt.Font customFont = getCustomFont(25f);
@@ -101,6 +103,22 @@ public class MainMenu extends javax.swing.JFrame {
             }
         });
         
+        optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
+
+            @Override public void onMusicChanged(int percent) {
+                applyMusicVolume(percent);
+            }
+
+            @Override public void onSoundChanged(int percent) {
+                // SfxManager is already updated by OptionsMenu itself — just play a blip
+                SfxManager.playOneShot(MainMenu.this.getClass(), "/audio/hover.wav");
+            }
+
+            @Override public void onClose() {
+                jButton1.requestFocusInWindow();
+            }
+        });
+
         // 5. Set the first button (START) to be highlighted when the game launches
         jButton1.requestFocusInWindow();
         
@@ -297,7 +315,7 @@ public class MainMenu extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         playSound("/audio/select.wav", false);
         System.out.println("OPTIONS button clicked!");
-        // Later: Code to open a options window goes here
+        optionsMenu.show();
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
@@ -340,6 +358,8 @@ public class MainMenu extends javax.swing.JFrame {
             if (loop) {
                 clip.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
             } else {
+                // Route one-shot SFX through the manager so master volume applies
+                SfxManager.applyVolume(clip, SfxManager.getVolumePercent());
                 clip.start();
             }
             return clip;
@@ -361,6 +381,18 @@ public class MainMenu extends javax.swing.JFrame {
             btn.setContentAreaFilled(false);
             btn.setForeground(java.awt.Color.GRAY);
         }
+    }
+    
+    private void applyMusicVolume(int percent) {
+        if (musicClip == null) return;
+        try {
+            javax.sound.sampled.FloatControl gain =
+                (javax.sound.sampled.FloatControl)
+                musicClip.getControl(javax.sound.sampled.FloatControl.Type.MASTER_GAIN);
+            float dB = (percent <= 0) ? -80f
+                     : (float)(20.0 * Math.log10(percent / 100.0));
+            gain.setValue(Math.max(-80f, Math.min(0f, dB)));
+        } catch (Exception ignored) {}
     }
     
     public static void main(String args[]) {
