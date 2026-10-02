@@ -111,7 +111,7 @@ public class OptionsMenu {
     
     private void bindKeys(boolean on) {
         javax.swing.JRootPane root = frame.getRootPane();
-        javax.swing.InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        javax.swing.InputMap im = root.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT); 
         javax.swing.ActionMap am = root.getActionMap();
 
         if (on) {

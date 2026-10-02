@@ -36,6 +36,12 @@ public class TransitionOverlay {
     private static final int ICON_SIZE     = 80;    // magnifier render size
     private static final float MAX_DARKNESS = 0.9f;  // 0 = no dim, 1 = full black
     private static final int MARGIN        = 10;     // distance from the chosen corner
+    
+    // ── input lock ──
+    private static boolean playing = false;
+    public static boolean isPlaying() { return playing; }
+
+    private static java.awt.KeyEventDispatcher blocker;
 
     /** Convenience: default position is BOTTOM_RIGHT. */
     public static void play(JFrame frame, Runnable onFinished) {
@@ -43,6 +49,14 @@ public class TransitionOverlay {
     }
 
     public static void play(JFrame frame, Position pos, Runnable onFinished) {
+        if (playing) return;
+        playing = true;
+
+        // Block all keyboard input during the transition
+        blocker = e -> true;   // returning true = consume the event, don't dispatch
+        java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager()
+            .addKeyEventDispatcher(blocker);
+
         JLayeredPane layered = frame.getRootPane().getLayeredPane();
 
         OverlayPanel overlay = new OverlayPanel(pos);
@@ -67,6 +81,15 @@ public class TransitionOverlay {
                 timer.stop();
                 layered.remove(overlay);
                 layered.repaint();
+
+                // Release the keyboard lock
+                if (blocker != null) {
+                    java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                        .removeKeyEventDispatcher(blocker);
+                    blocker = null;
+                }
+                playing = false;
+
                 if (onFinished != null) onFinished.run();
             }
         });
@@ -80,6 +103,15 @@ public class TransitionOverlay {
 
         OverlayPanel(Position position) {
             this.position = position;
+            setOpaque(false);
+
+            // Swallow all mouse events while the transition plays
+            addMouseListener(new java.awt.event.MouseAdapter() {});
+            addMouseMotionListener(new java.awt.event.MouseAdapter() {});
+            addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+                public void mouseWheelMoved(java.awt.event.MouseWheelEvent e) {}
+            });
+
             try {
                 InputStream is = getClass().getResourceAsStream("/Images/magnifier.png");
                 if (is != null) icon = ImageIO.read(is);
