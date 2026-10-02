@@ -225,7 +225,12 @@ public class CrimeScene extends javax.swing.JFrame {
         // ---- Collectable crime scene items ----
         javax.swing.JLabel[] items = {
             padlock, belt, dragpath, phone, footmarks, drum,
-            usb, boots, mug, toolbox, prescription, rag
+            usb, 
+            boots, 
+            mug, 
+            toolbox, 
+            prescription, 
+            rag,
         };
         for (javax.swing.JLabel item : items) {
             makeCollectable(item);
@@ -339,7 +344,7 @@ public class CrimeScene extends javax.swing.JFrame {
         jLabel2.setText("INVENTORY");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 612, 220, 70));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/locations/BedRoom.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/locations/CrimeScene.png"))); // NOI18N
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -457,10 +462,12 @@ public class CrimeScene extends javax.swing.JFrame {
     private void setInterrogateUnlocked(boolean unlocked) {
         interrogateUnlocked = unlocked;
 
-        jLabel9.setVisible(!unlocked);   // hide tape when unlocked
-
         if (unlocked) {
-            // enable INTERROGATE now
+            if (jLabel9 != null && jLabel9.getParent() != null) {
+                playTapeFallAnimation();     // replaces jLabel9.setVisible(false)
+            }
+
+            // enable INTERROGATE
             jLabel5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
             final javax.swing.JLabel lbl = jLabel5;
@@ -479,7 +486,79 @@ public class CrimeScene extends javax.swing.JFrame {
                     // open interrogate panel here
                 }
             });
+        } else {
+            if (jLabel9 != null) jLabel9.setVisible(true);
         }
+    }
+    
+    private void playTapeFallAnimation() {
+        if (jLabel9 == null) return;
+
+        // Capture geometry in jPanel1's coordinate space, then convert to
+        // the frame's content-pane coordinates (which the layered pane uses).
+        final java.awt.Point originInPanel = javax.swing.SwingUtilities.convertPoint(
+                jLabel9.getParent(), 0, 0, jPanel1);
+        final int baseX = jLabel9.getX() + originInPanel.x;
+        final int baseY = jLabel9.getY() + originInPanel.y;
+        final int w     = jLabel9.getWidth();
+        final int h     = jLabel9.getHeight();
+
+        final javax.swing.Icon originalIcon = jLabel9.getIcon();
+
+        // Remove the real label from the layout so it doesn't stay behind.
+        java.awt.Container parent = jLabel9.getParent();
+        if (parent != null) parent.remove(jLabel9);
+        jPanel1.revalidate();
+        jPanel1.repaint();
+
+        // Ghost label on the layered pane — free positioning, no layout manager.
+        final javax.swing.JLabel ghost = new javax.swing.JLabel(originalIcon);
+        ghost.setBounds(baseX, baseY, w, h);
+        ghost.setOpaque(false);
+
+        javax.swing.JLayeredPane layered = getRootPane().getLayeredPane();
+        layered.add(ghost, javax.swing.JLayeredPane.POPUP_LAYER);
+        layered.repaint();
+
+        final long start    = System.currentTimeMillis();
+        final int  DURATION = 900;
+
+        javax.swing.Timer timer = new javax.swing.Timer(16, null);
+        timer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            float p = Math.min(1f, elapsed / (float) DURATION);
+
+            float fall = p * p;                                        // gravity ease-in
+            int dy = (int) (fall * (getContentPane().getHeight() - baseY + h));
+            int dx = (int) (Math.sin(p * Math.PI * 2.5) * 18 * (1 - p * 0.5));
+            double angle = Math.toRadians(-8 * p);
+
+            // Rotate the icon on a temporary buffer, then set as the ghost's icon
+            java.awt.image.BufferedImage buf = new java.awt.image.BufferedImage(
+                    w + 80, h + 80, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g2 = buf.createGraphics();
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                                java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.rotate(angle, buf.getWidth() / 2.0, buf.getHeight() / 2.0);
+            originalIcon.paintIcon(ghost, g2, 40, 40);
+            g2.dispose();
+
+            ghost.setIcon(new javax.swing.ImageIcon(buf));
+            ghost.setBounds(baseX + dx - 40,
+                            baseY + dy - 40,
+                            buf.getWidth(), buf.getHeight());
+
+            // Alpha fade via a simple wrapper — use a transparent overlay with
+            // setForeground-based trick isn't needed; just remove at end.
+            layered.repaint();
+
+            if (p >= 1f) {
+                timer.stop();
+                layered.remove(ghost);
+                layered.repaint();
+            }
+        });
+        timer.start();
     }
     
     private void makeCollectable(javax.swing.JLabel item) {
@@ -490,6 +569,11 @@ public class CrimeScene extends javax.swing.JFrame {
 
                 // mark as collected FIRST so re-showing the scene keeps it hidden
                 item.putClientProperty("pickedUp", Boolean.TRUE);
+                
+                // NEW: unlock interrogation once everything is collected
+                if (allItemsCollected()) {
+                    setInterrogateUnlocked(true);
+                }
 
                 java.awt.Point itemP = javax.swing.SwingUtilities.convertPoint(
                         item, item.getWidth() / 2, item.getHeight() / 2,
@@ -587,6 +671,15 @@ public class CrimeScene extends javax.swing.JFrame {
        if (maxX < 0 || maxY < 0) return null;   // fully transparent image
        return new java.awt.Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
    }
+   
+   private boolean allItemsCollected() {
+        for (javax.swing.JLabel item : itemScene.keySet()) {
+            if (!Boolean.TRUE.equals(item.getClientProperty("pickedUp"))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
