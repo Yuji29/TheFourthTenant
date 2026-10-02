@@ -566,6 +566,8 @@ public class CrimeScene extends javax.swing.JFrame {
         item.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         item.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                
+                SfxManager.playOneShot(CrimeScene.this.getClass(), "/audio/part1/pickup.wav");
 
                 // mark as collected FIRST so re-showing the scene keeps it hidden
                 item.putClientProperty("pickedUp", Boolean.TRUE);
