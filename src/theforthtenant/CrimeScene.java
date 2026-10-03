@@ -44,6 +44,9 @@ public class CrimeScene extends javax.swing.JFrame {
     // ---- Interrogation unlock state ----
     private boolean interrogateUnlocked = false;
     private boolean interrogateListenerAttached = false;
+    
+    // Only play the fade-in the first time the CrimeScene opens (from Backstory).
+    private static boolean introFadePlayed = false;
 
     // ---- Scene index constants ----
     private static final int SCENE_PORCH   = 0;
@@ -73,9 +76,7 @@ public class CrimeScene extends javax.swing.JFrame {
         itemScene.put(toolbox,      SCENE_LIVING);
         itemScene.put(prescription, SCENE_DINING);
         itemScene.put(rag,          SCENE_BED);
-
-        showScene(0);
-
+       
         // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
@@ -157,7 +158,13 @@ public class CrimeScene extends javax.swing.JFrame {
                     @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                         AudioCache.play("/audio/sfx/ui/select.wav");
                         System.out.println(menuText[index] + " clicked");
-                        // Add per-label click behavior here later.
+                        
+                        if (index == 0) {   // INVENTORY
+                            Inventory inv = new Inventory();
+                            inv.setLocation(CrimeScene.this.getLocation());
+                            inv.setVisible(true);
+                            CrimeScene.this.dispose();   
+                        }
                     }
                 });
             }
@@ -221,6 +228,7 @@ public class CrimeScene extends javax.swing.JFrame {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_RIGHT, 0), "sceneNext");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, 0), "scenePrev");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, 0), "sceneNext");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, 0), "openInventory");
 
         am.put("scenePrev", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -230,6 +238,20 @@ public class CrimeScene extends javax.swing.JFrame {
         am.put("sceneNext", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 navigateScene(+1);
+            }
+        });
+        
+        am.put("openInventory", new javax.swing.AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (pauseMenu != null && pauseMenu.isPaused()) return;
+                if (TransitionOverlay.isPlaying()) return;
+
+                AudioCache.play("/audio/sfx/ui/select.wav");
+
+                Inventory inv = new Inventory();
+                inv.setLocation(CrimeScene.this.getLocation());
+                inv.setVisible(true);
+                CrimeScene.this.dispose();
             }
         });
 
@@ -275,16 +297,19 @@ public class CrimeScene extends javax.swing.JFrame {
             }
         });
         
-        // ---- Fade-in overlay (covers the whole panel) ----
-        fadeOverlay = new FadeOverlay();
-        jPanel1.add(fadeOverlay,
-            new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
-        jPanel1.setComponentZOrder(fadeOverlay, 0);
+        // ---- Fade-in overlay — only on the very first CrimeScene (from Backstory) ----
+        if (!introFadePlayed) {
+            introFadePlayed = true;
 
-        // Start fade shortly after the window is shown.
-        javax.swing.Timer starter = new javax.swing.Timer(150, e -> fadeIn());
-        starter.setRepeats(false);
-        starter.start();
+            fadeOverlay = new FadeOverlay();
+            jPanel1.add(fadeOverlay,
+                new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+            jPanel1.setComponentZOrder(fadeOverlay, 0);
+
+            javax.swing.Timer starter = new javax.swing.Timer(150, e -> fadeIn());
+            starter.setRepeats(false);
+            starter.start();
+        }
 
         // ---- Collectable crime scene items ----
         javax.swing.JLabel[] items = {
@@ -304,8 +329,29 @@ public class CrimeScene extends javax.swing.JFrame {
             items[i].setName(itemNames[i]);
             makeCollectable(items[i]);
         }
+        
+        // ---- Restore pickup state (names now set) ----
+        for (javax.swing.JLabel item : itemScene.keySet()) {
+            if (GameState.isCollected(item.getName())) {
+                item.putClientProperty("pickedUp", Boolean.TRUE);
+            }
+        }
+        
+        // ---- Restore INTERROGATE unlock state (from a previous visit) ----
+        if (GameState.allCollected()) {
+            // Remove the police tape without playing the animation.
+            if (jLabel9 != null && jLabel9.getParent() != null) {
+                jLabel9.getParent().remove(jLabel9);
+                jPanel1.revalidate();
+                jPanel1.repaint();
+            }
+            jLabel5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            attachInterrogateListener();
+        }
+        
+        // ---- Show the starting scene ----
+        showScene(GameState.getLastSceneIndex());  
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -501,6 +547,8 @@ public class CrimeScene extends javax.swing.JFrame {
         if (index < 0) index = 0;
         if (index >= sceneImages.length) index = sceneImages.length - 1;
         currentScene = index;
+        
+        GameState.setLastSceneIndex(index);
 
         java.net.URL url = getClass().getResource(sceneImages[index]);
         if (url != null) {
@@ -726,6 +774,7 @@ public class CrimeScene extends javax.swing.JFrame {
 
                 // Mark as collected FIRST so re-showing the scene keeps it hidden.
                 item.putClientProperty("pickedUp", Boolean.TRUE);
+                GameState.markCollected(item.getName());
 
                 // Unlock INTERROGATE once everything is collected.
                 if (!interrogateUnlocked && allItemsCollected()) {
@@ -868,12 +917,7 @@ public class CrimeScene extends javax.swing.JFrame {
 
     /** Returns {@code true} if every collectable item has been picked up. */
     private boolean allItemsCollected() {
-        for (javax.swing.JLabel item : itemScene.keySet()) {
-            if (!Boolean.TRUE.equals(item.getClientProperty("pickedUp"))) {
-                return false;
-            }
-        }
-        return true;
+        return GameState.allCollected();
     }
 
     @Override

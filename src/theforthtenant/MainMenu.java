@@ -283,6 +283,9 @@ public class MainMenu extends javax.swing.JFrame {
 
         playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("START button clicked!");
+        
+        // Reset session state — new playthrough.
+        GameState.reset();
 
         // Stop the menu music
         if (musicClip != null) {
