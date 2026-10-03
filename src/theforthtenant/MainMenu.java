@@ -37,7 +37,7 @@ public class MainMenu extends javax.swing.JFrame {
         }
 
         // ---- Menu music (looping) ----
-        musicClip = AudioCache.loop("/audio/music.wav", AudioCache.Channel.MUSIC);
+        musicClip = AudioCache.loop("/audio/music/menu.wav", AudioCache.Channel.MUSIC);
 
         // ---- Style the four main menu buttons ----
         java.awt.Font customFont = getCustomFont(25f);
@@ -71,7 +71,7 @@ public class MainMenu extends javax.swing.JFrame {
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    playSound("/audio/hover.wav", false);
+                    playSound("/audio/sfx/ui/hover.wav", false);
                     highlightButton(btn, true);
                     btn.requestFocusInWindow(); // so arrow keys work from here
                 }
@@ -116,7 +116,7 @@ public class MainMenu extends javax.swing.JFrame {
 
             @Override public void onSoundChanged(int percent) {
                 // SfxManager is already updated by OptionsMenu itself — just play a blip.
-                AudioCache.play("/audio/hover.wav");
+                AudioCache.play("/audio/sfx/ui/hover.wav");
             }
 
             @Override public void onClose() {
@@ -140,25 +140,25 @@ public class MainMenu extends javax.swing.JFrame {
         // DOWN cycles forward through the buttons (wraps around).
         jButton1.getActionMap().put("down", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton2.requestFocusInWindow();
             }
         });
         jButton2.getActionMap().put("down", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton3.requestFocusInWindow();
             }
         });
         jButton3.getActionMap().put("down", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton4.requestFocusInWindow();
             }
         });
         jButton4.getActionMap().put("down", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton1.requestFocusInWindow();
             }
         });
@@ -166,25 +166,25 @@ public class MainMenu extends javax.swing.JFrame {
         // UP cycles backward through the buttons (wraps around).
         jButton1.getActionMap().put("up", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton4.requestFocusInWindow();
             }
         });
         jButton2.getActionMap().put("up", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton1.requestFocusInWindow();
             }
         });
         jButton3.getActionMap().put("up", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton2.requestFocusInWindow();
             }
         });
         jButton4.getActionMap().put("up", new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                playSound("/audio/hover.wav", false);
+                playSound("/audio/sfx/ui/hover.wav", false);
                 jButton3.requestFocusInWindow();
             }
         });
@@ -281,7 +281,7 @@ public class MainMenu extends javax.swing.JFrame {
          // Don't play click / kill music if a transition is already playing
         if (TransitionOverlay.isPlaying()) return;
 
-        playSound("/audio/select.wav", false);
+        playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("START button clicked!");
 
         // Stop the menu music
@@ -300,25 +300,25 @@ public class MainMenu extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        playSound("/audio/select.wav", false);
+        playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("HOW TO PLAY button clicked!");
         // Later: Code to open a how to play window goes here
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        playSound("/audio/select.wav", false);
+        playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("OPTIONS button clicked!");
         optionsMenu.show();
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        playSound("/audio/select.wav", false);
+        playSound("/audio/sfx/ui/select.wav", false);
         AudioCache.closeAll();
         System.exit(0); 
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        playSound("/audio/select.wav", false);
+        playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("CREDITS button clicked!");
         // Later: Code to open a credits window goes here
     }//GEN-LAST:event_jButton5ActionPerformed

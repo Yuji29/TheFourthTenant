@@ -101,10 +101,10 @@ public class PauseMenu {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 if (subPopupOpen) return;
                 if (paused) {
-                    AudioCache.play("/audio/select.wav");
+                    AudioCache.play("/audio/sfx/ui/select.wav");
                     resume();
                 } else {
-                    AudioCache.play("/audio/pause_open.wav");
+                    AudioCache.play("/audio/sfx/ui/pause_open.wav");
                     pause();
                 }
             }
@@ -228,11 +228,11 @@ public class PauseMenu {
                         int hit = hitTest(e.getPoint());
                         if (hit >= 0) {
                             selectedIndex = hit;
-                            AudioCache.play("/audio/select.wav");
+                            AudioCache.play("/audio/sfx/ui/select.wav");
                             activate(hit);
                         }
                     } else if (isPauseIconHit(e.getPoint())) {
-                        AudioCache.play("/audio/pause_open.wav");
+                        AudioCache.play("/audio/sfx/ui/pause_open.wav");
                         pause();
                     }
                 }
@@ -246,7 +246,7 @@ public class PauseMenu {
                         hoveredIndex = hit;
                         if (hit >= 0) {
                             selectedIndex = hit;
-                            AudioCache.play("/audio/hover.wav");
+                            AudioCache.play("/audio/sfx/ui/hover.wav");
                         }
                         repaint();
                     }

@@ -37,6 +37,9 @@ public class CrimeScene extends javax.swing.JFrame {
     // Currently playing ambient loop (rain or indoor hum)
     private javax.sound.sampled.Clip ambienceClip;
     private String ambiencePath;
+    
+    // ---- Fade-in overlay shown when the scene first opens ----
+    private FadeOverlay fadeOverlay;
 
     // ---- Interrogation unlock state ----
     private boolean interrogateUnlocked = false;
@@ -86,18 +89,28 @@ public class CrimeScene extends javax.swing.JFrame {
         new javax.swing.SwingWorker<Void, Void>() {
             @Override protected Void doInBackground() {
                 AudioCache.prepare(
-                    "/audio/part1/pickup.wav",
-                    "/audio/part1/indoor_hum.wav",
-                    "/audio/part1/tape_ripping.wav",
-                    "/audio/part1/thud.wav",
-                    "/audio/backstory/sfx/rain_loop.wav",
-                    "/audio/hover.wav",
-                    "/audio/select.wav",
-                    "/audio/pause_open.wav"
+                    "/audio/sfx/gameplay/pickup.wav",
+                    "/audio/sfx/ambience/indoor_hum.wav",
+                    "/audio/sfx/gameplay/tape_ripping.wav",
+                    "/audio/sfx/gameplay/thud.wav",
+                    "/audio/sfx/ambience/rain_loop.wav",
+                    "/audio/sfx/ui/hover.wav",
+                    "/audio/sfx/ui/select.wav",
+                    "/audio/sfx/ui/pause_open.wav",
+                    "audio/sfx/ui/click.wav"
                 );
                 return null;
             }
         }.execute();
+        
+        // ---- Background click: play a click sound when the player misses all items ----
+        jPanel1.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getComponent() == jPanel1) {
+                    AudioCache.play("/audio/sfx/ui/click.wav");
+                }
+            }
+        });
 
         setTitle("The Fourth Tenant");
         setResizable(false);
@@ -136,13 +149,13 @@ public class CrimeScene extends javax.swing.JFrame {
                 lbl.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                         lbl.setForeground(HOVER_COLOR);
-                        AudioCache.play("/audio/hover.wav");
+                        AudioCache.play("/audio/sfx/ui/hover.wav");
                     }
                     @Override public void mouseExited(java.awt.event.MouseEvent e) {
                         lbl.setForeground(NORMAL_COLOR);
                     }
                     @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                        AudioCache.play("/audio/select.wav");
+                        AudioCache.play("/audio/sfx/ui/select.wav");
                         System.out.println(menuText[index] + " clicked");
                         // Add per-label click behavior here later.
                     }
@@ -159,7 +172,7 @@ public class CrimeScene extends javax.swing.JFrame {
                 // CrimeScene has no music — nothing to do here.
             }
             @Override public void onSoundChanged(int percent) {
-                AudioCache.play("/audio/hover.wav");
+                AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void onClose() {
                 // Bring back the pause popup.
@@ -261,6 +274,17 @@ public class CrimeScene extends javax.swing.JFrame {
                 navigateScene(+1);
             }
         });
+        
+        // ---- Fade-in overlay (covers the whole panel) ----
+        fadeOverlay = new FadeOverlay();
+        jPanel1.add(fadeOverlay,
+            new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+        jPanel1.setComponentZOrder(fadeOverlay, 0);
+
+        // Start fade shortly after the window is shown.
+        javax.swing.Timer starter = new javax.swing.Timer(150, e -> fadeIn());
+        starter.setRepeats(false);
+        starter.start();
 
         // ---- Collectable crime scene items ----
         javax.swing.JLabel[] items = {
@@ -494,8 +518,8 @@ public class CrimeScene extends javax.swing.JFrame {
 
         // ---- Ambience: rain outside (scenes 0-1), indoor hum inside (2-6) ----
         String newAmbience = (index <= 1)
-            ? "/audio/backstory/sfx/rain_loop.wav"
-            : "/audio/part1/indoor_hum.wav";
+            ? "/audio/sfx/ambience/rain_loop.wav"
+            : "/audio/sfx/ambience/indoor_hum.wav";
 
         // Only restart if we're switching to a *different* ambience track.
         if (!newAmbience.equals(ambiencePath)) {
@@ -516,8 +540,33 @@ public class CrimeScene extends javax.swing.JFrame {
         if (TransitionOverlay.isPlaying()) return;
         if (sceneImages.length == 0) return;
         int next = (currentScene + direction + sceneImages.length) % sceneImages.length;
-        AudioCache.play("/audio/part1/thud.wav");
+        AudioCache.play("/audio/sfx/gameplay/thud.wav");
         showScene(next);
+    }
+    
+    /** Fades the black overlay out from full opacity to transparent. */
+    private void fadeIn() {
+        if (fadeOverlay == null) return;
+
+        final long startTime = System.currentTimeMillis();
+        final int DURATION_MS = 1200;
+
+        javax.swing.Timer t = new javax.swing.Timer(16, null);
+        t.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - startTime;
+            float progress = Math.min(1f, elapsed / (float) DURATION_MS);
+
+            fadeOverlay.setAlpha(1f - progress);   // 1 → 0
+
+            if (progress >= 1f) {
+                ((javax.swing.Timer) e.getSource()).stop();
+                jPanel1.remove(fadeOverlay);
+                fadeOverlay = null;
+                jPanel1.revalidate();
+                jPanel1.repaint();
+            }
+        });
+        t.start();
     }
 
     /** Returns a darkened copy of the given image (used for arrow hover states). */
@@ -545,7 +594,7 @@ public class CrimeScene extends javax.swing.JFrame {
         interrogateUnlocked = unlocked;
 
         if (unlocked) {
-            AudioCache.play("/audio/part1/tape_ripping.wav");
+            AudioCache.play("/audio/sfx/gameplay/tape_ripping.wav");
 
             if (jLabel9 != null && jLabel9.getParent() != null) {
                 playTapeFallAnimation();
@@ -571,13 +620,13 @@ public class CrimeScene extends javax.swing.JFrame {
         lbl.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 lbl.setForeground(HOVER);
-                AudioCache.play("/audio/hover.wav");
+                AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
                 lbl.setForeground(NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/select.wav");
+                AudioCache.play("/audio/sfx/ui/select.wav");
                 System.out.println("INTERROGATE clicked");
                 // Open interrogate panel here.
             }
@@ -671,7 +720,7 @@ public class CrimeScene extends javax.swing.JFrame {
                 System.out.println("CLICK on " + item.getName()
                     + " at " + e.getX() + "," + e.getY());
 
-                AudioCache.play("/audio/part1/pickup.wav");
+                AudioCache.play("/audio/sfx/gameplay/pickup.wav");
 
                 // Mark as collected FIRST so re-showing the scene keeps it hidden.
                 item.putClientProperty("pickedUp", Boolean.TRUE);
@@ -832,6 +881,29 @@ public class CrimeScene extends javax.swing.JFrame {
             ambienceClip = null;
         }
         super.dispose();
+    }
+    
+    /** Simple black overlay that fades out. */
+    private static class FadeOverlay extends javax.swing.JComponent {
+        private float alpha = 1f;
+
+        FadeOverlay() {
+            setOpaque(false);
+        }
+
+        void setAlpha(float a) {
+            this.alpha = Math.max(0f, Math.min(1f, a));
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            if (alpha <= 0f) return;
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            g2.setColor(new java.awt.Color(0, 0, 0, (int)(alpha * 255)));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+        }
     }
     
     public static void main(String args[]) {

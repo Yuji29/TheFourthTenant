@@ -102,76 +102,76 @@ public class Backstory extends javax.swing.JFrame {
     private final Slide[] slides = {
         // 1 — Phone rings
         new Slide("/Images/backstory/slide1.png",
-            "/audio/backstory/sfx/thunder.wav",
+            "/audio/backstory_sfx/thunder.wav",
             new SubtitleBox.Line(null, "[Phone ringing]")),
 
         // 2 — Receiver clicks
         new Slide("/Images/backstory/slide2.png",
-            "/audio/backstory/sfx/receiver_click.wav",
+            "/audio/backstory_sfx/receiver_click.wav",
             new SubtitleBox.Line(null, "[Receiver clicks]")),
 
         // 3 — Detective answers
         new Slide("/Images/backstory/slide3.png",
             new SubtitleBox.Line("Detective", "Detective speaking.",
-            "/audio/backstory/s03_detective.wav")),
+            "/audio/voice/backstory/s03_detective.wav")),
 
         // 4 — Morales briefs the detective
         new Slide("/Images/backstory/slide4.png",
             new SubtitleBox.Line("Officer Morales", "Detective, glad I caught you at your desk. We have a 10-54 code over at Barangay San Lorenzo—specifically the old three-story boarding house near the corner lot. We need you on-site immediately.",
-            "/audio/backstory/s04_morales.wav")),
+            "/audio/voice/backstory/s04_morales.wav")),
 
         // 5 — Detective asks for basics
         new Slide("/Images/backstory/slide5.png",
             new SubtitleBox.Line("Detective", "Give me the basics, Morales. What are we looking at?",
-            "/audio/backstory/s05_detective.wav")),
+            "/audio/voice/backstory/s05_detective.wav")),
 
         // 6 — Morales describes the victim and scene
         new Slide("/Images/backstory/slide6.png",
-            "/audio/backstory/sfx/siren_distant.wav",
+            "/audio/backstory_sfx/siren_distant.wav",
             new SubtitleBox.Line("Officer Morales", "Homicide. The victim is a female tenant named Abby Salle. She was stuffed inside an industrial blue water drum on the open rooftop.",
-                    "/audio/backstory/s06_morales.wav")),
+                    "/audio/voice/backstory/s06_morales.wav")),
 
         // 7 — Detective asks about the ME; Morales gives discovery time
         new Slide("/Images/backstory/slide7.png",
-            "/audio/backstory/sfx/wind_gust.wav",
+            "/audio/backstory_sfx/wind_gust.wav",
             L(new SubtitleBox.Line("Detective", "Has the medical examiner given an initial read?",
-                    "/audio/backstory/s07_detective.wav")),
+                    "/audio/voice/backstory/s07_detective.wav")),
             L(new SubtitleBox.Line("Officer Morales", "The body was discovered just twenty minutes ago, around 6:30 AM, by one of the housemates heading up to do laundry.",
-                    "/audio/backstory/s07_morales.wav"))),
+                    "/audio/voice/backstory/s07_morales.wav"))),
 
         // 8 — Morales gives coroner's preliminary findings
         new Slide("/Images/backstory/slide8.png",
-                "/audio/backstory/sfx/siren_distant.wav",
+                "/audio/backstory_sfx/siren_distant.wav",
             new SubtitleBox.Line("Officer Morales", "The coroner just did a preliminary check. Rigor mortis is fairly advanced—they're placing the estimated time of death between 1:30 AM and 2:30 AM earlier today. As for the primary cause of death, preliminary findings show severe head trauma and asphyxiation before she was folded into the drum.",
-                    "/audio/backstory/s08_morales.wav")),
+                    "/audio/voice/backstory/s08_morales.wav")),
 
         // 9 — Detective asks about scene security
         new Slide("/Images/backstory/slide9.png",
             new SubtitleBox.Line("Detective", "Anyone secured the area? Who's at the location?",
-                    "/audio/backstory/s09_detective.wav")),
+                    "/audio/voice/backstory/s09_detective.wav")),
 
         // 10 — Morales confirms perimeter is sealed
         new Slide("/Images/backstory/slide10.png",
-                "/audio/backstory/sfx/siren_distant.wav",
+                "/audio/backstory_sfx/siren_distant.wav",
             new SubtitleBox.Line("Officer Morales", "The rooftop and the entire boarding house are sealed under standard perimeter protocol.",
-                    "/audio/backstory/s10_morales.wav")),
+                    "/audio/voice/backstory/s10_morales.wav")),
 
         // 11 — Morales lists tenants and containment
         new Slide("/Images/backstory/slide11.png",
             new SubtitleBox.Line("Officer Morales", "Aside from the victim, three other tenants live in the building. We have all three detained downstairs in the common area until you arrive. Nobody enters, nobody leaves.",
-                    "/audio/backstory/s11_morales.wav")),
+                    "/audio/voice/backstory/s11_morales.wav")),
 
         // 12 — Detective asks about statements/weapons; Morales urges haste
         new Slide("/Images/backstory/slide12.png",
             null,
             L(new SubtitleBox.Line("Detective", "Any initial statements or weapons recovered?",
-                    "/audio/backstory/s12_detective.wav")),
+                    "/audio/voice/backstory/s12_detective.wav")),
             L(new SubtitleBox.Line("Officer Morales", "Nothing yet. We didn't want to contaminate the crime scene or compromise preliminary interviews before lead gets here. The rain’s letting up, but we need you to process the rooftop and review the house before things get cold. Get down here right away, Detective.",
-                    "/audio/backstory/s12_morales.wav"))),
+                    "/audio/voice/backstory/s12_morales.wav"))),
 
         // 13 — Door creaks; player clicks to proceed
         new Slide("/Images/backstory/slide13.png",
-            "/audio/backstory/sfx/door_creak.wav")
+            "/audio/backstory_sfx/door_creak.wav")
     };
 
     /**
@@ -324,26 +324,26 @@ public class Backstory extends javax.swing.JFrame {
         new javax.swing.SwingWorker<Void, Void>() {
             @Override protected Void doInBackground() {
                 AudioCache.prepare(
-                    "/audio/backstory/s03_detective.wav",
-                    "/audio/backstory/s04_morales.wav",
-                    "/audio/backstory/s05_detective.wav",
-                    "/audio/backstory/s06_morales.wav",
-                    "/audio/backstory/s07_detective.wav",
-                    "/audio/backstory/s07_morales.wav",
-                    "/audio/backstory/s08_morales.wav",
-                    "/audio/backstory/s09_detective.wav",
-                    "/audio/backstory/s10_morales.wav",
-                    "/audio/backstory/s11_morales.wav",
-                    "/audio/backstory/s12_detective.wav",
-                    "/audio/backstory/s12_morales.wav",
-                    "/audio/backstory/sfx/thunder.wav",
-                    "/audio/backstory/sfx/receiver_click.wav",
-                    "/audio/backstory/sfx/siren_distant.wav",
-                    "/audio/backstory/sfx/wind_gust.wav",
-                    "/audio/backstory/sfx/door_creak.wav",
-                    "/audio/backstory/sfx/rain_loop.wav",
-                    "/audio/backstory/sfx/intense.wav",
-                    "/audio/backstory/sfx/phone_ring.wav"
+                    "/audio/voice/backstory/s03_detective.wav",
+                    "/audio/voice/backstory/s04_morales.wav",
+                    "/audio/voice/backstory/s05_detective.wav",
+                    "/audio/voice/backstory/s06_morales.wav",
+                    "/audio/voice/backstory/s07_detective.wav",
+                    "/audio/voice/backstory/s07_morales.wav",
+                    "/audio/voice/backstory/s08_morales.wav",
+                    "/audio/voice/backstory/s09_detective.wav",
+                    "/audio/voice/backstory/s10_morales.wav",
+                    "/audio/voice/backstory/s11_morales.wav",
+                    "/audio/voice/backstory/s12_detective.wav",
+                    "/audio/voice/backstory/s12_morales.wav",
+                    "/audio/backstory_sfx/thunder.wav",
+                    "/audio/backstory_sfx/receiver_click.wav",
+                    "/audio/backstory_sfx/siren_distant.wav",
+                    "/audio/backstory_sfx/wind_gust.wav",
+                    "/audio/backstory_sfx/door_creak.wav",
+                    "/audio/sfx/ambience/rain_loop.wav",
+                    "/audio/backstory_sfx/intense.wav",
+                    "/audio/backstory_sfx/phone_ring.wav"
                 );
                 return null;
             }
@@ -352,7 +352,7 @@ public class Backstory extends javax.swing.JFrame {
         showSlide(0);
 
         // ---- Ambience ----
-        rainClip = AudioCache.loop("/audio/backstory/sfx/rain_loop.wav");
+        rainClip = AudioCache.loop("/audio/sfx/ambience/rain_loop.wav");
 
         // ---- Options menu ----
         optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
@@ -363,7 +363,7 @@ public class Backstory extends javax.swing.JFrame {
             }
 
             @Override public void onSoundChanged(int percent) {
-                AudioCache.play("/audio/hover.wav");
+                AudioCache.play("/audio/sfx/ui/hover.wav");
             }
 
             @Override public void onClose() {
@@ -546,12 +546,12 @@ public class Backstory extends javax.swing.JFrame {
 
         // Slide 1: loop thunder + delayed phone ring.
         if (currentSlide == 0) {
-            thunderClip = AudioCache.loop("/audio/backstory/sfx/thunder.wav");
+            thunderClip = AudioCache.loop("/audio/backstory_sfx/thunder.wav");
 
             if (ringDelayTimer != null) ringDelayTimer.stop();
             ringDelayTimer = new javax.swing.Timer(600, e -> {
                 if (pauseMenu != null && pauseMenu.isPaused()) return; // don't ring while paused
-                phoneRingClip = playSfx("/audio/backstory/sfx/phone_ring.wav");
+                phoneRingClip = playSfx("/audio/backstory_sfx/phone_ring.wav");
             });
             ringDelayTimer.setRepeats(false);
             ringDelayTimer.start();
@@ -559,7 +559,7 @@ public class Backstory extends javax.swing.JFrame {
 
         // Slide 13: loop intense music, then fade in the exit label.
         if (currentSlide == 12) {
-            intenseClip = AudioCache.loop("/audio/backstory/sfx/intense.wav");
+            intenseClip = AudioCache.loop("/audio/backstory_sfx/intense.wav");
 
             jLabel4.setVisible(false);
             ((FadeLabel) jLabel4).setAlpha(0f);
@@ -682,6 +682,7 @@ public class Backstory extends javax.swing.JFrame {
         int next = currentSlide + direction;
         if (next < 0 || next >= slides.length) return;
 
+        AudioCache.play("/audio/sfx/gameplay/thud.wav");
         showSlide(next);
     }
 
