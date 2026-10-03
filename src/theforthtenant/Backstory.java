@@ -183,7 +183,7 @@ public class Backstory extends javax.swing.JFrame {
         // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/logo.png"));
+                getClass().getResourceAsStream("/Images/common/logo.png"));
             setIconImage(icon);
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
@@ -239,9 +239,9 @@ public class Backstory extends javax.swing.JFrame {
 
         // ---- Arrow icons: normal + darkened versions ----
         final javax.swing.ImageIcon prevNormal = new javax.swing.ImageIcon(
-                getClass().getResource("/Images/previous_button.png"));
+                getClass().getResource("/Images/common/previous_button.png"));
         final javax.swing.ImageIcon nextNormal = new javax.swing.ImageIcon(
-                getClass().getResource("/Images/next_button.png"));
+                getClass().getResource("/Images/common/next_button.png"));
         final javax.swing.ImageIcon prevDark = new javax.swing.ImageIcon(
                 darken(prevNormal.getImage()));
         final javax.swing.ImageIcon nextDark = new javax.swing.ImageIcon(
@@ -478,7 +478,6 @@ public class Backstory extends javax.swing.JFrame {
         jLabel4 = new FadeLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("The Fourth Tenant");
@@ -486,21 +485,18 @@ public class Backstory extends javax.swing.JFrame {
 
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/next_button.png"))); // NOI18N
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1090, 310, 50, 60));
 
         jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/door_blood.png"))); // NOI18N
         jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, -1, -1));
 
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/previous_button.png"))); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/previous_button.png"))); // NOI18N
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 310, -1, 50));
 
         jLabel1.setBackground(new java.awt.Color(20, 20, 25));
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/slide1.png"))); // NOI18N
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
-
-        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/previous_button.png"))); // NOI18N
-        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1011,7 +1007,6 @@ public class Backstory extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }

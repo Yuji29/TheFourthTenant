@@ -30,7 +30,7 @@ public class MainMenu extends javax.swing.JFrame {
         // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/logo.png"));
+                getClass().getResourceAsStream("/Images/common/logo.png"));
             setIconImage(icon);
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
@@ -257,7 +257,7 @@ public class MainMenu extends javax.swing.JFrame {
         jButton5.addActionListener(this::jButton5ActionPerformed);
         jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 0, 240, 40));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/background.gif"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/background.gif"))); // NOI18N
         jLabel1.setText("jLabel1");
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 

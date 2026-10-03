@@ -114,7 +114,7 @@ public class TransitionOverlay {
             });
 
             try {
-                InputStream is = getClass().getResourceAsStream("/Images/magnifier.png");
+                InputStream is = getClass().getResourceAsStream("/Images/common/magnifier.png");
                 if (is != null) icon = ImageIO.read(is);
             } catch (Exception e) {
                 System.out.println("Magnifier icon not found: " + e.getMessage());

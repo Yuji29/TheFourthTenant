@@ -42,7 +42,7 @@
         <Component class="javax.swing.JLabel" name="rag">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/rag.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/rag.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -54,7 +54,7 @@
         <Component class="javax.swing.JLabel" name="prescription">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/prescription.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/prescription.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -66,7 +66,7 @@
         <Component class="javax.swing.JLabel" name="usb">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/usb.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/usb.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -78,7 +78,7 @@
         <Component class="javax.swing.JLabel" name="mug">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/mug.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/mug.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -90,7 +90,7 @@
         <Component class="javax.swing.JLabel" name="boots">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/boots.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/boots.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -102,7 +102,7 @@
         <Component class="javax.swing.JLabel" name="toolbox">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/toolbox.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/toolbox.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -114,7 +114,7 @@
         <Component class="javax.swing.JLabel" name="padlock">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/padlock.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/padlock.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -126,7 +126,7 @@
         <Component class="javax.swing.JLabel" name="belt">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/belt.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/belt.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -138,7 +138,7 @@
         <Component class="javax.swing.JLabel" name="phone">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/phone.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/phone.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -150,7 +150,7 @@
         <Component class="javax.swing.JLabel" name="footmarks">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/footmarks.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/footmarks.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -162,7 +162,7 @@
         <Component class="javax.swing.JLabel" name="drum">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/drum.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/drum.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -174,7 +174,7 @@
         <Component class="javax.swing.JLabel" name="dragpath">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/dragpath.png"/>
+              <Image iconType="3" name="/Images/gameplay/items/dragpath.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -186,7 +186,7 @@
         <Component class="javax.swing.JLabel" name="jLabel9">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/PoliceTape.png"/>
+              <Image iconType="3" name="/Images/gameplay/policetape.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -198,7 +198,7 @@
         <Component class="javax.swing.JLabel" name="jLabel8">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/next_button.png"/>
+              <Image iconType="3" name="/Images/common/next_button.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -210,7 +210,7 @@
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/previous_button.png"/>
+              <Image iconType="3" name="/Images/common/previous_button.png"/>
             </Property>
           </Properties>
           <Constraints>
@@ -292,7 +292,7 @@
         <Component class="javax.swing.JLabel" name="jLabel1">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/locations/CrimeScene.png"/>
+              <Image iconType="3" name="/Images/gameplay/locations/CrimeScene.png"/>
             </Property>
           </Properties>
           <Constraints>

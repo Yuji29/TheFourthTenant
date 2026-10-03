@@ -15,13 +15,13 @@ public class CrimeScene extends javax.swing.JFrame {
 
     // ---- Background scene rotation ----
     private final String[] sceneImages = {
-        "/Images/GameScreen/locations/CrimeScene.png",
-        "/Images/GameScreen/locations/FrontPorch.png",
-        "/Images/GameScreen/locations/LaundryRoom.png",
-        "/Images/GameScreen/locations/Kitchen.png",
-        "/Images/GameScreen/locations/LivingRoom.png",
-        "/Images/GameScreen/locations/DiningArea.png",
-        "/Images/GameScreen/locations/BedRoom.png",
+        "/Images/gameplay/locations/FrontPorch.png",
+        "/Images/gameplay/locations/LaundryRoom.png",
+        "/Images/gameplay/locations/Kitchen.png",
+        "/Images/gameplay/locations/LivingRoom.png",
+        "/Images/gameplay/locations/DiningArea.png",
+        "/Images/gameplay/locations/BedRoom.png",
+        "/Images/gameplay/locations/CrimeScene.png",
     };
 
     private int currentScene = 0;
@@ -46,13 +46,13 @@ public class CrimeScene extends javax.swing.JFrame {
     private boolean interrogateListenerAttached = false;
 
     // ---- Scene index constants ----
-    private static final int SCENE_CRIME   = 0;
-    private static final int SCENE_PORCH   = 1;
-    private static final int SCENE_LAUNDRY = 2;
-    private static final int SCENE_KITCHEN = 3;
-    private static final int SCENE_LIVING  = 4;
-    private static final int SCENE_DINING  = 5;
-    private static final int SCENE_BED     = 6;
+    private static final int SCENE_PORCH   = 0;
+    private static final int SCENE_LAUNDRY = 1;
+    private static final int SCENE_KITCHEN = 2;
+    private static final int SCENE_LIVING  = 3;
+    private static final int SCENE_DINING  = 4;
+    private static final int SCENE_BED     = 5;
+    private static final int SCENE_CRIME   = 6;
 
     /**
      * Creates new form CrimeScene.
@@ -79,7 +79,7 @@ public class CrimeScene extends javax.swing.JFrame {
         // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/logo.png"));
+                getClass().getResourceAsStream("/Images/common/logo.png"));
             setIconImage(icon);
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
@@ -97,7 +97,7 @@ public class CrimeScene extends javax.swing.JFrame {
                     "/audio/sfx/ui/hover.wav",
                     "/audio/sfx/ui/select.wav",
                     "/audio/sfx/ui/pause_open.wav",
-                    "audio/sfx/ui/click.wav"
+                    "/audio/sfx/ui/click.wav"
                 );
                 return null;
             }
@@ -237,9 +237,9 @@ public class CrimeScene extends javax.swing.JFrame {
 
         // Load normal + darkened icons for hover states.
         final javax.swing.ImageIcon prevNormal = new javax.swing.ImageIcon(
-                getClass().getResource("/Images/previous_button.png"));
+                getClass().getResource("/Images/common/previous_button.png"));
         final javax.swing.ImageIcon nextNormal = new javax.swing.ImageIcon(
-                getClass().getResource("/Images/next_button.png"));
+                getClass().getResource("/Images/common/next_button.png"));
         final javax.swing.ImageIcon prevDark = new javax.swing.ImageIcon(
                 darken(prevNormal.getImage()));
         final javax.swing.ImageIcon nextDark = new javax.swing.ImageIcon(
@@ -343,49 +343,49 @@ public class CrimeScene extends javax.swing.JFrame {
 
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        rag.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/rag.png"))); // NOI18N
+        rag.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/rag.png"))); // NOI18N
         jPanel1.add(rag, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 500, -1, -1));
 
-        prescription.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/prescription.png"))); // NOI18N
+        prescription.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/prescription.png"))); // NOI18N
         jPanel1.add(prescription, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 400, -1, -1));
 
-        usb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/usb.png"))); // NOI18N
+        usb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/usb.png"))); // NOI18N
         jPanel1.add(usb, new org.netbeans.lib.awtextra.AbsoluteConstraints(800, 550, -1, -1));
 
-        mug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/mug.png"))); // NOI18N
+        mug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/mug.png"))); // NOI18N
         jPanel1.add(mug, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 380, -1, -1));
 
-        boots.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/boots.png"))); // NOI18N
+        boots.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/boots.png"))); // NOI18N
         jPanel1.add(boots, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 390, -1, -1));
 
-        toolbox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/toolbox.png"))); // NOI18N
+        toolbox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/toolbox.png"))); // NOI18N
         jPanel1.add(toolbox, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 370, -1, -1));
 
-        padlock.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/padlock.png"))); // NOI18N
+        padlock.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/padlock.png"))); // NOI18N
         jPanel1.add(padlock, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 80, -1, -1));
 
-        belt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/belt.png"))); // NOI18N
+        belt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/belt.png"))); // NOI18N
         jPanel1.add(belt, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 420, -1, -1));
 
-        phone.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/phone.png"))); // NOI18N
+        phone.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/phone.png"))); // NOI18N
         jPanel1.add(phone, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 420, -1, -1));
 
-        footmarks.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/footmarks.png"))); // NOI18N
+        footmarks.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/footmarks.png"))); // NOI18N
         jPanel1.add(footmarks, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 280, -1, -1));
 
-        drum.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/drum.png"))); // NOI18N
+        drum.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/drum.png"))); // NOI18N
         jPanel1.add(drum, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 80, -1, -1));
 
-        dragpath.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/items/dragpath.png"))); // NOI18N
+        dragpath.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/dragpath.png"))); // NOI18N
         jPanel1.add(dragpath, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 310, -1, -1));
 
-        jLabel9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/PoliceTape.png"))); // NOI18N
+        jLabel9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/policetape.png"))); // NOI18N
         jPanel1.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 610, 250, 70));
 
-        jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/next_button.png"))); // NOI18N
+        jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
         jPanel1.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(1080, 250, 60, 60));
 
-        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/previous_button.png"))); // NOI18N
+        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/previous_button.png"))); // NOI18N
         jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 240, 60, 80));
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
@@ -413,7 +413,7 @@ public class CrimeScene extends javax.swing.JFrame {
         jLabel2.setText("INVENTORY");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 612, 220, 70));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/GameScreen/locations/CrimeScene.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/locations/CrimeScene.png"))); // NOI18N
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -516,8 +516,9 @@ public class CrimeScene extends javax.swing.JFrame {
             item.setVisible(itemSceneIndex == index && !pickedUp);
         }
 
-        // ---- Ambience: rain outside (scenes 0-1), indoor hum inside (2-6) ----
-        String newAmbience = (index <= 1)
+        // ---- Ambience: rain outside (porch + rooftop), indoor hum inside ----
+        boolean isOutside = (index == SCENE_PORCH) || (index == SCENE_CRIME);
+        String newAmbience = isOutside
             ? "/audio/sfx/ambience/rain_loop.wav"
             : "/audio/sfx/ambience/indoor_hum.wav";
 
@@ -537,6 +538,7 @@ public class CrimeScene extends javax.swing.JFrame {
      * wrapping around at the ends. Blocked while a transition is in flight.
      */
     private void navigateScene(int direction) {
+        if (pauseMenu != null && pauseMenu.isPaused()) return;
         if (TransitionOverlay.isPlaying()) return;
         if (sceneImages.length == 0) return;
         int next = (currentScene + direction + sceneImages.length) % sceneImages.length;
