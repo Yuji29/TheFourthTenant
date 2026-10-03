@@ -122,7 +122,12 @@ public final class AudioCache {
      */
     public static Clip play(String path, Channel channel) {
         Clip c = get(path, channel);
-        if (c == null) return null;
+        if (c == null) {
+            System.out.println("play(" + path + "): clip is NULL");
+            return null;
+        }
+        System.out.println("play(" + path + "): clip length="
+            + (c.getMicrosecondLength() / 1000) + "ms");
         c.stop();
         c.setFramePosition(0);
         c.start();

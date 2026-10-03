@@ -99,8 +99,14 @@ public class PauseMenu {
         // ---- ActionMap handlers (all guarded against subPopupOpen) ----
         root.getActionMap().put("togglePause", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (subPopupOpen) return;              // ← put this back
-                if (paused) resume(); else pause();
+                if (subPopupOpen) return;
+                if (paused) {
+                    AudioCache.play("/audio/select.wav");
+                    resume();
+                } else {
+                    AudioCache.play("/audio/pause_open.wav");
+                    pause();
+                }
             }
         });
 
@@ -222,9 +228,11 @@ public class PauseMenu {
                         int hit = hitTest(e.getPoint());
                         if (hit >= 0) {
                             selectedIndex = hit;
+                            AudioCache.play("/audio/select.wav");
                             activate(hit);
                         }
                     } else if (isPauseIconHit(e.getPoint())) {
+                        AudioCache.play("/audio/pause_open.wav");
                         pause();
                     }
                 }
@@ -236,7 +244,10 @@ public class PauseMenu {
                     int hit = hitTest(e.getPoint());
                     if (hit != hoveredIndex) {
                         hoveredIndex = hit;
-                        if (hit >= 0) selectedIndex = hit;
+                        if (hit >= 0) {
+                            selectedIndex = hit;
+                            AudioCache.play("/audio/hover.wav");
+                        }
                         repaint();
                     }
                 }

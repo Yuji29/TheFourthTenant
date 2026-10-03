@@ -33,6 +33,10 @@ public class CrimeScene extends javax.swing.JFrame {
     private final java.util.Map<javax.swing.JLabel, Integer> itemScene = new java.util.HashMap<>();
     private PauseMenu pauseMenu;
     private OptionsMenu optionsMenu;
+    
+    // Currently playing ambient loop (rain or indoor hum)
+    private javax.sound.sampled.Clip ambienceClip;
+    private String ambiencePath;
 
     // ---- Interrogation unlock state ----
     private boolean interrogateUnlocked = false;
@@ -83,7 +87,13 @@ public class CrimeScene extends javax.swing.JFrame {
             @Override protected Void doInBackground() {
                 AudioCache.prepare(
                     "/audio/part1/pickup.wav",
-                    "/audio/hover.wav"
+                    "/audio/part1/indoor_hum.wav",
+                    "/audio/part1/tape_ripping.wav",
+                    "/audio/part1/thud.wav",
+                    "/audio/backstory/sfx/rain_loop.wav",
+                    "/audio/hover.wav",
+                    "/audio/select.wav",
+                    "/audio/pause_open.wav"
                 );
                 return null;
             }
@@ -126,11 +136,13 @@ public class CrimeScene extends javax.swing.JFrame {
                 lbl.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                         lbl.setForeground(HOVER_COLOR);
+                        AudioCache.play("/audio/hover.wav");
                     }
                     @Override public void mouseExited(java.awt.event.MouseEvent e) {
                         lbl.setForeground(NORMAL_COLOR);
                     }
                     @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                        AudioCache.play("/audio/select.wav");
                         System.out.println(menuText[index] + " clicked");
                         // Add per-label click behavior here later.
                     }
@@ -158,12 +170,10 @@ public class CrimeScene extends javax.swing.JFrame {
         // ---- Pause menu ----
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
             @Override public void onPause() {
-                // CrimeScene has no audio to stop (yet). If you add ambience later,
-                // stop it here.
+                if (ambienceClip != null) ambienceClip.stop();
             }
             @Override public void onResume() {
-                // CrimeScene has no audio to resume (yet). If you add ambience later,
-                // resume it here.
+                if (ambienceClip != null) ambienceClip.start();
             }
             @Override public void onOptions() {
                 pauseMenu.hidePopupOnly();
@@ -173,6 +183,9 @@ public class CrimeScene extends javax.swing.JFrame {
                 // If a transition is already in flight, don't hide the pause overlay —
                 // otherwise the player ends up on an unpaused scene with no pause menu.
                 if (TransitionOverlay.isPlaying()) return;
+                
+                // Stop ambience before leaving.
+                if (ambienceClip != null) { ambienceClip.stop(); ambienceClip = null; }
 
                 pauseMenu.hideOverlay();
 
@@ -478,6 +491,21 @@ public class CrimeScene extends javax.swing.JFrame {
             boolean pickedUp = Boolean.TRUE.equals(item.getClientProperty("pickedUp"));
             item.setVisible(itemSceneIndex == index && !pickedUp);
         }
+
+        // ---- Ambience: rain outside (scenes 0-1), indoor hum inside (2-6) ----
+        String newAmbience = (index <= 1)
+            ? "/audio/backstory/sfx/rain_loop.wav"
+            : "/audio/part1/indoor_hum.wav";
+
+        // Only restart if we're switching to a *different* ambience track.
+        if (!newAmbience.equals(ambiencePath)) {
+            if (ambienceClip != null) {
+                ambienceClip.stop();
+                ambienceClip = null;
+            }
+            ambienceClip = AudioCache.loop(newAmbience);
+            ambiencePath = newAmbience;
+        }
     }
 
     /**
@@ -488,6 +516,7 @@ public class CrimeScene extends javax.swing.JFrame {
         if (TransitionOverlay.isPlaying()) return;
         if (sceneImages.length == 0) return;
         int next = (currentScene + direction + sceneImages.length) % sceneImages.length;
+        AudioCache.play("/audio/part1/thud.wav");
         showScene(next);
     }
 
@@ -516,6 +545,8 @@ public class CrimeScene extends javax.swing.JFrame {
         interrogateUnlocked = unlocked;
 
         if (unlocked) {
+            AudioCache.play("/audio/part1/tape_ripping.wav");
+
             if (jLabel9 != null && jLabel9.getParent() != null) {
                 playTapeFallAnimation();
             }
@@ -540,11 +571,13 @@ public class CrimeScene extends javax.swing.JFrame {
         lbl.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 lbl.setForeground(HOVER);
+                AudioCache.play("/audio/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
                 lbl.setForeground(NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/select.wav");
                 System.out.println("INTERROGATE clicked");
                 // Open interrogate panel here.
             }
@@ -792,6 +825,15 @@ public class CrimeScene extends javax.swing.JFrame {
         return true;
     }
 
+    @Override
+    public void dispose() {
+        if (ambienceClip != null) {
+            ambienceClip.stop();
+            ambienceClip = null;
+        }
+        super.dispose();
+    }
+    
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
