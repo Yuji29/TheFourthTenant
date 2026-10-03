@@ -26,12 +26,14 @@ import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 /**
- * In-game Options popup with MUSIC and SOUND sliders + a close (X) button.
- * Popup, −/+ buttons and X come from PNG assets. The slider bar itself
- * is drawn in code: white base with dark-red outline, red fill for the value.
+ * In-game Options popup with MUSIC and SOUND sliders and a close (X) button.
+ * The popup, −/+ buttons, and X come from PNG assets. The slider bar itself
+ * is drawn in code: a white base with a dark-red outline and a red fill for
+ * the current value.
  */
 public class OptionsMenu {
 
+    /** Callbacks fired when the player adjusts a slider or closes the popup. */
     public interface Callbacks {
         default void onMusicChanged(int percent) {}
         default void onSoundChanged(int percent) {}
@@ -71,7 +73,7 @@ public class OptionsMenu {
 
     private Font labelFont;
 
-    // Loaded assets
+    // ---- Loaded assets ----
     private Image imgPopup;
     private Image imgMinus;
     private Image imgPlus;
@@ -82,16 +84,21 @@ public class OptionsMenu {
         this.callbacks = callbacks;
     }
 
+    /**
+     * Creates an OptionsMenu bound to the given frame, installs its overlay,
+     * and returns it ready to {@link #show()}.
+     */
     public static OptionsMenu attachTo(JFrame frame, Callbacks callbacks) {
         OptionsMenu om = new OptionsMenu(frame, callbacks);
         om.install();
         return om;
     }
 
+    /** Loads assets, restores saved volumes, and creates the overlay. */
     private void install() {
         labelFont = loadFont(16f);
-        
-        // NEW — pull saved values from SfxManager
+
+        // Pull saved values from SfxManager.
         musicPercent = SfxManager.getMusicVolumePercent();
         soundPercent = SfxManager.getVolumePercent();
 
@@ -105,16 +112,22 @@ public class OptionsMenu {
         frame.getRootPane().getLayeredPane()
              .add(overlay, JLayeredPane.POPUP_LAYER);
         overlay.setVisible(false);
-
-        
     }
-    
+
+    /**
+     * Installs or removes the Options keyboard bindings. Uses the same input
+     * scope as PauseMenu, so binding order decides priority — Options'
+     * bindings overwrite PauseMenu's while open and restore them on close.
+     */
     private void bindKeys(boolean on) {
         javax.swing.JRootPane root = frame.getRootPane();
-        javax.swing.InputMap im = root.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT); 
         javax.swing.ActionMap am = root.getActionMap();
 
+        // Use the same scope as PauseMenu so binding order decides priority.
+        javax.swing.InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+
         if (on) {
+            // Options' bindings — these overwrite PauseMenu's because they run later.
             im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "optEsc");
             im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP,     0), "optUp");
             im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN,   0), "optDown");
@@ -152,7 +165,9 @@ public class OptionsMenu {
                     adjustSelected(+10);
                 }
             });
+
         } else {
+            // Remove Options' bindings.
             im.remove(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0));
             im.remove(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP,     0));
             im.remove(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN,   0));
@@ -164,43 +179,56 @@ public class OptionsMenu {
             am.remove("optDown");
             am.remove("optLeft");
             am.remove("optRight");
+
+            // Restore PauseMenu's bindings (in case we're closing over a PauseMenu).
+            // These are only re-put if the actions exist; otherwise PauseMenu's
+            // original install() bindings are still there and this is a no-op.
+            im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "togglePause");
+            im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP,     0), "pauseUp");
+            im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN,   0), "pauseDown");
+            im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER,  0), "pauseEnter");
         }
     }
 
     public boolean isOpen() { return open; }
 
+    /** Shows the options popup with an open animation. */
     public void show() {
         if (open) return;
         open = true;
         selectedRow = 0;
-        bindKeys(true); 
+        bindKeys(true);
         overlay.setVisible(true);
         overlay.startPopupAnim();
     }
 
+    /** Hides the options popup and fires the {@link Callbacks#onClose()} callback. */
     public void close() {
         if (!open) return;
         open = false;
-        bindKeys(false); 
+        bindKeys(false);
         overlay.setVisible(false);
         if (callbacks != null) callbacks.onClose();
     }
 
+    /** Adjusts the currently selected slider by {@code delta} and persists it. */
     private void adjustSelected(int delta) {
         if (selectedRow == 0) {
             musicPercent = clamp(musicPercent + delta);
-            SfxManager.setMusicVolumePercent(musicPercent);   // ← NEW: persist
+            SfxManager.setMusicVolumePercent(musicPercent);   // persist
             if (callbacks != null) callbacks.onMusicChanged(musicPercent);
         } else {
             soundPercent = clamp(soundPercent + delta);
-            SfxManager.setVolumePercent(soundPercent);        // ← NEW: persist
+            SfxManager.setVolumePercent(soundPercent);        // persist
             if (callbacks != null) callbacks.onSoundChanged(soundPercent);
         }
         overlay.repaint();
     }
 
+    /** Clamps a volume value to the 0–100 range. */
     private static int clamp(int v) { return Math.max(0, Math.min(100, v)); }
 
+    /** Loads a PNG from the given resource path, or returns {@code null} on failure. */
     private Image loadImage(String path) {
         try {
             InputStream is = getClass().getResourceAsStream(path);
@@ -215,6 +243,7 @@ public class OptionsMenu {
         }
     }
 
+    /** Loads the custom pixel font at the given size, or falls back to Monospaced. */
     private Font loadFont(float size) {
         try {
             InputStream is = getClass().getResourceAsStream("/fonts/press_start_2p.ttf");
@@ -226,9 +255,10 @@ public class OptionsMenu {
     }
 
     // =========================================================
-    //  Overlay
+    // Overlay
     // =========================================================
 
+    /** Transparent popup-layer component that draws the options UI. */
     private class OptionsOverlay extends JComponent {
         private float popupScale = 1f;
         private float popupAlpha = 1f;
@@ -249,6 +279,7 @@ public class OptionsMenu {
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
+        /** Runs a short scale-and-fade-in animation for the popup. */
         void startPopupAnim() {
             popupScale = 0.6f;
             popupAlpha = 0f;
@@ -272,6 +303,7 @@ public class OptionsMenu {
 
         @Override public boolean contains(int x, int y) { return open; }
 
+        /** Returns the popup's current bounds, based on its scaled image size. */
         private Rectangle computePopupRect() {
             if (imgPopup == null) {
                 int w = 420, h = 360;
@@ -286,6 +318,7 @@ public class OptionsMenu {
             return new Rectangle(px, py, drawW, drawH);
         }
 
+        /** Routes a click to the close button, a −/+ button, or a slider row. */
         private void handleClick(Point p) {
             if (closeRect != null && closeRect.contains(p)) {
                 close();
@@ -324,11 +357,11 @@ public class OptionsMenu {
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-            // Dark scrim
+            // Dark scrim behind the popup.
             g2.setColor(new Color(0, 0, 0, 170));
             g2.fillRect(0, 0, getWidth(), getHeight());
 
-            // Popup art
+            // Popup art.
             Rectangle pr = computePopupRect();
             if (imgPopup != null) {
                 g2.setComposite(AlphaComposite.getInstance(
@@ -336,8 +369,8 @@ public class OptionsMenu {
                 g2.drawImage(imgPopup, pr.x, pr.y, pr.width, pr.height, null);
                 g2.setComposite(AlphaComposite.SrcOver);
             }
-            
-            // Global vertical offset — slide the whole options block up/down
+
+            // Global vertical offset — slide the whole options block up/down.
             int yOffset = (int)(pr.height * 0.10);   // 0.10 = push down 10% of popup height
 
             // ---- Layout metrics (fractions of the popup) ----
@@ -365,20 +398,20 @@ public class OptionsMenu {
             for (int i = 0; i < ROW_COUNT; i++) {
                 int rowCenterY = firstRowCenterY + i * rowSpacing;
 
-                // 1) Label above the bar
+                // 1) Label above the bar.
                 String label = ROW_LABELS[i].toUpperCase();
                 int labelW = fm.stringWidth(label);
                 g2.setColor(LABEL_COLOR);
                 g2.drawString(label, centerX - labelW / 2,
                               rowCenterY - sliderH / 2 - fm.getAscent() + 2);
 
-                // 2) Slider bar
+                // 2) Slider bar.
                 int barX = sliderX;
                 int barY = rowCenterY - sliderH / 2;
                 int percent = (i == 0) ? musicPercent : soundPercent;
                 int fillW = (int)(sliderW * percent / 100.0);
 
-                // --- (a) base: cream bar with dark-red outline ---
+                // (a) Base: cream bar with dark-red outline.
                 RoundRectangle2D base = new RoundRectangle2D.Float(
                         barX, barY, sliderW, sliderH, arc, arc);
                 g2.setColor(BAR_BASE);
@@ -387,10 +420,10 @@ public class OptionsMenu {
                 g2.setStroke(new BasicStroke(2f));
                 g2.draw(base);
 
-                // --- (b) fill: red rounded bar clipped to fillW ---
+                // (b) Fill: red rounded bar clipped to fillW.
                 if (fillW > 0) {
                     Shape oldClip = g2.getClip();
-                    // Clip to the fill width; keep the same rounded-left shape
+                    // Clip to the fill width; keep the same rounded-left shape.
                     g2.clipRect(barX, barY - 2, fillW, sliderH + 4);
 
                     RoundRectangle2D fill = new RoundRectangle2D.Float(
@@ -398,7 +431,7 @@ public class OptionsMenu {
                     g2.setColor(BAR_FILL);
                     g2.fill(fill);
 
-                    // Slightly darker inner edge on top of the fill
+                    // Slightly darker inner edge on top of the fill.
                     g2.setColor(BAR_FILL_EDGE);
                     g2.setStroke(new BasicStroke(1.5f));
                     g2.draw(fill);
@@ -406,7 +439,7 @@ public class OptionsMenu {
                     g2.setClip(oldClip);
                 }
 
-                // --- (c) selected row glow around the bar ---
+                // (c) Selected-row glow around the bar.
                 if (i == selectedRow) {
                     g2.setColor(new Color(255, 230, 190, 180));
                     g2.setStroke(new BasicStroke(2f));
@@ -415,7 +448,7 @@ public class OptionsMenu {
                                      arc + 8, arc + 8);
                 }
 
-                // 3) − / + buttons
+                // 3) − / + buttons.
                 int minusCx = barX - sideGap - btnSize / 2;
                 int plusCx  = barX + sliderW + sideGap + btnSize / 2;
 
@@ -439,7 +472,7 @@ public class OptionsMenu {
                                 btnSize, btnSize);
                 }
 
-                // Hit rectangles
+                // Hit rectangles.
                 minusRect[i] = new Rectangle(minusCx - btnSize/2, rowCenterY - btnSize/2,
                                              btnSize, btnSize);
                 plusRect[i]  = new Rectangle(plusCx  - btnSize/2, rowCenterY - btnSize/2,
@@ -450,7 +483,7 @@ public class OptionsMenu {
                                               Math.max(sliderH, btnSize) * 2);
             }
 
-            // 4) Close (X) button
+            // 4) Close (X) button.
             int closeSize = (int)(pr.height * 0.115);
             int closeCx   = centerX;
             int closeCy   = pr.y + (int)(pr.height * 0.90);

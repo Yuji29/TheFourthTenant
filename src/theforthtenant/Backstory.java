@@ -5,34 +5,47 @@
 package theforthtenant;
 
 /**
+ * The Backstory cutscene frame: displays a sequence of story slides with
+ * subtitles, voice-over narration, sound effects, and a typewriter effect.
+ * Handles navigation, pause/resume, options, and transitions to the main menu
+ * or the crime scene.
  *
  * @author yuji
  */
 public class Backstory extends javax.swing.JFrame {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Backstory.class.getName());
-    
+
+    private static final java.util.logging.Logger logger =
+            java.util.logging.Logger.getLogger(Backstory.class.getName());
+
+    // ---- Slide state ----
     private int currentSlide = 0;
+
+    // ---- UI components ----
     private SubtitleBox subtitleBoxLeft;
     private SubtitleBox subtitleBoxRight;
     private FadeOverlay fadeOverlay;
-    private javax.swing.Timer typewriterTimer; 
-    private javax.sound.sampled.Clip currentClip;
-    private javax.sound.sampled.Clip rainClip;
-    private javax.sound.sampled.Clip phoneRingClip;
-    private javax.sound.sampled.Clip thunderClip;
-    private javax.sound.sampled.Clip intenseClip;
-    private javax.sound.sampled.Clip typewriterKeyClip;
-    private long typewriterStartTime;
-    private static final long TYPEWRITER_KEY_DURATION_MS = 1500;   // key clicks stop after this
-    private boolean navigationLocked = false;
-    private static final int NAV_LOCK_MS = 600;   // how long between allowed clicks
     private PauseMenu pauseMenu;
-    private javax.swing.Timer ringDelayTimer;
-    private javax.swing.Timer cutsceneDelayTimer; 
     private OptionsMenu optionsMenu;
-    
-    // Typewriter resume state
+
+    // ---- Audio ----
+    private javax.sound.sampled.Clip currentClip;        // currently playing voice/narration
+    private javax.sound.sampled.Clip rainClip;           // looping rain ambience
+    private javax.sound.sampled.Clip phoneRingClip;      // phone ringing (slide 0)
+    private javax.sound.sampled.Clip thunderClip;        // looping thunder (slide 0)
+    private javax.sound.sampled.Clip intenseClip;        // looping intense music (slide 12)
+    private final java.util.List<javax.sound.sampled.Clip> slideSfxClips =
+            new java.util.ArrayList<>();
+
+    // ---- Timers ----
+    private javax.swing.Timer typewriterTimer;
+    private javax.swing.Timer ringDelayTimer;
+    private javax.swing.Timer cutsceneDelayTimer;
+    private javax.swing.Timer bloodFadeTimer;
+
+    // ---- Typewriter state ----
+    private long typewriterStartTime;
+
+    // ---- Typewriter resume state ----
     private double savedCharsShown = 0;
     private long   savedStartTime  = 0;
     private long   savedTickMs     = 25;
@@ -41,13 +54,14 @@ public class Backstory extends javax.swing.JFrame {
     private SubtitleBox savedBox;
     private Runnable savedOnDone;
     private boolean typewriterWasRunning = false;
-    
-    private final java.util.List<javax.sound.sampled.Clip> ambienceClips =
-        new java.util.ArrayList<>();
 
-    // Voice resume state
+    // ---- Voice resume state ----
     private long savedClipMicros = 0;
 
+    /**
+     * Represents a single story slide: an image, optional voice-over line(s),
+     * and an optional sound effect.
+     */
     private static class Slide {
         final String imagePath;
         final java.util.List<SubtitleBox.Line> leftLines;
@@ -74,44 +88,50 @@ public class Backstory extends javax.swing.JFrame {
             this.rightLines = rightLines;
         }
     }
-    
+
+    /** Convenience factory for a list of subtitle lines. */
     private static java.util.List<SubtitleBox.Line> L(SubtitleBox.Line... lines) {
         return java.util.Arrays.asList(lines);
     }
 
+    /**
+     * All story slides, in order.
+     * Each entry may contain a single line (shown on the left) or two lines
+     * (left/right speakers) for dialogue exchanges.
+     */
     private final Slide[] slides = {
-        // 1 
+        // 1 — Phone rings
         new Slide("/Images/backstory/slide1.png",
             "/audio/backstory/sfx/thunder.wav",
             new SubtitleBox.Line(null, "[Phone ringing]")),
 
-        // 2 
+        // 2 — Receiver clicks
         new Slide("/Images/backstory/slide2.png",
-        "/audio/backstory/sfx/receiver_click.wav",
-        new SubtitleBox.Line(null, "[Receiver clicks]")),
+            "/audio/backstory/sfx/receiver_click.wav",
+            new SubtitleBox.Line(null, "[Receiver clicks]")),
 
-        // 3
+        // 3 — Detective answers
         new Slide("/Images/backstory/slide3.png",
             new SubtitleBox.Line("Detective", "Detective speaking.",
             "/audio/backstory/s03_detective.wav")),
 
-        // 4
+        // 4 — Morales briefs the detective
         new Slide("/Images/backstory/slide4.png",
             new SubtitleBox.Line("Officer Morales", "Detective, glad I caught you at your desk. We have a 10-54 code over at Barangay San Lorenzo—specifically the old three-story boarding house near the corner lot. We need you on-site immediately.",
             "/audio/backstory/s04_morales.wav")),
 
-        // 5
+        // 5 — Detective asks for basics
         new Slide("/Images/backstory/slide5.png",
             new SubtitleBox.Line("Detective", "Give me the basics, Morales. What are we looking at?",
             "/audio/backstory/s05_detective.wav")),
 
-        // 6 
+        // 6 — Morales describes the victim and scene
         new Slide("/Images/backstory/slide6.png",
             "/audio/backstory/sfx/siren_distant.wav",
             new SubtitleBox.Line("Officer Morales", "Homicide. The victim is a female tenant named Abby Salle. She was stuffed inside an industrial blue water drum on the open rooftop.",
                     "/audio/backstory/s06_morales.wav")),
 
-        // 7 
+        // 7 — Detective asks about the ME; Morales gives discovery time
         new Slide("/Images/backstory/slide7.png",
             "/audio/backstory/sfx/wind_gust.wav",
             L(new SubtitleBox.Line("Detective", "Has the medical examiner given an initial read?",
@@ -119,29 +139,29 @@ public class Backstory extends javax.swing.JFrame {
             L(new SubtitleBox.Line("Officer Morales", "The body was discovered just twenty minutes ago, around 6:30 AM, by one of the housemates heading up to do laundry.",
                     "/audio/backstory/s07_morales.wav"))),
 
-        // 8
+        // 8 — Morales gives coroner's preliminary findings
         new Slide("/Images/backstory/slide8.png",
                 "/audio/backstory/sfx/siren_distant.wav",
             new SubtitleBox.Line("Officer Morales", "The coroner just did a preliminary check. Rigor mortis is fairly advanced—they're placing the estimated time of death between 1:30 AM and 2:30 AM earlier today. As for the primary cause of death, preliminary findings show severe head trauma and asphyxiation before she was folded into the drum.",
                     "/audio/backstory/s08_morales.wav")),
 
-        // 9
+        // 9 — Detective asks about scene security
         new Slide("/Images/backstory/slide9.png",
             new SubtitleBox.Line("Detective", "Anyone secured the area? Who's at the location?",
                     "/audio/backstory/s09_detective.wav")),
 
-        // 10
+        // 10 — Morales confirms perimeter is sealed
         new Slide("/Images/backstory/slide10.png",
                 "/audio/backstory/sfx/siren_distant.wav",
             new SubtitleBox.Line("Officer Morales", "The rooftop and the entire boarding house are sealed under standard perimeter protocol.",
                     "/audio/backstory/s10_morales.wav")),
 
-        // 11
+        // 11 — Morales lists tenants and containment
         new Slide("/Images/backstory/slide11.png",
             new SubtitleBox.Line("Officer Morales", "Aside from the victim, three other tenants live in the building. We have all three detained downstairs in the common area until you arrive. Nobody enters, nobody leaves.",
                     "/audio/backstory/s11_morales.wav")),
 
-        // 12 
+        // 12 — Detective asks about statements/weapons; Morales urges haste
         new Slide("/Images/backstory/slide12.png",
             null,
             L(new SubtitleBox.Line("Detective", "Any initial statements or weapons recovered?",
@@ -149,17 +169,18 @@ public class Backstory extends javax.swing.JFrame {
             L(new SubtitleBox.Line("Officer Morales", "Nothing yet. We didn't want to contaminate the crime scene or compromise preliminary interviews before lead gets here. The rain’s letting up, but we need you to process the rooftop and review the house before things get cold. Get down here right away, Detective.",
                     "/audio/backstory/s12_morales.wav"))),
 
-        // 13 
+        // 13 — Door creaks; player clicks to proceed
         new Slide("/Images/backstory/slide13.png",
             "/audio/backstory/sfx/door_creak.wav")
     };
 
     /**
-     * Creates new form Backstory
+     * Creates new form Backstory.
      */
     public Backstory() {
         initComponents();
 
+        // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
                 getClass().getResourceAsStream("/Images/logo.png"));
@@ -171,13 +192,14 @@ public class Backstory extends javax.swing.JFrame {
         setTitle("The Fourth Tenant");
         setResizable(false);
         setLocationRelativeTo(null);
-        
+
+        // ---- Exit label (blood-stained door): hover + click ----
         final javax.swing.ImageIcon bloodNormal = new javax.swing.ImageIcon(
             getClass().getResource("/Images/backstory/door_blood.png"));
         final javax.swing.ImageIcon bloodHover = new javax.swing.ImageIcon(
             getClass().getResource("/Images/backstory/door_blood_hovered.png"));
-        
-        jLabel4.setIcon(bloodNormal);   // start with the normal icon
+
+        jLabel4.setIcon(bloodNormal); // start with the normal icon
 
         jLabel4.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
@@ -187,10 +209,22 @@ public class Backstory extends javax.swing.JFrame {
                 jLabel4.setIcon(bloodNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                // Stop all audio immediately
-                stopAndClose(rainClip);      rainClip = null;
-                stopAndClose(thunderClip);   thunderClip = null;
-                stopAndClose(intenseClip);   intenseClip = null;
+                if (TransitionOverlay.isPlaying()) return;
+
+                stopAllSlideSfx();
+
+                // Stop voice, phone ring, and any pending timers before transition.
+                if (currentClip != null) { currentClip.stop(); currentClip = null; }
+                if (phoneRingClip != null) { phoneRingClip.stop(); phoneRingClip = null; }
+
+                if (ringDelayTimer != null) { ringDelayTimer.stop(); ringDelayTimer = null; }
+                if (bloodFadeTimer != null) { bloodFadeTimer.stop(); bloodFadeTimer = null; }
+                if (cutsceneDelayTimer != null) { cutsceneDelayTimer.stop(); cutsceneDelayTimer = null; }
+
+                // Stop looping ambience.
+                if (rainClip    != null) { rainClip.stop();    rainClip = null; }
+                if (thunderClip != null) { thunderClip.stop(); thunderClip = null; }
+                if (intenseClip != null) { intenseClip.stop(); intenseClip = null; }
 
                 TransitionOverlay.play(Backstory.this, () -> {
                     CrimeScene cs = new CrimeScene();
@@ -219,6 +253,7 @@ public class Backstory extends javax.swing.JFrame {
         jLabel2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jLabel3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
+        // ---- Previous arrow ----
         jLabel2.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 jLabel2.setIcon(prevDark);
@@ -231,6 +266,7 @@ public class Backstory extends javax.swing.JFrame {
             }
         });
 
+        // ---- Next arrow ----
         jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 jLabel3.setIcon(nextDark);
@@ -243,13 +279,15 @@ public class Backstory extends javax.swing.JFrame {
             }
         });
 
-        // Keyboard arrow navigation
+        // ---- Keyboard arrow navigation ----
         javax.swing.JRootPane root = getRootPane();
         javax.swing.InputMap im = root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
         javax.swing.ActionMap am = root.getActionMap();
 
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_LEFT, 0), "prev");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_RIGHT, 0), "next");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, 0), "prev");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, 0), "next");
 
         am.put("prev", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { navigate(-1); }
@@ -257,8 +295,8 @@ public class Backstory extends javax.swing.JFrame {
         am.put("next", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { navigate(+1); }
         });
-        
-        // --- Subtitle boxes (reusable) ---
+
+        // ---- Subtitle boxes (reusable, one per side) ----
         subtitleBoxLeft = new SubtitleBox();
         subtitleBoxLeft.setVisible(false);
         jPanel1.add(subtitleBoxLeft,
@@ -268,33 +306,55 @@ public class Backstory extends javax.swing.JFrame {
         subtitleBoxRight.setVisible(false);
         jPanel1.add(subtitleBoxRight,
             new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 100));
-        
-        // --- Fade-in overlay ---
+
+        // ---- Fade-in overlay (covers the whole panel) ----
         fadeOverlay = new FadeOverlay();
         jPanel1.add(fadeOverlay,
             new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
         jPanel1.setComponentZOrder(fadeOverlay, 0);
 
-        // Start fade shortly after the window is shown
+        // Start fade shortly after the window is shown.
         javax.swing.Timer starter = new javax.swing.Timer(150, e -> fadeIn());
         starter.setRepeats(false);
         starter.start();
-        
-        showSlide(0);
-        
-        // --- Ambience ---
-        rainClip = playLooping("/audio/backstory/sfx/rain_loop.wav");
 
-        // --- Preload typewriter key click ---
-        try {
-            java.io.InputStream is = getClass().getResourceAsStream(
-                "/audio/backstory/sfx/typewriter_key.wav");
-            typewriterKeyClip = javax.sound.sampled.AudioSystem.getClip();
-            typewriterKeyClip.open(javax.sound.sampled.AudioSystem.getAudioInputStream(is));
-        } catch (Exception e) {
-            System.out.println("Key click not loaded: " + e.getMessage());
-        }
-        
+        // Warm the audio cache with every Backstory asset on a background thread.
+        // The window appears immediately; clips are ready by the time the player
+        // reaches the slides that use them.
+        new javax.swing.SwingWorker<Void, Void>() {
+            @Override protected Void doInBackground() {
+                AudioCache.prepare(
+                    "/audio/backstory/s03_detective.wav",
+                    "/audio/backstory/s04_morales.wav",
+                    "/audio/backstory/s05_detective.wav",
+                    "/audio/backstory/s06_morales.wav",
+                    "/audio/backstory/s07_detective.wav",
+                    "/audio/backstory/s07_morales.wav",
+                    "/audio/backstory/s08_morales.wav",
+                    "/audio/backstory/s09_detective.wav",
+                    "/audio/backstory/s10_morales.wav",
+                    "/audio/backstory/s11_morales.wav",
+                    "/audio/backstory/s12_detective.wav",
+                    "/audio/backstory/s12_morales.wav",
+                    "/audio/backstory/sfx/thunder.wav",
+                    "/audio/backstory/sfx/receiver_click.wav",
+                    "/audio/backstory/sfx/siren_distant.wav",
+                    "/audio/backstory/sfx/wind_gust.wav",
+                    "/audio/backstory/sfx/door_creak.wav",
+                    "/audio/backstory/sfx/rain_loop.wav",
+                    "/audio/backstory/sfx/intense.wav",
+                    "/audio/backstory/sfx/phone_ring.wav"
+                );
+                return null;
+            }
+        }.execute();
+
+        showSlide(0);
+
+        // ---- Ambience ----
+        rainClip = AudioCache.loop("/audio/backstory/sfx/rain_loop.wav");
+
+        // ---- Options menu ----
         optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
 
             @Override public void onMusicChanged(int percent) {
@@ -303,63 +363,57 @@ public class Backstory extends javax.swing.JFrame {
             }
 
             @Override public void onSoundChanged(int percent) {
-                // SfxManager is already updated — now update any currently-playing loops
-                for (javax.sound.sampled.Clip c : new java.util.ArrayList<>(ambienceClips)) {
-                    SfxManager.applyVolume(c, percent);
-                }
-                SfxManager.playOneShot(Backstory.this.getClass(), "/audio/hover.wav");
+                AudioCache.play("/audio/hover.wav");
             }
 
             @Override public void onClose() {
                 pauseMenu.showPopupOnly();
             }
         });
-        
-        // --- Pause menu ---
+
+        // ---- Pause menu ----
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
 
             @Override public void onPause() {
-                // ---- 1) Voice / narration clip ----
+                // 1) Voice / narration clip — remember playback position.
                 if (currentClip != null) {
                     savedClipMicros = currentClip.getMicrosecondPosition();
                     currentClip.stop();
                 }
 
-                // ---- 2) Looping ambience ----
+                // 2) Looping ambience.
                 if (rainClip      != null) rainClip.stop();
                 if (thunderClip   != null) thunderClip.stop();
                 if (intenseClip   != null) intenseClip.stop();
 
-                // ---- 3) One-shot SFX that may still be playing ----
+                // 3) One-shot SFX that may still be playing.
                 if (phoneRingClip != null) phoneRingClip.stop();
-                if (typewriterKeyClip != null) typewriterKeyClip.stop();
 
                 // NOTE: any other one-shot SFX (siren_distant, wind_gust, receiver_click,
                 // door_creak) are fire-and-forget Clips — they'll naturally finish on their
                 // own. If you want to pause those too, see the "hardening" section below.
 
-                // ---- 4) Typewriter timer ----
+                // 4) Typewriter timer.
                 if (typewriterTimer != null && typewriterTimer.isRunning()) {
                     typewriterWasRunning = true;
                     typewriterTimer.stop();
                 }
 
-                // ---- 5) Kill any pending delayed timers (ring delay, cutscene fade) ----
+                // 5) Kill any pending delayed timers (ring delay, cutscene fade).
                 // These are one-shot timers scheduled inside showSlide(); if we don't
                 // stop them they'll fire while paused.
                 // (See the hardening section below for how to track them.)
             }
 
             @Override public void onResume() {
-                // ---- 1) Voice / narration ----
+                // 1) Voice / narration — resume from where it was paused.
                 if (currentClip != null && savedClipMicros > 0) {
                     currentClip.setMicrosecondPosition(savedClipMicros);
                     currentClip.start();
                     savedClipMicros = 0;
                 }
 
-                // ---- 2) Looping ambience ----
-                // start() resumes from where stop() left it — cleaner than loop().
+                // 2) Looping ambience — start() resumes from where stop() left it.
                 if (rainClip != null) rainClip.start();
 
                 // Slide 0 loops thunder; slide 12 loops intense music.
@@ -370,32 +424,30 @@ public class Backstory extends javax.swing.JFrame {
                     intenseClip.start();
                 }
 
-                // ---- 3) Typewriter ----
+                // 3) Typewriter — resume if it was mid-typing.
                 if (typewriterWasRunning && savedBox != null) {
                     resumeTypewriter();
                 }
 
-                // ---- 4) Re-fire one-shot SFX if still relevant ----
+                // 4) Re-fire one-shot SFX if still relevant.
                 // (For now, skip — the clip already finished or will finish naturally.
                 // If you want them to resume too, use the hardening pattern below.)
             }
 
             @Override public void onMainMenu() {
-                // 0) Hide the pause overlay FIRST so the transition is visible
                 pauseMenu.hideOverlay();
 
-                // 1) Stop every audio clip this frame owns
-                if (currentClip       != null) { currentClip.stop();       currentClip.close();       currentClip = null; }
-                if (rainClip    != null) { rainClip.stop();    rainClip.close();    rainClip = null; }
-                if (thunderClip != null) { thunderClip.stop(); thunderClip.close(); thunderClip = null; }
-                if (intenseClip != null) { intenseClip.stop(); intenseClip.close(); intenseClip = null; }
-                if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip.close();     phoneRingClip = null; }
-                if (typewriterKeyClip != null) { typewriterKeyClip.stop(); typewriterKeyClip.close(); typewriterKeyClip = null; }
+                // Stop all audio and timers before leaving the frame.
+                stopAllSlideSfx();
+                if (currentClip       != null) { currentClip.stop();       currentClip = null; }
+                if (rainClip          != null) { rainClip.stop();          rainClip = null; }
+                if (thunderClip       != null) { thunderClip.stop();       thunderClip = null; }
+                if (intenseClip       != null) { intenseClip.stop();       intenseClip = null; }
+                if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip = null; }
                 if (typewriterTimer   != null) { typewriterTimer.stop();   typewriterTimer = null; }
                 if (ringDelayTimer    != null) { ringDelayTimer.stop();    ringDelayTimer = null; }
                 if (cutsceneDelayTimer!= null) { cutsceneDelayTimer.stop();cutsceneDelayTimer = null; }
 
-                // 2) Transition, then open MainMenu
                 TransitionOverlay.play(Backstory.this, () -> {
                     MainMenu menu = new MainMenu();
                     menu.setLocation(getLocation());
@@ -422,10 +474,11 @@ public class Backstory extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new FadeLabel();
+        jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("The Fourth Tenant");
@@ -433,18 +486,21 @@ public class Backstory extends javax.swing.JFrame {
 
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/previous_button.png"))); // NOI18N
-        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
-
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/next_button.png"))); // NOI18N
-        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1090, 0, 60, 680));
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1090, 310, 50, 60));
 
         jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/door_blood.png"))); // NOI18N
         jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, -1, -1));
 
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/previous_button.png"))); // NOI18N
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 310, -1, 50));
+
         jLabel1.setBackground(new java.awt.Color(20, 20, 25));
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/slide1.png"))); // NOI18N
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/previous_button.png"))); // NOI18N
+        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -464,53 +520,49 @@ public class Backstory extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     
+    /**
+     * Displays the slide at the given index, clamping to valid bounds.
+     * Stops any audio from the previous slide, sets up the image, subtitle
+     * boxes, SFX, and typewriter effect for this slide.
+     */
     private void showSlide(int index) {
         if (index < 0) index = 0;
         if (index >= slides.length) index = slides.length - 1;
         currentSlide = index;
 
         Slide s = slides[currentSlide];
+        stopAllSlideSfx();
 
-        // Stop any audio from the previous slide
-        if (currentClip != null) {
-            currentClip.stop();
-            currentClip.close();
-            currentClip = null;
-        }
-        if (phoneRingClip != null) {
-            phoneRingClip.stop();
-            phoneRingClip.close();
-            phoneRingClip = null;
-        }
+        // Stop any audio from the previous slide.
+        if (currentClip   != null) { currentClip.stop();   currentClip = null; }
+        if (phoneRingClip != null) { phoneRingClip.stop(); phoneRingClip = null; }
+        if (thunderClip   != null) { thunderClip.stop();   thunderClip = null; }
+        if (intenseClip   != null) { intenseClip.stop();   intenseClip = null; }
 
-        stopAndClose(thunderClip);   thunderClip = null;
-        stopAndClose(intenseClip);   intenseClip = null;
-
-        // Fire this slide's one-shot SFX — but skip if this slide handles its own SFX
+        // Fire this slide's one-shot SFX — but skip if this slide handles its own SFX.
         if (s.sfxPath != null && currentSlide != 0) {
             playSfx(s.sfxPath);
         }
 
-        // Slide 1: loop thunder + delayed phone ring
+        // Slide 1: loop thunder + delayed phone ring.
         if (currentSlide == 0) {
-            stopAndClose(thunderClip);
-            thunderClip = playLooping("/audio/backstory/sfx/thunder.wav");
+            thunderClip = AudioCache.loop("/audio/backstory/sfx/thunder.wav");
 
             if (ringDelayTimer != null) ringDelayTimer.stop();
             ringDelayTimer = new javax.swing.Timer(600, e -> {
-                if (pauseMenu != null && pauseMenu.isPaused()) return;   // don't ring while paused
+                if (pauseMenu != null && pauseMenu.isPaused()) return; // don't ring while paused
                 phoneRingClip = playSfx("/audio/backstory/sfx/phone_ring.wav");
             });
             ringDelayTimer.setRepeats(false);
             ringDelayTimer.start();
         }
 
-        // Slide 13: thunder + intense music
+        // Slide 13: loop intense music, then fade in the exit label.
         if (currentSlide == 12) {
-            thunderClip = playSfx("/audio/backstory/sfx/thunder.wav");
-            intenseClip = playLooping("/audio/backstory/sfx/intense.wav");
+            intenseClip = AudioCache.loop("/audio/backstory/sfx/intense.wav");
 
             jLabel4.setVisible(false);
+            ((FadeLabel) jLabel4).setAlpha(0f);
 
             if (cutsceneDelayTimer != null) cutsceneDelayTimer.stop();
             cutsceneDelayTimer = new javax.swing.Timer(3000, e -> fadeInCutscene());
@@ -518,13 +570,18 @@ public class Backstory extends javax.swing.JFrame {
             cutsceneDelayTimer.start();
         } else {
             jLabel4.setVisible(false);
+
+            if (cutsceneDelayTimer != null) {
+                cutsceneDelayTimer.stop();
+                cutsceneDelayTimer = null;
+            }
         }
 
         if (typewriterTimer != null) {
             typewriterTimer.stop();
         }
 
-        // --- Image ---
+        // ---- Image ----
         java.net.URL imgUrl = getClass().getResource(s.imagePath);
         if (imgUrl != null) {
             jLabel1.setIcon(new javax.swing.ImageIcon(imgUrl));
@@ -532,7 +589,7 @@ public class Backstory extends javax.swing.JFrame {
             System.out.println("Slide missing: " + s.imagePath);
         }
 
-        // --- Left subtitle (bottom-left) ---
+        // ---- Left subtitle (bottom-left) ----
         if (s.leftLines.isEmpty()) {
             subtitleBoxLeft.clear();
             subtitleBoxLeft.setVisible(false);
@@ -549,7 +606,7 @@ public class Backstory extends javax.swing.JFrame {
             int boxH = subtitleBoxLeft.getPreferredHeight(boxW, s.leftLines);
             int boxY = 680 - boxH - 40;     // near bottom
 
-            // If this slide has a right box too, shift left box to bottom-left
+            // If this slide has a right box too, shift the left box to bottom-left.
             if (!s.rightLines.isEmpty()) {
                 boxW = 620;
                 boxX = 40;
@@ -562,7 +619,7 @@ public class Backstory extends javax.swing.JFrame {
                 new org.netbeans.lib.awtextra.AbsoluteConstraints(boxX, boxY, boxW, boxH));
         }
 
-        // --- Right subtitle (top-right, only used on 2-box slides) ---
+        // ---- Right subtitle (top-right, only used on two-box slides) ----
         if (s.rightLines.isEmpty()) {
             subtitleBoxRight.clear();
             subtitleBoxRight.setVisible(false);
@@ -583,17 +640,18 @@ public class Backstory extends javax.swing.JFrame {
                 new org.netbeans.lib.awtextra.AbsoluteConstraints(boxX, boxY, boxW, boxH));
         }
 
-        // Bring subtitles to front
+        // Bring subtitles to front.
         jPanel1.setComponentZOrder(subtitleBoxLeft, 0);
         jPanel1.setComponentZOrder(subtitleBoxRight, 0);
 
-        // --- Arrows: hide at boundaries ---
+        // ---- Arrows: hide at boundaries ----
         jLabel2.setVisible(currentSlide > 0);
         jLabel3.setVisible(currentSlide < slides.length - 1);
 
         boolean hasLeft  = !s.leftLines.isEmpty();
         boolean hasRight = !s.rightLines.isEmpty();
 
+        // Two-box slides: type the left box first, then reveal and type the right box.
         if (hasLeft && hasRight) {
             subtitleBoxRight.setVisible(false);
             runTypewriterFor(subtitleBoxLeft, () -> {
@@ -609,23 +667,25 @@ public class Backstory extends javax.swing.JFrame {
         jPanel1.revalidate();
         jPanel1.repaint();
     }
-    
+
+    /**
+     * Moves to the previous ({@code -1}) or next ({@code +1}) slide.
+     * Blocked while the pause menu is open or a transition is in flight.
+     */
     private void navigate(int direction) {
-        // Block navigation while the pause menu is open
+        // Block navigation while the pause menu is open.
         if (pauseMenu != null && pauseMenu.isPaused()) return;
 
-        if (navigationLocked) return;
+        // Block navigation while a scene transition is in flight.
+        if (TransitionOverlay.isPlaying()) return;
+
         int next = currentSlide + direction;
         if (next < 0 || next >= slides.length) return;
 
-        navigationLocked = true;
         showSlide(next);
-
-        javax.swing.Timer unlock = new javax.swing.Timer(NAV_LOCK_MS, ev -> navigationLocked = false);
-        unlock.setRepeats(false);
-        unlock.start();
     }
-    
+
+    /** Fades the black overlay out from full opacity to transparent. */
     private void fadeIn() {
         final long startTime = System.currentTimeMillis();
         final int DURATION_MS = 1200;
@@ -647,9 +707,13 @@ public class Backstory extends javax.swing.JFrame {
         });
         t.start();
     }
-    
+
+    /** Fades the blood-stained exit label in on the final slide. */
     private void fadeInCutscene() {
         FadeLabel bloodLabel = (FadeLabel) jLabel4;
+
+        // Cancel any previous fade still running.
+        if (bloodFadeTimer != null) bloodFadeTimer.stop();
 
         bloodLabel.setAlpha(0f);
         bloodLabel.setVisible(true);
@@ -657,16 +721,23 @@ public class Backstory extends javax.swing.JFrame {
         final long start = System.currentTimeMillis();
         final int DURATION_MS = 900;
 
-        javax.swing.Timer t = new javax.swing.Timer(16, null);
-        t.addActionListener(e -> {
+        bloodFadeTimer = new javax.swing.Timer(16, null);
+        bloodFadeTimer.addActionListener(e -> {
             long elapsed = System.currentTimeMillis() - start;
             float p = Math.min(1f, elapsed / (float) DURATION_MS);
             bloodLabel.setAlpha(p);
-            if (p >= 1f) ((javax.swing.Timer) e.getSource()).stop();
+            if (p >= 1f) {
+                ((javax.swing.Timer) e.getSource()).stop();
+                bloodFadeTimer = null;
+            }
         });
-        t.start();
+        bloodFadeTimer.start();
     }
-    
+
+    /**
+     * Resumes the typewriter timer after a pause, picking up from the last
+     * visible character count without replaying key clicks.
+     */
     private void resumeTypewriter() {
         if (savedBox == null) return;
 
@@ -676,8 +747,8 @@ public class Backstory extends javax.swing.JFrame {
         final Runnable onDone     = savedOnDone;
         final double[] accumulated = { savedCharsShown };
 
-        // Don't replay key clicks on resume — reset the "typing started" marker
-        typewriterStartTime = System.currentTimeMillis() - TYPEWRITER_KEY_DURATION_MS;
+        // Don't replay key clicks on resume — reset the "typing started" marker.
+        typewriterStartTime = System.currentTimeMillis();
 
         typewriterTimer = new javax.swing.Timer((int) savedTickMs, null);
         typewriterTimer.addActionListener(e -> {
@@ -695,81 +766,74 @@ public class Backstory extends javax.swing.JFrame {
         });
         typewriterTimer.start();
     }
-    
+
     /**
-    * Types out one box's contents character by character, synced to an
-    * audio file (if the box's first line has audio).
-    */
-        private void runTypewriterFor(SubtitleBox box, Runnable onDone) {
-         if (typewriterTimer != null) typewriterTimer.stop();
+     * Types out one box's contents character by character, synced to the
+     * box's voice-over audio (if its first line has one). Runs {@code onDone}
+     * when typing finishes.
+     */
+    private void runTypewriterFor(SubtitleBox box, Runnable onDone) {
+        if (typewriterTimer != null) typewriterTimer.stop();
 
-         // --- 1) Audio path ---
-         String audioPath = box.getFirstAudioPath();
-         if (audioPath != null && !audioPath.startsWith("/")) {
-             audioPath = "/" + audioPath;
-         }
+        // ---- 1) Audio path ----
+        String audioPath = box.getFirstAudioPath();
 
-         long audioDurationMs = 0;
-         javax.sound.sampled.Clip clip = null;
+        long audioDurationMs = 0;
+        javax.sound.sampled.Clip clip = null;
 
-         if (audioPath != null) {
-             try {
-                 java.io.InputStream is = getClass().getResourceAsStream(audioPath);
-                 if (is != null) {
-                     javax.sound.sampled.AudioInputStream ais =
-                         javax.sound.sampled.AudioSystem.getAudioInputStream(is);
-                     clip = javax.sound.sampled.AudioSystem.getClip();
-                     clip.open(ais);
-                     SfxManager.applyVolume(clip, SfxManager.getVolumePercent());
-                     audioDurationMs = clip.getMicrosecondLength() / 1000;
-                     currentClip = clip;
-                 }
-             } catch (Exception e) {
-                 System.out.println("Audio load FAILED: " + audioPath);
-                 System.out.println("Reason: " + e.getClass().getSimpleName()
-                                    + " — " + e.getMessage());
-             }
-         }
+        if (audioPath != null) {
+            clip = AudioCache.get(audioPath);
+            if (clip != null) {
+                clip.stop();
+                clip.setFramePosition(0);
+                audioDurationMs = clip.getMicrosecondLength() / 1000;
+                currentClip = clip;
+            }
+        }
 
-         int totalChars = box.getTotalChars();
+        int totalChars = box.getTotalChars();
 
-         if (totalChars == 0) {
-             box.showAllChars();
-             if (clip != null) clip.start();
-             if (onDone != null) onDone.run();
-             return;
-         }
+        // No text — just play the audio (if any) and finish immediately.
+        if (totalChars == 0) {
+            box.showAllChars();
+            if (clip != null) clip.start();
+            if (onDone != null) onDone.run();
+            return;
+        }
 
-         // --- 2) Speed ---
-         final int DEFAULT_TICK_MS = 30;
-         final double DEFAULT_CHARS_PER_SEC = 50.0;
-         final double AUDIO_SYNC_MULTIPLIER = 1.2;
+        // ---- 2) Speed ----
+        // With audio: sync typing to narration length, sped up slightly so the
+        // text finishes a touch before the voice does.
+        // Without audio: fall back to a fixed reading pace.
+        final int DEFAULT_TICK_MS = 30;
+        final double DEFAULT_CHARS_PER_SEC = 50.0;
+        final double AUDIO_SYNC_MULTIPLIER = 1.2;
 
-         final int tickMs;
-         final double charsPerSecond;
+        final int tickMs;
+        final double charsPerSecond;
 
-         if (clip != null && audioDurationMs > 0) {
-             tickMs = 25;
-             charsPerSecond = totalChars / (audioDurationMs / 1000.0) * AUDIO_SYNC_MULTIPLIER;
-         } else {
-             tickMs = DEFAULT_TICK_MS;
-             charsPerSecond = DEFAULT_CHARS_PER_SEC;
-         }
+        if (clip != null && audioDurationMs > 0) {
+            tickMs = 25;
+            charsPerSecond = totalChars / (audioDurationMs / 1000.0) * AUDIO_SYNC_MULTIPLIER;
+        } else {
+            tickMs = DEFAULT_TICK_MS;
+            charsPerSecond = DEFAULT_CHARS_PER_SEC;
+        }
 
-         box.setVisibleChars(0);
+        box.setVisibleChars(0);
 
-         // --- 3) Play audio ---
-         final javax.sound.sampled.Clip clipToStop = clip;
-         if (clip != null) {
-             clip.setFramePosition(0);
-             clip.start();
-         }
+        // ---- 3) Play audio ----
+        final javax.sound.sampled.Clip clipToStop = clip;
+        if (clip != null) {
+            clip.setFramePosition(0);
+            clip.start();
+        }
 
-         // --- 4) Typewriter ---
-         final double charsPerTick = charsPerSecond * (tickMs / 1000.0);
-         final double[] accumulated = {0.0};
+        // ---- 4) Typewriter ----
+        final double charsPerTick = charsPerSecond * (tickMs / 1000.0);
+        final double[] accumulated = {0.0};
 
-        // Save state for pause/resume
+        // Save state for pause/resume.
         savedBox          = box;
         savedOnDone       = onDone;
         savedTotalChars   = totalChars;
@@ -781,9 +845,6 @@ public class Backstory extends javax.swing.JFrame {
 
         typewriterTimer = new javax.swing.Timer(tickMs, null);
         typewriterTimer.addActionListener(e -> {
-            if (System.currentTimeMillis() - typewriterStartTime < TYPEWRITER_KEY_DURATION_MS) {
-                playKeyClick();
-            }
 
             accumulated[0] += charsPerTick;
             int toShow = (int) accumulated[0];
@@ -800,8 +861,9 @@ public class Backstory extends javax.swing.JFrame {
         });
         typewriterStartTime = System.currentTimeMillis();
         typewriterTimer.start();
-     }
-    
+    }
+
+    /** Returns a darkened copy of the given image (used for arrow hover states). */
     private static java.awt.Image darken(java.awt.Image src) {
         java.awt.image.ImageFilter filter = new java.awt.image.RGBImageFilter() {
             @Override
@@ -816,7 +878,7 @@ public class Backstory extends javax.swing.JFrame {
         return java.awt.Toolkit.getDefaultToolkit().createImage(
                 new java.awt.image.FilteredImageSource(src.getSource(), filter));
     }
-    
+
     /** Simple black overlay that fades out. */
     private static class FadeOverlay extends javax.swing.JComponent {
         private float alpha = 1f;
@@ -839,75 +901,46 @@ public class Backstory extends javax.swing.JFrame {
             g2.dispose();
         }
     }
-    
-    /** Loads and starts a looping clip (used for rain ambience). */
-    private javax.sound.sampled.Clip playLooping(String path) {
-        try {
-            java.io.InputStream is = getClass().getResourceAsStream(path);
-            javax.sound.sampled.AudioInputStream ais =
-                javax.sound.sampled.AudioSystem.getAudioInputStream(is);
-            javax.sound.sampled.Clip c = javax.sound.sampled.AudioSystem.getClip();
-            c.open(ais);
-            SfxManager.applyVolume(c, SfxManager.getVolumePercent());
-            c.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
-            ambienceClips.add(c);          // ← register
-            return c;
-        } catch (Exception e) {
-            System.out.println("SFX loop not found: " + path);
-            return null;
-        }
-    }
-    
-    private void stopAndClose(javax.sound.sampled.Clip c) {
-        if (c == null) return;
-        c.stop();
-        c.close();
-        ambienceClips.remove(c);
-    }
 
-    /** Loads and plays a one-shot clip. Returns the clip so you can stop it if needed. */
-    private javax.sound.sampled.Clip playSfx(String path) {
-        try {
-            java.io.InputStream is = getClass().getResourceAsStream(path);
-            javax.sound.sampled.AudioInputStream ais =
-                javax.sound.sampled.AudioSystem.getAudioInputStream(is);
-            javax.sound.sampled.Clip c = javax.sound.sampled.AudioSystem.getClip();
-            c.open(ais);
-            SfxManager.applyVolume(c, SfxManager.getVolumePercent());   // ← ADD
-            c.start();
-            return c;
-        } catch (Exception e) {
-            System.out.println("SFX not found: " + path);
-            return null;
-        }
-    }
-
-    /** Plays the typewriter key click once. Reuses the same loaded clip. */
-    private void playKeyClick() {
-        if (typewriterKeyClip == null) return;
-        SfxManager.applyVolume(typewriterKeyClip, SfxManager.getVolumePercent());  // ← ADD
-        typewriterKeyClip.setFramePosition(0);
-        typewriterKeyClip.start();
-    }
-    
+    /**
+     * Stops all audio and timers owned by this frame.
+     * Clips are stopped but not closed — the {@link AudioCache} owns them.
+     */
     @Override
     public void dispose() {
-        stopAndClose(rainClip);      rainClip = null;
-        if (phoneRingClip     != null) { phoneRingClip.stop();     phoneRingClip.close(); }
-        stopAndClose(thunderClip);   thunderClip = null;
-        stopAndClose(intenseClip);   intenseClip = null;
-        if (typewriterKeyClip != null) { typewriterKeyClip.stop(); typewriterKeyClip.close(); }
-        if (currentClip       != null) { currentClip.stop();       currentClip.close(); }
-        if (typewriterTimer   != null) { typewriterTimer.stop(); }
-        if (ringDelayTimer    != null) { ringDelayTimer.stop(); }
-        if (cutsceneDelayTimer!= null) { cutsceneDelayTimer.stop(); }
+        // Stop anything still playing — do NOT close, the cache owns the clips.
+        stopAllSlideSfx();
+        if (currentClip       != null) currentClip.stop();
+        if (rainClip          != null) rainClip.stop();
+        if (thunderClip       != null) thunderClip.stop();
+        if (intenseClip       != null) intenseClip.stop();
+        if (phoneRingClip     != null) phoneRingClip.stop();
+
+        currentClip = null;
+        rainClip = null;
+        thunderClip = null;
+        intenseClip = null;
+        phoneRingClip = null;
+
+        if (typewriterTimer    != null) typewriterTimer.stop();
+        if (ringDelayTimer     != null) ringDelayTimer.stop();
+        if (cutsceneDelayTimer != null) cutsceneDelayTimer.stop();
+        if (bloodFadeTimer     != null) bloodFadeTimer.stop();
+
         super.dispose();
     }
-    
+
+    /** JLabel variant that supports a fading alpha value. */
     private static class FadeLabel extends javax.swing.JLabel {
         private float alpha = 1f;
+
         FadeLabel() { setOpaque(false); }
-        void setAlpha(float a) { this.alpha = Math.max(0f, Math.min(1f, a)); repaint(); }
+
+        void setAlpha(float a) {
+            this.alpha = Math.max(0f, Math.min(1f, a));
+            repaint();
+        }
+
         @Override
         protected void paintComponent(java.awt.Graphics g) {
             java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
@@ -917,7 +950,28 @@ public class Backstory extends javax.swing.JFrame {
             g2.dispose();
         }
     }
-    
+
+    /** Stops and clears every one-shot SFX clip tracked for the current slide. */
+    private void stopAllSlideSfx() {
+        for (javax.sound.sampled.Clip c : new java.util.ArrayList<>(slideSfxClips)) {
+            try { c.stop(); } catch (Exception ignored) {}
+        }
+        slideSfxClips.clear();
+    }
+
+    /**
+     * Plays a one-shot SFX via the cache and tracks it so it can be stopped
+     * when the slide changes or the frame is disposed.
+     *
+     * @return the playing clip, or {@code null} if the sound could not be loaded
+     */
+    private javax.sound.sampled.Clip playSfx(String path) {
+        javax.sound.sampled.Clip c = AudioCache.play(path);
+        if (c != null) slideSfxClips.add(c);
+        return c;
+    }
+
+    /** Loads the custom pixel font at the given size, or falls back to Segoe UI. */
     private java.awt.Font getCustomFont(float size) {
         try {
             java.io.InputStream is = getClass().getResourceAsStream("/fonts/press_start_2p.ttf");
@@ -956,6 +1010,7 @@ public class Backstory extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }

@@ -44,12 +44,12 @@ public class TransitionOverlay {
     private static java.awt.KeyEventDispatcher blocker;
 
     /** Convenience: default position is BOTTOM_RIGHT. */
-    public static void play(JFrame frame, Runnable onFinished) {
-        play(frame, Position.BOTTOM_RIGHT, onFinished);
+    public static boolean play(JFrame frame, Runnable onFinished) {
+        return play(frame, Position.BOTTOM_RIGHT, onFinished);
     }
 
-    public static void play(JFrame frame, Position pos, Runnable onFinished) {
-        if (playing) return;
+    public static boolean play(JFrame frame, Position pos, Runnable onFinished) {
+        if (playing) return false;
         playing = true;
 
         // Block all keyboard input during the transition
@@ -94,6 +94,7 @@ public class TransitionOverlay {
             }
         });
         timer.start();
+        return true;
     }
 
     private static class OverlayPanel extends JComponent {

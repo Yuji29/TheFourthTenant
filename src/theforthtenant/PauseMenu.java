@@ -99,14 +99,14 @@ public class PauseMenu {
         // ---- ActionMap handlers (all guarded against subPopupOpen) ----
         root.getActionMap().put("togglePause", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (subPopupOpen) return;              // Options on top → let it handle ESC
+                if (subPopupOpen) return;              // ← put this back
                 if (paused) resume(); else pause();
             }
         });
 
         root.getActionMap().put("pauseUp", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (!paused || subPopupOpen) return;
+                if (!paused || subPopupOpen) return;   // ← already there, keep
                 selectedIndex = (selectedIndex - 1 + MENU_ITEMS.length) % MENU_ITEMS.length;
                 overlay.repaint();
             }

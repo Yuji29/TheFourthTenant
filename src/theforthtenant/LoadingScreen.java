@@ -5,14 +5,18 @@
 package theforthtenant;
 
 /**
+ * The startup loading screen: an undecorated frame with a progress bar and
+ * a rotating status message. Runs a fake five-second load, then opens the
+ * main menu.
  *
  * @author yuji
  */
 public class LoadingScreen extends javax.swing.JFrame {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LoadingScreen.class.getName());
-    
-    // --- Loading fields ---
+
+    private static final java.util.logging.Logger logger =
+            java.util.logging.Logger.getLogger(LoadingScreen.class.getName());
+
+    // ---- Loading state ----
     private static final int LOAD_TIME_MS = 5000;
     private static final int TICK_MS = 50;
     private int elapsed = 0;
@@ -31,26 +35,26 @@ public class LoadingScreen extends javax.swing.JFrame {
         "Cleaning up crime scene..."
     };
     private int statusIndex = 0;
-    
+
     /**
-     * Creates new form LoadingScreen
+     * Creates new form LoadingScreen.
      */
     public LoadingScreen() {
         setUndecorated(true);
         initComponents();
-        
-        // White + pixel font on all text
+
+        // White pixel font on all text.
         jLabel1.setFont(getCustomFont(8f));      // "Initializing"
         jLabel1.setForeground(java.awt.Color.WHITE);
 
-        jLabel2.setFont(getCustomFont(8f));       // status text (smaller, easier to read)
+        jLabel2.setFont(getCustomFont(8f));      // status text (smaller, easier to read)
         jLabel2.setForeground(java.awt.Color.WHITE);
-        
+
         setTitle("The Fourth Tenant");
         setResizable(false);
         setLocationRelativeTo(null);
-        
-        // Progress bar styling
+
+        // ---- Progress bar styling ----
         jProgressBar1.setMinimum(0);
         jProgressBar1.setMaximum(100);
         jProgressBar1.setValue(0);
@@ -59,7 +63,6 @@ public class LoadingScreen extends javax.swing.JFrame {
         jProgressBar1.setBackground(new java.awt.Color(60, 60, 60));
         jProgressBar1.setForeground(new java.awt.Color(180, 180, 180));
 
-        // Kick off the fake load
         startLoading();
     }
 
@@ -121,7 +124,7 @@ public class LoadingScreen extends javax.swing.JFrame {
                 int percent = (int) Math.min(100, (elapsed / (double) LOAD_TIME_MS) * 100);
                 jProgressBar1.setValue(percent);
 
-                // Cycle the status text proportionally to progress
+                // Cycle the status text proportionally to progress.
                 int newIndex = Math.min(statusMessages.length - 1,
                         (int) ((percent / 100.0) * statusMessages.length));
                 if (newIndex != statusIndex) {
@@ -145,6 +148,7 @@ public class LoadingScreen extends javax.swing.JFrame {
         progressTimer.start();
     }
 
+    /** Opens the main menu and disposes of this loading screen. */
     private void openMainMenu() {
         javax.swing.SwingUtilities.invokeLater(() -> {
             MainMenu menu = new MainMenu();
@@ -153,7 +157,8 @@ public class LoadingScreen extends javax.swing.JFrame {
         });
         dispose();
     }
-    
+
+    /** Loads the custom pixel font at the given size, or falls back to Segoe UI. */
     private java.awt.Font getCustomFont(float size) {
         try {
             java.io.InputStream is = getClass().getResourceAsStream("/fonts/press_start_2p.ttf");

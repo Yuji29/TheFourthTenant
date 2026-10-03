@@ -5,52 +5,56 @@
 package theforthtenant;
 
 /**
+ * The main menu frame: displays the title screen buttons, handles keyboard
+ * and mouse navigation, plays menu music, and hosts the options overlay.
  *
  * @author yuji
  */
 public class MainMenu extends javax.swing.JFrame {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainMenu.class.getName());
+
+    private static final java.util.logging.Logger logger =
+            java.util.logging.Logger.getLogger(MainMenu.class.getName());
+
+    // ---- Audio ----
     private javax.sound.sampled.Clip musicClip;
+
+    // ---- UI ----
     private OptionsMenu optionsMenu;
-    
+
     /**
-     * Creates new form MainMenu
+     * Creates new form MainMenu.
      */
     public MainMenu() {
         initComponents();
-        
+
+        // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
                 getClass().getResourceAsStream("/Images/logo.png"));
             setIconImage(icon);
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
-        }   
-        
-        // Play the menu music on loop
-        musicClip = playSound("/audio/music.wav", true);
-        applyMusicVolume(SfxManager.getMusicVolumePercent());
-        
-        // 1. Load the custom font
+        }
+
+        // ---- Menu music (looping) ----
+        musicClip = AudioCache.loop("/audio/music.wav", AudioCache.Channel.MUSIC);
+
+        // ---- Style the four main menu buttons ----
         java.awt.Font customFont = getCustomFont(25f);
-        
-        // 2. Create an array of ALL FOUR buttons
         javax.swing.JButton[] menuButtons = { jButton1, jButton2, jButton3, jButton4 };
-        
-        // 3. Loop through them and apply the styling
+
         for (javax.swing.JButton btn : menuButtons) {
             btn.setFont(customFont);
-            
-            // Default (unselected) state: Gray text, transparent background
+
+            // Default (unselected) state: gray text, transparent background.
             btn.setForeground(java.awt.Color.GRAY);
             btn.setOpaque(false);
             btn.setContentAreaFilled(false);
             btn.setBorderPainted(false);
-            btn.setFocusPainted(false); 
+            btn.setFocusPainted(false);
             btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-            
-            // Highlight when focused (keyboard navigation)
+
+            // Highlight when focused (keyboard navigation).
             btn.addFocusListener(new java.awt.event.FocusAdapter() {
                 @Override
                 public void focusGained(java.awt.event.FocusEvent evt) {
@@ -62,8 +66,8 @@ public class MainMenu extends javax.swing.JFrame {
                     highlightButton(btn, false);
                 }
             });
-            
-            // Play hover sound + highlight when mouse enters
+
+            // Play hover sound + highlight when mouse enters.
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -71,27 +75,27 @@ public class MainMenu extends javax.swing.JFrame {
                     highlightButton(btn, true);
                     btn.requestFocusInWindow(); // so arrow keys work from here
                 }
-                
+
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    // Only un-highlight if this button doesn't have focus
+                    // Only un-highlight if this button doesn't have focus.
                     if (!btn.hasFocus()) {
                         highlightButton(btn, false);
                     }
                 }
             });
         }
-        
-        // ===== STYLE THE CREDITS BUTTON (jButton5) =====
-        jButton5.setFont(getCustomFont(12f)); // Smaller font
-        jButton5.setForeground(java.awt.Color.GRAY); // Gray text
+
+        // ---- Style the credits button (jButton5) ----
+        jButton5.setFont(getCustomFont(12f));       // smaller font
+        jButton5.setForeground(java.awt.Color.GRAY);
         jButton5.setOpaque(false);
         jButton5.setContentAreaFilled(false);
         jButton5.setBorderPainted(false);
         jButton5.setFocusPainted(false);
         jButton5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        
-        // Make the credits button highlight gray when hovered (optional, but nice)
+
+        // Brighten to white on hover.
         jButton5.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -102,7 +106,8 @@ public class MainMenu extends javax.swing.JFrame {
                 jButton5.setForeground(java.awt.Color.GRAY);
             }
         });
-        
+
+        // ---- Options menu ----
         optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
 
             @Override public void onMusicChanged(int percent) {
@@ -110,8 +115,8 @@ public class MainMenu extends javax.swing.JFrame {
             }
 
             @Override public void onSoundChanged(int percent) {
-                // SfxManager is already updated by OptionsMenu itself — just play a blip
-                SfxManager.playOneShot(MainMenu.this.getClass(), "/audio/hover.wav");
+                // SfxManager is already updated by OptionsMenu itself — just play a blip.
+                AudioCache.play("/audio/hover.wav");
             }
 
             @Override public void onClose() {
@@ -119,97 +124,83 @@ public class MainMenu extends javax.swing.JFrame {
             }
         });
 
-        // 5. Set the first button (START) to be highlighted when the game launches
+        // ---- Default selection: START button ----
         jButton1.requestFocusInWindow();
-        
-        // Manually highlight START as the default selection
         highlightButton(jButton1, true);
-        
-        // 6. Make arrow keys navigate the menu
-        // Bind DOWN arrow
-        jButton1.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("DOWN"), "down");
-        jButton2.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("DOWN"), "down");
-        jButton3.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("DOWN"), "down");
-        jButton4.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("DOWN"), "down");
 
-        // Bind UP arrow
-        jButton1.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("UP"), "up");
-        jButton2.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("UP"), "up");
-        jButton3.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("UP"), "up");
-        jButton4.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
-            javax.swing.KeyStroke.getKeyStroke("UP"), "up");
+        // ---- Arrow-key navigation ----
+        // Bind DOWN and UP arrows on each button.
+        for (javax.swing.JButton btn : menuButtons) {
+            btn.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke("DOWN"), "down");
+            btn.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke("UP"), "up");
+        }
 
-        // DOWN actions
+        // DOWN cycles forward through the buttons (wraps around).
         jButton1.getActionMap().put("down", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton2.requestFocusInWindow(); 
+                jButton2.requestFocusInWindow();
             }
         });
         jButton2.getActionMap().put("down", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton3.requestFocusInWindow(); 
+                jButton3.requestFocusInWindow();
             }
         });
         jButton3.getActionMap().put("down", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton4.requestFocusInWindow(); 
+                jButton4.requestFocusInWindow();
             }
         });
         jButton4.getActionMap().put("down", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton1.requestFocusInWindow(); 
+                jButton1.requestFocusInWindow();
             }
         });
 
-        // UP actions
+        // UP cycles backward through the buttons (wraps around).
         jButton1.getActionMap().put("up", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton4.requestFocusInWindow(); 
+                jButton4.requestFocusInWindow();
             }
         });
         jButton2.getActionMap().put("up", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton1.requestFocusInWindow(); 
+                jButton1.requestFocusInWindow();
             }
         });
         jButton3.getActionMap().put("up", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton2.requestFocusInWindow(); 
+                jButton2.requestFocusInWindow();
             }
         });
         jButton4.getActionMap().put("up", new javax.swing.AbstractAction() {
-            public void actionPerformed(java.awt.event.ActionEvent e) { 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 playSound("/audio/hover.wav", false);
-                jButton3.requestFocusInWindow(); 
+                jButton3.requestFocusInWindow();
             }
         });
-        
-        // 7. Make the ENTER key trigger the focused button
+
+        // ---- ENTER activates the focused button ----
         javax.swing.AbstractAction enterAction = new javax.swing.AbstractAction() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                // Find which button currently has focus and click it
-                java.awt.Component focused = java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                // Find which button currently has focus and click it.
+                java.awt.Component focused = java.awt.KeyboardFocusManager
+                        .getCurrentKeyboardFocusManager().getFocusOwner();
                 if (focused instanceof javax.swing.JButton) {
                     ((javax.swing.JButton) focused).doClick();
                 }
             }
         };
 
-        // Bind the ENTER key to every button
         for (javax.swing.JButton btn : menuButtons) {
             btn.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
                 javax.swing.KeyStroke.getKeyStroke("ENTER"), "enter");
@@ -287,23 +278,25 @@ public class MainMenu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+         // Don't play click / kill music if a transition is already playing
+        if (TransitionOverlay.isPlaying()) return;
+
         playSound("/audio/select.wav", false);
         System.out.println("START button clicked!");
-        
+
         // Stop the menu music
         if (musicClip != null) {
             musicClip.stop();
-            musicClip.close();
             musicClip = null;
         }
-        
+
         TransitionOverlay.play(this, () -> {
             Backstory bs = new Backstory();
             bs.show();
             bs.setLocation(getLocation());
             bs.setVisible(true);
             dispose();
-        });   
+        });    
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -320,7 +313,8 @@ public class MainMenu extends javax.swing.JFrame {
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         playSound("/audio/select.wav", false);
-        System.exit(0); // Closes the game
+        AudioCache.closeAll();
+        System.exit(0); 
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -333,43 +327,32 @@ public class MainMenu extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     
-    // This method loads your custom font from inside the project
+    /** Loads the custom pixel font at the given size, or falls back to Segoe UI. */
     private java.awt.Font getCustomFont(float size) {
         try {
-            // Load the font file (Make sure PressStart2P-Regular.ttf is in your 'theforthtenant' package)
+            // Load the font file from the resource folder.
             java.io.InputStream is = getClass().getResourceAsStream("/fonts/press_start_2p.ttf");
             java.awt.Font baseFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, is);
-            // Return the font with the size you want
             return baseFont.deriveFont(size);
         } catch (Exception e) {
             System.out.println("Font not found! Using default.");
-            return new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, (int)size);
+            return new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, (int) size);
         }
     }
-    
-    // This method loads and plays a sound file
+
+    /**
+     * Plays a sound effect or music track.
+     *
+     * @param filepath resource path of the audio file
+     * @param loop     {@code true} to loop continuously, {@code false} for one-shot
+     * @return the playing clip, or {@code null} if the sound could not be loaded
+     */
     private javax.sound.sampled.Clip playSound(String filepath, boolean loop) {
-        try {
-            java.io.InputStream is = getClass().getResourceAsStream(filepath);
-            javax.sound.sampled.AudioInputStream audioStream =
-                javax.sound.sampled.AudioSystem.getAudioInputStream(is);
-            javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
-            clip.open(audioStream);
-            if (loop) {
-                clip.loop(javax.sound.sampled.Clip.LOOP_CONTINUOUSLY);
-            } else {
-                // Route one-shot SFX through the manager so master volume applies
-                SfxManager.applyVolume(clip, SfxManager.getVolumePercent());
-                clip.start();
-            }
-            return clip;
-        } catch (Exception e) {
-            System.out.println("Audio not found: " + filepath);
-            return null;
-        }
+        return loop ? AudioCache.loop(filepath)
+                    : AudioCache.play(filepath);
     }
-    
-    // Helper method to highlight or un-highlight a button  <-- NEW METHOD STARTS HERE
+
+    /** Highlights or un-highlights a menu button. */
     private void highlightButton(javax.swing.JButton btn, boolean highlight) {
         if (highlight) {
             btn.setOpaque(true);
@@ -382,17 +365,10 @@ public class MainMenu extends javax.swing.JFrame {
             btn.setForeground(java.awt.Color.GRAY);
         }
     }
-    
+
+    /** Applies the given music volume (0–100) to the audio cache. */
     private void applyMusicVolume(int percent) {
-        if (musicClip == null) return;
-        try {
-            javax.sound.sampled.FloatControl gain =
-                (javax.sound.sampled.FloatControl)
-                musicClip.getControl(javax.sound.sampled.FloatControl.Type.MASTER_GAIN);
-            float dB = (percent <= 0) ? -80f
-                     : (float)(20.0 * Math.log10(percent / 100.0));
-            gain.setValue(Math.max(-80f, Math.min(0f, dB)));
-        } catch (Exception ignored) {}
+        AudioCache.setMusicVolume(percent);
     }
     
     public static void main(String args[]) {

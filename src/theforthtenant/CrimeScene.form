@@ -63,15 +63,15 @@
             </Constraint>
           </Constraints>
         </Component>
-        <Component class="javax.swing.JLabel" name="toolbox">
+        <Component class="javax.swing.JLabel" name="usb">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/toolbox.png"/>
+              <Image iconType="3" name="/Images/GameScreen/items/usb.png"/>
             </Property>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="410" y="370" width="-1" height="-1"/>
+              <AbsoluteConstraints x="800" y="550" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -95,19 +95,19 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="540" y="370" width="-1" height="-1"/>
+              <AbsoluteConstraints x="540" y="390" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
-        <Component class="javax.swing.JLabel" name="usb">
+        <Component class="javax.swing.JLabel" name="toolbox">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/usb.png"/>
+              <Image iconType="3" name="/Images/GameScreen/items/toolbox.png"/>
             </Property>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="800" y="550" width="-1" height="-1"/>
+              <AbsoluteConstraints x="410" y="370" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -131,19 +131,7 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="180" y="400" width="-1" height="-1"/>
-            </Constraint>
-          </Constraints>
-        </Component>
-        <Component class="javax.swing.JLabel" name="dragpath">
-          <Properties>
-            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Images/GameScreen/items/dragpath.png"/>
-            </Property>
-          </Properties>
-          <Constraints>
-            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="240" y="270" width="-1" height="-1"/>
+              <AbsoluteConstraints x="190" y="420" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -155,7 +143,7 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="890" y="410" width="-1" height="-1"/>
+              <AbsoluteConstraints x="890" y="420" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -167,7 +155,7 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="520" y="270" width="-1" height="-1"/>
+              <AbsoluteConstraints x="540" y="280" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -179,7 +167,19 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="620" y="50" width="-1" height="-1"/>
+              <AbsoluteConstraints x="660" y="80" width="-1" height="-1"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="javax.swing.JLabel" name="dragpath">
+          <Properties>
+            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+              <Image iconType="3" name="/Images/GameScreen/items/dragpath.png"/>
+            </Property>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+              <AbsoluteConstraints x="260" y="310" width="-1" height="-1"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -203,7 +203,7 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="1080" y="0" width="-1" height="570"/>
+              <AbsoluteConstraints x="1080" y="250" width="60" height="60"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -215,7 +215,7 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="0" y="0" width="-1" height="570"/>
+              <AbsoluteConstraints x="0" y="240" width="60" height="80"/>
             </Constraint>
           </Constraints>
         </Component>

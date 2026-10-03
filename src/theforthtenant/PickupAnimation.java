@@ -22,18 +22,20 @@ import javax.swing.JLayeredPane;
 import javax.swing.Timer;
 
 /**
- * Pickup animation (drop-in replacement, same play(...) signature).
+ * Plays a collectible pickup animation on the frame's layered pane.
+ * The animation runs through four phases:
  *
- *   1. CHARGE  - item trembles and swells with a growing glow while motes get
- *                sucked into it, then it implodes.
- *   2. BURST   - white flash, light rays, two shockwave rings, star + dot sparks.
- *   3. FLIGHT  - a comet (spinning star core, glow, tapered trail, shed sparks)
- *                curves along a bezier path to the inventory.
- *   4. IMPACT  - ring pulses + a small burst + glow at the inventory.
+ *   1. CHARGE — the item trembles and swells with a growing glow while motes
+ *      get sucked into it, then it implodes.
+ *   2. BURST  — a white flash, light rays, two shockwave rings, and star/dot
+ *      sparks.
+ *   3. FLIGHT — a comet (spinning star core, glow, tapered trail, shed sparks)
+ *      curves along a bezier path to the inventory.
+ *   4. IMPACT — ring pulses plus a small burst and glow at the inventory.
  */
 public final class PickupAnimation {
 
-    // ── tuning ─────────────────────────────────────────────
+    // ---- Tuning ----
     private static final int TICK_MS          = 16;
 
     private static final double CHARGE_MS     = 350;
@@ -52,10 +54,14 @@ public final class PickupAnimation {
     private PickupAnimation() {}
 
     /**
-     * @param frame       host frame
-     * @param itemIcon    the icon of the clicked item
-     * @param startX/startY  item centre, in frame content-pane coords
-     * @param endX/endY      target (inventory) centre, in the same coords
+     * Plays the pickup animation.
+     *
+     * @param frame     host frame
+     * @param itemIcon  the icon of the clicked item
+     * @param startX    item centre X, in frame content-pane coordinates
+     * @param startY    item centre Y, in frame content-pane coordinates
+     * @param endX      target (inventory) centre X, in the same coordinates
+     * @param endY      target (inventory) centre Y, in the same coordinates
      */
     public static void play(JFrame frame, Icon itemIcon,
                             int startX, int startY,
@@ -74,7 +80,7 @@ public final class PickupAnimation {
         panel.start(layered);
     }
 
-    // ── helpers ────────────────────────────────────────────
+    // ---- Helpers ----
 
     private static double clamp01(double v) { return Math.max(0, Math.min(1, v)); }
     private static double easeOutCubic(double t) { double u = 1 - t; return 1 - u * u * u; }
@@ -83,35 +89,40 @@ public final class PickupAnimation {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
+    /** Returns the given color with its alpha scaled by {@code a} (0–1). */
     private static Color alpha(Color c, double a) {
         return new Color(c.getRed(), c.getGreen(), c.getBlue(),
                 (int) Math.round(255 * clamp01(a)));
     }
 
-    // ── data ───────────────────────────────────────────────
+    // ---- Data ----
 
+    /** A single spark or dot flying through the animation. */
     private static class Particle {
         double x, y, vx, vy;        // position (px), velocity (px/sec)
         double life, maxLife;       // seconds
         double size;
         double gravity;             // px/sec^2
-        double drag;                // per-frame multiplier at 60fps
+        double drag;                // per-frame multiplier at 60 fps
         double rot, spin;           // radians, radians/sec
         boolean star;
         Color color;
     }
 
+    /** An expanding shockwave ring. */
     private static class Ring {
         double x, y, startMs, durMs, maxR, width;
         Color color;
     }
 
+    /** A single sample point along the comet's tapered trail. */
     private static class TrailPoint {
         double x, y, age;
     }
 
-    // ── the animated layer ─────────────────────────────────
+    // ---- The animated layer ----
 
+    /** Transparent overlay component that draws every phase of the animation. */
     private static class ParticlePanel extends JComponent {
         private final Icon itemIcon;
         private final double startX, startY, endX, endY;
@@ -122,6 +133,7 @@ public final class PickupAnimation {
         private final List<TrailPoint> trail     = new ArrayList<>();
         private final Random rng = new Random();
 
+        // Timeline (ms, relative to the start of the animation).
         private final double burstAt  = CHARGE_MS;
         private final double flightAt = CHARGE_MS + BURST_GAP_MS;
         private final double impactAt = flightAt + FLIGHT_MS;
@@ -150,8 +162,10 @@ public final class PickupAnimation {
             this.ctrlY = my + ny * bow;
         }
 
-        @Override public boolean contains(int x, int y) { return false; } // never block clicks
+        /** Always returns {@code false} — the overlay never blocks clicks. */
+        @Override public boolean contains(int x, int y) { return false; }
 
+        /** Starts the animation loop; removes the overlay when it finishes. */
         void start(JLayeredPane layered) {
             startNanos = lastNanos = System.nanoTime();
             Timer timer = new Timer(TICK_MS, null);
@@ -173,11 +187,12 @@ public final class PickupAnimation {
             timer.start();
         }
 
-        // ── update ─────────────────────────────────────────
+        // ---- Update ----
 
+        /** Advances the animation by {@code dt} seconds and spawns new effects. */
         private void update(double dt) {
 
-            // CHARGE: motes get sucked into the item
+            // CHARGE: motes get sucked into the item.
             if (elapsed < burstAt) {
                 double t = elapsed / CHARGE_MS;
                 int n = 1 + (int) (t * 3);
@@ -197,13 +212,13 @@ public final class PickupAnimation {
                 }
             }
 
-            // BURST (once)
+            // BURST (once).
             if (!burstDone && elapsed >= burstAt) {
                 burstDone = true;
                 spawnBurst();
             }
 
-            // FLIGHT
+            // FLIGHT: follow the bezier, spin, leave a trail, shed sparks.
             cometVisible = false;
             if (elapsed >= flightAt && elapsed < impactAt) {
                 double t = (elapsed - flightAt) / FLIGHT_MS;
@@ -218,7 +233,7 @@ public final class PickupAnimation {
                 tp.x = cometX; tp.y = cometY;
                 trail.add(tp);
 
-                // shed sparks behind the comet
+                // Shed sparks behind the comet.
                 for (int i = 0; i < 2; i++) {
                     Particle p = new Particle();
                     p.x = cometX + (rng.nextDouble() - 0.5) * 6;
@@ -236,20 +251,20 @@ public final class PickupAnimation {
                 }
             }
 
-            // IMPACT (once)
+            // IMPACT (once).
             if (!impactDone && elapsed >= impactAt) {
                 impactDone = true;
                 spawnImpact();
             }
 
-            // trail ageing
+            // Age and prune the trail.
             for (Iterator<TrailPoint> it = trail.iterator(); it.hasNext();) {
                 TrailPoint tp = it.next();
                 tp.age += dt;
                 if (tp.age > 0.4) it.remove();
             }
 
-            // particle physics (time based)
+            // Particle physics (time based).
             double frames = dt * 60.0;
             for (Iterator<Particle> it = particles.iterator(); it.hasNext();) {
                 Particle p = it.next();
@@ -266,6 +281,7 @@ public final class PickupAnimation {
             rings.removeIf(r -> elapsed - r.startMs > r.durMs);
         }
 
+        /** Spawns the shockwave rings and sparks for the burst phase. */
         private void spawnBurst() {
             addRing(startX, startY, burstAt, 450, 85, 4, WHITE_HOT);
             addRing(startX, startY, burstAt + 60, 600, 140, 2.5, GOLD);
@@ -289,6 +305,7 @@ public final class PickupAnimation {
             }
         }
 
+        /** Spawns the impact rings and sparks at the inventory target. */
         private void spawnImpact() {
             addRing(endX, endY, impactAt, 400, 55, 3.5, WHITE_HOT);
             addRing(endX, endY, impactAt + 80, 480, 80, 2, GOLD);
@@ -311,6 +328,7 @@ public final class PickupAnimation {
             }
         }
 
+        /** Adds a shockwave ring to the active ring list. */
         private void addRing(double x, double y, double startMs, double dur,
                              double maxR, double width, Color c) {
             Ring r = new Ring();
@@ -319,7 +337,7 @@ public final class PickupAnimation {
             rings.add(r);
         }
 
-        // ── painting ───────────────────────────────────────
+        // ---- Painting ----
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -350,10 +368,12 @@ public final class PickupAnimation {
 
             if (itemIcon == null) return;
 
+            // Swell to 1.25×, then collapse toward zero.
             double scale;
             if (t < 0.6) scale = 1 + 0.25 * easeOutCubic(t / 0.6);
             else         scale = 1.25 * (1 - easeInCubic((t - 0.6) / 0.4));
 
+            // Tremble ramps up during the swell, damps during the collapse.
             double shake = 2.5 * t * (t < 0.6 ? 1 : 0.3);
             double jx = (rng.nextDouble() - 0.5) * 2 * shake;
             double jy = (rng.nextDouble() - 0.5) * 2 * shake;
@@ -369,18 +389,18 @@ public final class PickupAnimation {
             g2.setTransform(old);
         }
 
-        /** Phase 2: flash + radiating light rays. */
+        /** Phase 2: flash and radiating light rays. */
         private void paintBurstFx(Graphics2D g2) {
             double since = elapsed - burstAt;
             if (since < 0) return;
 
-            // flash
+            // Flash.
             if (since < 220) {
                 double p = since / 220.0;
                 glow(g2, startX, startY, 70 + 50 * p, WHITE_HOT, 1 - p);
             }
 
-            // light rays
+            // Light rays.
             if (since < 400) {
                 double p = since / 400.0;
                 double e = easeOutCubic(p);
@@ -402,6 +422,7 @@ public final class PickupAnimation {
             }
         }
 
+        /** Draws all active shockwave rings. */
         private void paintRings(Graphics2D g2) {
             for (Ring r : rings) {
                 double p = (elapsed - r.startMs) / r.durMs;
@@ -414,7 +435,7 @@ public final class PickupAnimation {
             }
         }
 
-        /** Tapered glowing comet tail. */
+        /** Draws the tapered glowing comet tail. */
         private void paintTrail(Graphics2D g2) {
             if (trail.size() < 2) return;
             for (int i = 1; i < trail.size(); i++) {
@@ -434,6 +455,7 @@ public final class PickupAnimation {
             }
         }
 
+        /** Draws every active spark and dot. */
         private void paintParticles(Graphics2D g2) {
             for (Particle p : particles) {
                 double f = clamp01(p.life / p.maxLife);   // 1 -> 0
@@ -451,9 +473,9 @@ public final class PickupAnimation {
             }
         }
 
+        /** Draws the comet head (spinning star core, glow, and white centre). */
         private void paintComet(Graphics2D g2) {
             if (!cometVisible) return;
-            // little pulse
             double pulse = 1 + 0.12 * Math.sin(elapsed / 40.0);
 
             glow(g2, cometX, cometY, (float) (30 * pulse), AMBER, 0.55);
@@ -467,7 +489,7 @@ public final class PickupAnimation {
             g2.fill(new Ellipse2D.Double(cometX - 4, cometY - 4, 8, 8));
         }
 
-        /** Soft glow lingering at the inventory after impact. */
+        /** Draws the soft glow that lingers at the inventory after impact. */
         private void paintImpactGlow(Graphics2D g2) {
             double since = elapsed - impactAt;
             if (since < 0 || since > IMPACT_MS) return;
@@ -480,8 +502,9 @@ public final class PickupAnimation {
             glow(g2, endX, endY, (float) (28 + 22 * p), GOLD, 0.7 * (1 - p));
         }
 
-        // ── drawing utilities ──────────────────────────────
+        // ---- Drawing utilities ----
 
+        /** Fills a radial glow disc centred at ({@code x}, {@code y}). */
         private void glow(Graphics2D g2, double x, double y, double radius,
                           Color c, double alphaMul) {
             if (alphaMul <= 0.01) return;
@@ -495,7 +518,7 @@ public final class PickupAnimation {
             g2.fill(new Ellipse2D.Double(x - r, y - r, r * 2, r * 2));
         }
 
-        /** 4-point sparkle star centred on (cx, cy). */
+        /** Returns an 8-pointed star (4 outer points, 4 inner) centred on {@code (cx, cy)}. */
         private Path2D star(double cx, double cy, double outer, double inner, double rot) {
             Path2D.Double path = new Path2D.Double();
             for (int i = 0; i < 8; i++) {
