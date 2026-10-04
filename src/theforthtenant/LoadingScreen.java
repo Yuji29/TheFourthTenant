@@ -44,24 +44,24 @@ public class LoadingScreen extends javax.swing.JFrame {
         initComponents();
 
         // White pixel font on all text.
-        jLabel1.setFont(getCustomFont(8f));      // "Initializing"
-        jLabel1.setForeground(java.awt.Color.WHITE);
+        titleLabel.setFont(getCustomFont(8f));      // "Initializing"
+        titleLabel.setForeground(java.awt.Color.WHITE);
 
-        jLabel2.setFont(getCustomFont(8f));      // status text (smaller, easier to read)
-        jLabel2.setForeground(java.awt.Color.WHITE);
+        statusLabel.setFont(getCustomFont(8f));      // status text (smaller, easier to read)
+        statusLabel.setForeground(java.awt.Color.WHITE);
 
         setTitle("The Fourth Tenant");
         setResizable(false);
         setLocationRelativeTo(null);
 
         // ---- Progress bar styling ----
-        jProgressBar1.setMinimum(0);
-        jProgressBar1.setMaximum(100);
-        jProgressBar1.setValue(0);
-        jProgressBar1.setBorderPainted(false);
-        jProgressBar1.setStringPainted(false);
-        jProgressBar1.setBackground(new java.awt.Color(60, 60, 60));
-        jProgressBar1.setForeground(new java.awt.Color(180, 180, 180));
+        progressBar.setMinimum(0);
+        progressBar.setMaximum(100);
+        progressBar.setValue(0);
+        progressBar.setBorderPainted(false);
+        progressBar.setStringPainted(false);
+        progressBar.setBackground(new java.awt.Color(60, 60, 60));
+        progressBar.setForeground(new java.awt.Color(180, 180, 180));
 
         startLoading();
     }
@@ -75,38 +75,38 @@ public class LoadingScreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jProgressBar1 = new javax.swing.JProgressBar();
-        jLabel2 = new javax.swing.JLabel();
+        contentPanel = new javax.swing.JPanel();
+        titleLabel = new javax.swing.JLabel();
+        progressBar = new javax.swing.JProgressBar();
+        statusLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
-        jPanel1.setBackground(new java.awt.Color(20, 20, 22));
-        jPanel1.setMinimumSize(new java.awt.Dimension(400, 200));
-        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        contentPanel.setBackground(new java.awt.Color(20, 20, 22));
+        contentPanel.setMinimumSize(new java.awt.Dimension(400, 200));
+        contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Initializing");
-        jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 400, -1));
-        jPanel1.add(jProgressBar1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 80, 280, 20));
+        titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        titleLabel.setText("Initializing");
+        titleLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        contentPanel.add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 400, -1));
+        contentPanel.add(progressBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 80, 280, 20));
 
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("status");
-        jLabel2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 120, 400, -1));
+        statusLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        statusLabel.setText("status");
+        statusLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        contentPanel.add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 120, 400, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(contentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(contentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -122,14 +122,14 @@ public class LoadingScreen extends javax.swing.JFrame {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 elapsed += TICK_MS;
                 int percent = (int) Math.min(100, (elapsed / (double) LOAD_TIME_MS) * 100);
-                jProgressBar1.setValue(percent);
+                progressBar.setValue(percent);
 
                 // Cycle the status text proportionally to progress.
                 int newIndex = Math.min(statusMessages.length - 1,
                         (int) ((percent / 100.0) * statusMessages.length));
                 if (newIndex != statusIndex) {
                     statusIndex = newIndex;
-                    jLabel2.setText(statusMessages[statusIndex]);
+                    statusLabel.setText(statusMessages[statusIndex]);
                 }
 
                 if (percent >= 100) {
@@ -193,9 +193,9 @@ public class LoadingScreen extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JPanel contentPanel;
+    private javax.swing.JProgressBar progressBar;
+    private javax.swing.JLabel statusLabel;
+    private javax.swing.JLabel titleLabel;
     // End of variables declaration//GEN-END:variables
 }

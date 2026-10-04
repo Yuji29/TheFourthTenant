@@ -199,14 +199,14 @@ public class Backstory extends javax.swing.JFrame {
         final javax.swing.ImageIcon bloodHover = new javax.swing.ImageIcon(
             getClass().getResource("/Images/backstory/door_blood_hovered.png"));
 
-        jLabel4.setIcon(bloodNormal); // start with the normal icon
+        exitDoor.setIcon(bloodNormal); // start with the normal icon
 
-        jLabel4.addMouseListener(new java.awt.event.MouseAdapter() {
+        exitDoor.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                jLabel4.setIcon(bloodHover);
+                exitDoor.setIcon(bloodHover);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                jLabel4.setIcon(bloodNormal);
+                exitDoor.setIcon(bloodNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (TransitionOverlay.isPlaying()) return;
@@ -235,7 +235,7 @@ public class Backstory extends javax.swing.JFrame {
             }
         });
 
-        jLabel4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        exitDoor.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
         // ---- Arrow icons: normal + darkened versions ----
         final javax.swing.ImageIcon prevNormal = new javax.swing.ImageIcon(
@@ -247,19 +247,19 @@ public class Backstory extends javax.swing.JFrame {
         final javax.swing.ImageIcon nextDark = new javax.swing.ImageIcon(
                 darken(nextNormal.getImage()));
 
-        jLabel2.setIcon(prevNormal);
-        jLabel3.setIcon(nextNormal);
+        prevButton.setIcon(prevNormal);
+        nextButton.setIcon(nextNormal);
 
-        jLabel2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabel3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        prevButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        nextButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
         // ---- Previous arrow ----
-        jLabel2.addMouseListener(new java.awt.event.MouseAdapter() {
+        prevButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                jLabel2.setIcon(prevDark);
+                prevButton.setIcon(prevDark);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                jLabel2.setIcon(prevNormal);
+                prevButton.setIcon(prevNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 navigate(-1);
@@ -267,12 +267,12 @@ public class Backstory extends javax.swing.JFrame {
         });
 
         // ---- Next arrow ----
-        jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
+        nextButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                jLabel3.setIcon(nextDark);
+                nextButton.setIcon(nextDark);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                jLabel3.setIcon(nextNormal);
+                nextButton.setIcon(nextNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 navigate(+1);
@@ -299,19 +299,19 @@ public class Backstory extends javax.swing.JFrame {
         // ---- Subtitle boxes (reusable, one per side) ----
         subtitleBoxLeft = new SubtitleBox();
         subtitleBoxLeft.setVisible(false);
-        jPanel1.add(subtitleBoxLeft,
+        contentPanel.add(subtitleBoxLeft,
             new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 100));
 
         subtitleBoxRight = new SubtitleBox();
         subtitleBoxRight.setVisible(false);
-        jPanel1.add(subtitleBoxRight,
+        contentPanel.add(subtitleBoxRight,
             new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 100));
 
         // ---- Fade-in overlay (covers the whole panel) ----
         fadeOverlay = new FadeOverlay();
-        jPanel1.add(fadeOverlay,
+        contentPanel.add(fadeOverlay,
             new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
-        jPanel1.setComponentZOrder(fadeOverlay, 0);
+        contentPanel.setComponentZOrder(fadeOverlay, 0);
 
         // Start fade shortly after the window is shown.
         javax.swing.Timer starter = new javax.swing.Timer(150, e -> fadeIn());
@@ -473,40 +473,40 @@ public class Backstory extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new FadeLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        contentPanel = new javax.swing.JPanel();
+        exitDoor = new FadeLabel();
+        nextButton = new javax.swing.JLabel();
+        prevButton = new javax.swing.JLabel();
+        slideImage = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("The Fourth Tenant");
         setResizable(false);
 
-        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
-        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1090, 310, 50, 60));
+        exitDoor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/door_blood.png"))); // NOI18N
+        contentPanel.add(exitDoor, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, -1, -1));
 
-        jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/door_blood.png"))); // NOI18N
-        jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, -1, -1));
+        nextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
+        contentPanel.add(nextButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1090, 310, 50, 60));
 
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/previous_button.png"))); // NOI18N
-        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 310, -1, 50));
+        prevButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/previous_button.png"))); // NOI18N
+        contentPanel.add(prevButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 310, -1, 50));
 
-        jLabel1.setBackground(new java.awt.Color(20, 20, 25));
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/slide1.png"))); // NOI18N
-        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        slideImage.setBackground(new java.awt.Color(20, 20, 25));
+        slideImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/slide1.png"))); // NOI18N
+        contentPanel.add(slideImage, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(contentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(contentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -557,15 +557,15 @@ public class Backstory extends javax.swing.JFrame {
         if (currentSlide == 12) {
             intenseClip = AudioCache.loop("/audio/backstory_sfx/intense.wav");
 
-            jLabel4.setVisible(false);
-            ((FadeLabel) jLabel4).setAlpha(0f);
+            exitDoor.setVisible(false);
+            ((FadeLabel) exitDoor).setAlpha(0f);
 
             if (cutsceneDelayTimer != null) cutsceneDelayTimer.stop();
             cutsceneDelayTimer = new javax.swing.Timer(3000, e -> fadeInCutscene());
             cutsceneDelayTimer.setRepeats(false);
             cutsceneDelayTimer.start();
         } else {
-            jLabel4.setVisible(false);
+            exitDoor.setVisible(false);
 
             if (cutsceneDelayTimer != null) {
                 cutsceneDelayTimer.stop();
@@ -580,7 +580,7 @@ public class Backstory extends javax.swing.JFrame {
         // ---- Image ----
         java.net.URL imgUrl = getClass().getResource(s.imagePath);
         if (imgUrl != null) {
-            jLabel1.setIcon(new javax.swing.ImageIcon(imgUrl));
+            slideImage.setIcon(new javax.swing.ImageIcon(imgUrl));
         } else {
             System.out.println("Slide missing: " + s.imagePath);
         }
@@ -610,8 +610,8 @@ public class Backstory extends javax.swing.JFrame {
                 boxY = 680 - boxH - 40;
             }
 
-            jPanel1.remove(subtitleBoxLeft);
-            jPanel1.add(subtitleBoxLeft,
+            contentPanel.remove(subtitleBoxLeft);
+            contentPanel.add(subtitleBoxLeft,
                 new org.netbeans.lib.awtextra.AbsoluteConstraints(boxX, boxY, boxW, boxH));
         }
 
@@ -631,18 +631,18 @@ public class Backstory extends javax.swing.JFrame {
             int boxH = subtitleBoxRight.getPreferredHeight(boxW, s.rightLines);
             int boxY = 40;
 
-            jPanel1.remove(subtitleBoxRight);
-            jPanel1.add(subtitleBoxRight,
+            contentPanel.remove(subtitleBoxRight);
+            contentPanel.add(subtitleBoxRight,
                 new org.netbeans.lib.awtextra.AbsoluteConstraints(boxX, boxY, boxW, boxH));
         }
 
         // Bring subtitles to front.
-        jPanel1.setComponentZOrder(subtitleBoxLeft, 0);
-        jPanel1.setComponentZOrder(subtitleBoxRight, 0);
+        contentPanel.setComponentZOrder(subtitleBoxLeft, 0);
+        contentPanel.setComponentZOrder(subtitleBoxRight, 0);
 
         // ---- Arrows: hide at boundaries ----
-        jLabel2.setVisible(currentSlide > 0);
-        jLabel3.setVisible(currentSlide < slides.length - 1);
+        prevButton.setVisible(currentSlide > 0);
+        nextButton.setVisible(currentSlide < slides.length - 1);
 
         boolean hasLeft  = !s.leftLines.isEmpty();
         boolean hasRight = !s.rightLines.isEmpty();
@@ -660,8 +660,8 @@ public class Backstory extends javax.swing.JFrame {
             runTypewriterFor(subtitleBoxRight, null);
         }
 
-        jPanel1.revalidate();
-        jPanel1.repaint();
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
     /**
@@ -696,10 +696,10 @@ public class Backstory extends javax.swing.JFrame {
 
             if (progress >= 1f) {
                 ((javax.swing.Timer) e.getSource()).stop();
-                jPanel1.remove(fadeOverlay);
+                contentPanel.remove(fadeOverlay);
                 fadeOverlay = null;
-                jPanel1.revalidate();
-                jPanel1.repaint();
+                contentPanel.revalidate();
+                contentPanel.repaint();
             }
         });
         t.start();
@@ -707,7 +707,7 @@ public class Backstory extends javax.swing.JFrame {
 
     /** Fades the blood-stained exit label in on the final slide. */
     private void fadeInCutscene() {
-        FadeLabel bloodLabel = (FadeLabel) jLabel4;
+        FadeLabel bloodLabel = (FadeLabel) exitDoor;
 
         // Cancel any previous fade still running.
         if (bloodFadeTimer != null) bloodFadeTimer.stop();
@@ -1003,10 +1003,10 @@ public class Backstory extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel contentPanel;
+    private javax.swing.JLabel exitDoor;
+    private javax.swing.JLabel nextButton;
+    private javax.swing.JLabel prevButton;
+    private javax.swing.JLabel slideImage;
     // End of variables declaration//GEN-END:variables
 }
