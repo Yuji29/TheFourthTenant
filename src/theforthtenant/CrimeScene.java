@@ -31,6 +31,7 @@ public class CrimeScene extends javax.swing.JFrame {
 
     // ---- Items and menus ----
     private final java.util.Map<javax.swing.JLabel, Integer> itemScene = new java.util.HashMap<>();
+    private final java.util.Map<javax.swing.JLabel, java.awt.image.BufferedImage> masks = new java.util.HashMap<>();
     private PauseMenu pauseMenu;
     private OptionsMenu optionsMenu;
     
@@ -104,12 +105,27 @@ public class CrimeScene extends javax.swing.JFrame {
             }
         }.execute();
         
-        // ---- Background click: play a click sound when the player misses all items ----
+        // ---- Single hit-test for the whole scene: pick on press ----
         jPanel1.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getComponent() == jPanel1) {
-                    AudioCache.play("/audio/sfx/ui/click.wav");
+            @Override public void mousePressed(java.awt.event.MouseEvent e) {
+                if (pauseMenu != null && pauseMenu.isPaused()) return;
+                if (TransitionOverlay.isPlaying()) return;
+
+                javax.swing.JLabel hit = pickItem(e.getPoint());
+                if (hit != null) collect(hit);
+                else             AudioCache.play("/audio/sfx/ui/click.wav");
+            }
+        });
+        
+        jPanel1.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            @Override public void mouseMoved(java.awt.event.MouseEvent e) {
+                if (pauseMenu != null && pauseMenu.isPaused()) {
+                    jPanel1.setCursor(java.awt.Cursor.getDefaultCursor());
+                    return;
                 }
+                jPanel1.setCursor(pickItem(e.getPoint()) != null
+                        ? java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+                        : java.awt.Cursor.getDefaultCursor());
             }
         });
 
@@ -756,97 +772,81 @@ public class CrimeScene extends javax.swing.JFrame {
         timer.start();
     }
 
-    /**
-     * Makes a JLabel behave as a collectable item: tightens its hitbox,
-     * sets a hand cursor, and wires up a click handler that plays the pickup
-     * sound, marks the item as picked up, runs the pickup animation, and
-     * unlocks INTERROGATE once every item has been collected.
-     */
     private void makeCollectable(javax.swing.JLabel item) {
-        tightenHitbox(item);
-        item.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        item.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                System.out.println("CLICK on " + item.getName()
-                    + " at " + e.getX() + "," + e.getY());
-
-                AudioCache.play("/audio/sfx/gameplay/pickup.wav");
-
-                // Mark as collected FIRST so re-showing the scene keeps it hidden.
-                item.putClientProperty("pickedUp", Boolean.TRUE);
-                GameState.markCollected(item.getName());
-
-                // Unlock INTERROGATE once everything is collected.
-                if (!interrogateUnlocked && allItemsCollected()) {
-                    setInterrogateUnlocked(true);
-                }
-
-                java.awt.Point itemP = javax.swing.SwingUtilities.convertPoint(
-                        item, item.getWidth() / 2, item.getHeight() / 2,
-                        CrimeScene.this.getContentPane());
-
-                java.awt.Point invP = javax.swing.SwingUtilities.convertPoint(
-                        jLabel2, jLabel2.getWidth() / 2, jLabel2.getHeight() / 2,
-                        CrimeScene.this.getContentPane());
-
-                PickupAnimation.play(CrimeScene.this,
-                        item.getIcon(),
-                        itemP.x, itemP.y,
-                        invP.x,  invP.y);
-
-                item.setVisible(false);
-            }
-        });
+        // Snapshot the ORIGINAL icon's alpha mask. No wrapping, no setBounds,
+        // no setUI, no listener. The label is now just a sprite.
+        masks.put(item, iconToMask(item.getIcon()));
     }
 
     /**
-     * Tightens a JLabel's mouse hitbox to the bounding box of its opaque
-     * (non-transparent) pixels, so clicks outside the artwork pass through.
+     * Returns the topmost collectable item whose original icon has an opaque
+     * pixel within {@code radius} pixels of {@code p} (panel coordinates), or
+     * {@code null} if no item matches.
      */
-    private void tightenHitbox(final javax.swing.JLabel item) {
-        final java.awt.image.BufferedImage mask = iconToMask(item.getIcon());
-        if (mask == null) return;
+    private javax.swing.JLabel pickItem(java.awt.Point p) {
+        for (int i = 0; i < jPanel1.getComponentCount(); i++) {   // 0 = topmost
+            java.awt.Component c = jPanel1.getComponent(i);
+            if (!(c instanceof javax.swing.JLabel)) continue;
+            if (!itemScene.containsKey(c)) continue;
+            if (!c.isVisible()) continue;
 
-        // Compute the tight bounding box of opaque pixels.
-        java.awt.Rectangle tight = opaqueBounds(item.getIcon());
-        if (tight == null) return;
+            java.awt.image.BufferedImage m = masks.get(c);
+            if (m == null) continue;
 
-        // Resize the label to just the tight box.
-        int oldX = item.getX();
-        int oldY = item.getY();
-        int newX = oldX + tight.x;
-        int newY = oldY + tight.y;
-        int newW = tight.width;
-        int newH = tight.height;
+            // Label-local coords. With width=-1, height=-1 constraints the label
+            // is exactly icon-sized, so local coords index straight into the mask.
+            int lx = p.x - c.getX();
+            int ly = p.y - c.getY();
 
-        item.setBounds(newX, newY, newW, newH);
+            if (opaqueNear(m, lx, ly, 8)) return (javax.swing.JLabel) c;
+        }
+        return null;
+    }
 
-        // Shift the icon so the tight box's top-left aligns with (0, 0)
-        // of the new label.
-        final int shiftX = tight.x;
-        final int shiftY = tight.y;
-        final javax.swing.Icon origIcon = item.getIcon();
+    /** Returns true if any pixel within {@code r} of (cx,cy) has alpha > 10. */
+    private static boolean opaqueNear(java.awt.image.BufferedImage m,
+                                      int cx, int cy, int r) {
+        int x0 = Math.max(0, cx - r);
+        int y0 = Math.max(0, cy - r);
+        int x1 = Math.min(m.getWidth()  - 1, cx + r);
+        int y1 = Math.min(m.getHeight() - 1, cy + r);
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+                if (((m.getRGB(x, y) >>> 24) & 0xff) > 10) return true;
+        return false;
+    }
 
-        item.setIcon(new javax.swing.Icon() {
-            @Override public int getIconWidth()  { return newW; }
-            @Override public int getIconHeight() { return newH; }
-            @Override public void paintIcon(java.awt.Component c, java.awt.Graphics g,
-                                            int x, int y) {
-                origIcon.paintIcon(c, g, x - shiftX, y - shiftY);
-            }
-        });
+    /**
+     * Runs the pickup: sound, state, animation, hide. Called from the panel's
+     * mousePressed handler when pickItem() returns a hit.
+     */
+    private void collect(javax.swing.JLabel item) {
+        System.out.println("CLICK on " + item.getName()
+            + " at " + item.getX() + "," + item.getY());
 
-        // Custom hitbox based on the shifted mask.
-        item.setUI(new javax.swing.plaf.basic.BasicLabelUI() {
-            @Override
-            public boolean contains(javax.swing.JComponent c, int x, int y) {
-                int mx = x + shiftX;
-                int my = y + shiftY;
-                if (mx < 0 || my < 0 || mx >= mask.getWidth() || my >= mask.getHeight()) return false;
-                int alpha = (mask.getRGB(mx, my) >>> 24) & 0xff;
-                return alpha > 5;   
-            }
-        });
+        AudioCache.play("/audio/sfx/gameplay/pickup.wav");
+
+        item.putClientProperty("pickedUp", Boolean.TRUE);
+        GameState.markCollected(item.getName());
+
+        if (!interrogateUnlocked && allItemsCollected()) {
+            setInterrogateUnlocked(true);
+        }
+
+        java.awt.Point itemP = javax.swing.SwingUtilities.convertPoint(
+                item, item.getWidth() / 2, item.getHeight() / 2,
+                CrimeScene.this.getContentPane());
+
+        java.awt.Point invP = javax.swing.SwingUtilities.convertPoint(
+                jLabel2, jLabel2.getWidth() / 2, jLabel2.getHeight() / 2,
+                CrimeScene.this.getContentPane());
+
+        PickupAnimation.play(CrimeScene.this,
+                item.getIcon(),
+                itemP.x, itemP.y,
+                invP.x,  invP.y);
+
+        item.setVisible(false);
     }
 
     /**
@@ -869,50 +869,6 @@ public class CrimeScene extends javax.swing.JFrame {
         icon.paintIcon(null, g, 0, 0);
         g.dispose();
         return img;
-    }
-
-    /**
-     * Scans the icon's pixels and returns the tight bounding box of all
-     * pixels whose alpha is above the visibility threshold, or {@code null}
-     * if the icon is empty or cannot be rasterized.
-     */
-    private java.awt.Rectangle opaqueBounds(javax.swing.Icon icon) {
-        if (icon == null) return null;
-
-        java.awt.image.BufferedImage img;
-        if (icon instanceof javax.swing.ImageIcon
-                && ((javax.swing.ImageIcon) icon).getImage() instanceof java.awt.image.BufferedImage) {
-            img = (java.awt.image.BufferedImage) ((javax.swing.ImageIcon) icon).getImage();
-        } else {
-            // Fall back: rasterize the icon.
-            int w = icon.getIconWidth(), h = icon.getIconHeight();
-            if (w <= 0 || h <= 0) return null;
-            img = new java.awt.image.BufferedImage(w, h,
-                    java.awt.image.BufferedImage.TYPE_INT_ARGB);
-            java.awt.Graphics2D g = img.createGraphics();
-            icon.paintIcon(null, g, 0, 0);
-            g.dispose();
-        }
-
-        int w = img.getWidth(), h = img.getHeight();
-        int minX = w, minY = h, maxX = -1, maxY = -1;
-
-        int[] row = new int[w];
-        for (int y = 0; y < h; y++) {
-            img.getRGB(0, y, w, 1, row, 0, w);
-            for (int x = 0; x < w; x++) {
-                int a = (row[x] >>> 24) & 0xff;
-                if (a > 10) {                 // treat very faint pixels as empty
-                    if (x < minX) minX = x;
-                    if (x > maxX) maxX = x;
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
-                }
-            }
-        }
-
-        if (maxX < 0 || maxY < 0) return null;   // fully transparent image
-        return new java.awt.Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 
     /** Returns {@code true} if every collectable item has been picked up. */
