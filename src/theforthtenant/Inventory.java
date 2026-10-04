@@ -196,6 +196,9 @@ public class Inventory extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
+        combined = new javax.swing.JLabel();
+        add2 = new javax.swing.JLabel();
+        add1 = new javax.swing.JLabel();
         slot20 = new javax.swing.JLabel();
         slot19 = new javax.swing.JLabel();
         slot18 = new javax.swing.JLabel();
@@ -222,6 +225,15 @@ public class Inventory extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        combined.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
+        jPanel1.add(combined, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 510, -1, -1));
+
+        add2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
+        jPanel1.add(add2, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 510, -1, -1));
+
+        add1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
+        jPanel1.add(add1, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 510, -1, -1));
 
         slot20.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
         jPanel1.add(slot20, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 380, -1, -1));
@@ -426,7 +438,10 @@ public class Inventory extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Background;
+    private javax.swing.JLabel add1;
+    private javax.swing.JLabel add2;
     private javax.swing.JLabel backButton;
+    private javax.swing.JLabel combined;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel slot1;
     private javax.swing.JLabel slot10;
