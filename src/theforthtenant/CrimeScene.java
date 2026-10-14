@@ -192,6 +192,13 @@ public class CrimeScene extends javax.swing.JFrame {
                             inv.setLocation(CrimeScene.this.getLocation());
                             inv.setVisible(true);
                             CrimeScene.this.dispose();   
+                        } else if (index == 3) {                // INTERROGATE
+                            AudioCache.play("/audio/sfx/ui/select.wav");
+                            Interrogate ir = new Interrogate();
+                            ir.setLocation(CrimeScene.this.getLocation());
+                            ir.setVisible(true);
+                            CrimeScene.this.dispose();
+
                         } else {
                             AudioCache.play("/audio/sfx/ui/select.wav");
                         }
@@ -408,7 +415,7 @@ public class CrimeScene extends javax.swing.JFrame {
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         rag.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/rag.png"))); // NOI18N
-        contentPanel.add(rag, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 500, -1, -1));
+        contentPanel.add(rag, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 510, -1, -1));
 
         prescription.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/prescription.png"))); // NOI18N
         contentPanel.add(prescription, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 400, -1, -1));
@@ -420,7 +427,7 @@ public class CrimeScene extends javax.swing.JFrame {
         contentPanel.add(mug, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 380, -1, -1));
 
         boots.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/boots.png"))); // NOI18N
-        contentPanel.add(boots, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 390, -1, -1));
+        contentPanel.add(boots, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 390, -1, -1));
 
         toolbox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/toolbox.png"))); // NOI18N
         contentPanel.add(toolbox, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 370, -1, -1));
@@ -444,7 +451,7 @@ public class CrimeScene extends javax.swing.JFrame {
         contentPanel.add(dragpath, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 310, -1, -1));
 
         policeTape.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/policetape.png"))); // NOI18N
-        contentPanel.add(policeTape, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 610, 250, 70));
+        contentPanel.add(policeTape, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 610, 250, 60));
 
         nextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
         contentPanel.add(nextButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1080, 250, 60, 60));
@@ -475,7 +482,7 @@ public class CrimeScene extends javax.swing.JFrame {
         inventoryLabel.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         inventoryLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         inventoryLabel.setText("INVENTORY");
-        contentPanel.add(inventoryLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 612, 220, 70));
+        contentPanel.add(inventoryLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 612, 230, 70));
 
         backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/locations/CrimeScene.png"))); // NOI18N
         contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
@@ -693,7 +700,13 @@ public class CrimeScene extends javax.swing.JFrame {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 AudioCache.play("/audio/sfx/ui/select.wav");
                 System.out.println("INTERROGATE clicked");
-                // Open interrogate panel here.
+            
+            if (TransitionOverlay.isPlaying()) return;
+
+                Interrogate ir = new Interrogate();
+                ir.setLocation(CrimeScene.this.getLocation());
+                ir.setVisible(true);
+                CrimeScene.this.dispose();
             }
         });
     }
