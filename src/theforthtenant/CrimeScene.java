@@ -111,7 +111,8 @@ public class CrimeScene extends javax.swing.JFrame {
                     "/audio/sfx/ui/select.wav",
                     "/audio/sfx/ui/pause_open.wav",
                     "/audio/sfx/ui/click.wav",
-                    "/audio/sfx/ui/zipper.wav"
+                    "/audio/sfx/ui/zipper.wav",
+                    "/audio/sfx/gameplay/door_close.wav"
                 );
                 return null;
             }
@@ -193,7 +194,7 @@ public class CrimeScene extends javax.swing.JFrame {
                             inv.setVisible(true);
                             CrimeScene.this.dispose();   
                         } else if (index == 3) {                // INTERROGATE
-                            AudioCache.play("/audio/sfx/ui/select.wav");
+                            AudioCache.play("/audio/sfx/gameplay/door_close.wav");
                             Interrogate ir = new Interrogate();
                             ir.setLocation(CrimeScene.this.getLocation());
                             ir.setVisible(true);
@@ -265,7 +266,8 @@ public class CrimeScene extends javax.swing.JFrame {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_RIGHT, 0), "sceneNext");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, 0), "scenePrev");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, 0), "sceneNext");
-        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, 0), "openInventory");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, 0), "openInventory");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_4, 0), "openInterrogate");
 
         am.put("scenePrev", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -288,6 +290,21 @@ public class CrimeScene extends javax.swing.JFrame {
                 Inventory inv = new Inventory();
                 inv.setLocation(CrimeScene.this.getLocation());
                 inv.setVisible(true);
+                CrimeScene.this.dispose();
+            }
+        });
+        
+        am.put("openInterrogate", new javax.swing.AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (pauseMenu != null && pauseMenu.isPaused()) return;
+                if (TransitionOverlay.isPlaying()) return;
+                if (!interrogateUnlocked) return;      
+
+                AudioCache.play("/audio/sfx/gameplay/door_close.wav");
+
+                Interrogate ir = new Interrogate();
+                ir.setLocation(CrimeScene.this.getLocation());
+                ir.setVisible(true);
                 CrimeScene.this.dispose();
             }
         });
@@ -360,10 +377,13 @@ public class CrimeScene extends javax.swing.JFrame {
         makeCollectable(mug,         SCENE_KITCHEN, "mug");
         makeCollectable(toolbox,     SCENE_LIVING,  "toolbox");
         makeCollectable(prescription,SCENE_DINING,  "prescription");
-        makeCollectable(rag,         SCENE_BED,     "rag");
+        makeCollectable(rag,         SCENE_BED,     "rag");   
         
         // ---- Restore INTERROGATE unlock state (from a previous visit) ----
         if (GameState.allCollected()) {
+            interrogateUnlocked = true;
+            interrogateListenerAttached = true; 
+            
             // Remove the police tape without playing the animation.
             if (policeTape != null && policeTape.getParent() != null) {
                 policeTape.getParent().remove(policeTape);
@@ -451,10 +471,10 @@ public class CrimeScene extends javax.swing.JFrame {
         contentPanel.add(dragpath, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 310, -1, -1));
 
         policeTape.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/policetape.png"))); // NOI18N
-        contentPanel.add(policeTape, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 610, 250, 60));
+        contentPanel.add(policeTape, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 610, 250, 70));
 
         nextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
-        contentPanel.add(nextButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1080, 250, 60, 60));
+        contentPanel.add(nextButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1103, 250, 40, 60));
 
         prevButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/previous_button.png"))); // NOI18N
         contentPanel.add(prevButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 240, 60, 80));
@@ -462,30 +482,30 @@ public class CrimeScene extends javax.swing.JFrame {
         caseFileLabel.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         caseFileLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         caseFileLabel.setText("CASE FILE");
-        contentPanel.add(caseFileLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(953, 612, 180, 50));
+        contentPanel.add(caseFileLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(950, 610, 180, 50));
 
         interrogateLabel.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         interrogateLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         interrogateLabel.setText("INTERROGATE");
-        contentPanel.add(interrogateLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(691, 612, 220, 70));
+        contentPanel.add(interrogateLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 610, 220, 70));
 
         notesLabel.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         notesLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         notesLabel.setText("NOTES");
-        contentPanel.add(notesLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(464, 612, 220, 70));
+        contentPanel.add(notesLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 610, 220, 70));
 
         suspectsLabel.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         suspectsLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         suspectsLabel.setText("SUSPECTS");
-        contentPanel.add(suspectsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(228, 612, 230, 70));
+        contentPanel.add(suspectsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 610, 230, 70));
 
         inventoryLabel.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         inventoryLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         inventoryLabel.setText("INVENTORY");
-        contentPanel.add(inventoryLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 612, 230, 70));
+        contentPanel.add(inventoryLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 610, 230, 70));
 
-        backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/locations/CrimeScene.png"))); // NOI18N
-        contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
+        backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/locations/FrontPorch.png"))); // NOI18N
+        contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -698,7 +718,7 @@ public class CrimeScene extends javax.swing.JFrame {
                 lbl.setForeground(NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/gameplay/door_close.wav");
                 System.out.println("INTERROGATE clicked");
             
             if (TransitionOverlay.isPlaying()) return;

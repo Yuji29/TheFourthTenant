@@ -11,16 +11,16 @@ import java.util.Map;
  *   /Images/gameplay/inventory/item_description/description_slot_<id>.png
  * so you only need to override it if an item uses a different file name.
  *
- * IDs are stable and match GameState / inventory icon filenames.
- * Display names are what the player sees.
+ * Combined items (produced by the combine system) use:
+ *   /Images/gameplay/inventory/combined/combined_<id>.png
  */
 public final class ItemDatabase {
 
     public static final class Item {
         public final String id;
-        public final String displayName;   // shown in red above the divider
-        public final String description;   // shown in white below the divider
-        public final String imagePath;     // nullable → falls back to default path
+        public final String displayName;
+        public final String description;
+        public final String imagePath;   // null → default path is used
 
         Item(String id, String displayName, String description, String imagePath) {
             this.id = id;
@@ -30,8 +30,12 @@ public final class ItemDatabase {
         }
     }
 
-    private static final Map<String, Item> ITEMS = new HashMap<>();
+    private static final Map<String, Item> ITEMS   = new HashMap<>();
+    private static final Map<String, String> RECIPES = new HashMap<>();
 
+    // ---------------------------------------------------------------
+    // Item registry
+    // ---------------------------------------------------------------
     static {
         register("padlock",
                 "Scratched Padlocks",
@@ -58,8 +62,8 @@ public final class ItemDatabase {
                 "Cardo's soaking wet heavy boots hidden behind the washing machine.");
 
         register("rag",
-                "Bleach-Soaked Bloody Rag",
-                "A bloody rag smelling heavily of bleach, under Cathy's bed.");
+                "Bleach-Soaked Rag",
+                "A rag smelling heavily of bleach, under Cathy's bed.");
 
         register("drum",
                 "Blue Water Drum",
@@ -80,7 +84,50 @@ public final class ItemDatabase {
         register("belt",
                 "Broken Strap",
                 "A broken strap from a large canvas gym bag belonging to Cathy, left near the rooftop door");
+
+        // ---- Combined items (produced by the combine system) ----
+        register("damaged_lock",
+                "Damaged Lock",
+                "The rooftop door was forced open using Cardo's tools.",
+                combinedPath("damaged_lock"));
+
+        register("drugged_coffee",
+                "Drugged Coffee",
+                "Abby was first drugged indoors using a medication that is prescribed to Andy, causing her to lose consciousness.",
+                combinedPath("drugged_coffee"));
+
+        register("shoeprints",
+                "Size 9 Shoeprints",
+                "The killer wore Cardo's boots, leaving large footprints.",
+                combinedPath("shoeprints"));
+
+        register("blood_cleanup",
+                "Blood Clean-Up",
+                "A struggle ensued, resulting in fatal head trauma. The killer cleaned the scene and hid the bleach-soaked rag in Cathy's belongings.",
+                combinedPath("blood_cleanup"));
+
+        register("audio_log",
+                "Audio Log",
+                "Abby fought with a woman after suddenly waking up on the rooftop before she died. This clears Cardo and Andy, leaving Cathy as the only female suspect.",
+                combinedPath("audio_log"));
+
+        register("gym_bag_trace",
+                "Gym Bag Trace",
+                "Cathy's bag was used to drag an unconscious Abby upstairs to the rooftop drum before the final struggle.",
+                combinedPath("gym_bag_trace"));
+
+        // ---- Recipes ----
+        recipe("damaged_lock",   "padlock",      "toolbox");
+        recipe("drugged_coffee", "mug",          "prescription");
+        recipe("shoeprints",     "footmarks",    "boots");
+        recipe("blood_cleanup",  "rag",          "drum");
+        recipe("audio_log",      "usb",          "phone");
+        recipe("gym_bag_trace",  "dragpath",     "belt");
     }
+
+    // ---------------------------------------------------------------
+    // Registration helpers
+    // ---------------------------------------------------------------
 
     private static void register(String id, String name, String desc) {
         register(id, name, desc, null);
@@ -89,6 +136,15 @@ public final class ItemDatabase {
     private static void register(String id, String name, String desc, String imageOverride) {
         ITEMS.put(id, new Item(id, name, desc, imageOverride));
     }
+
+    private static void recipe(String result, String a, String b) {
+        String key = (a.compareTo(b) <= 0) ? a + "+" + b : b + "+" + a;
+        RECIPES.put(key, result);
+    }
+
+    // ---------------------------------------------------------------
+    // Lookup
+    // ---------------------------------------------------------------
 
     /** Returns the item, or {@code null} if the id is unknown. */
     public static Item get(String id) {
@@ -100,6 +156,18 @@ public final class ItemDatabase {
         Item it = ITEMS.get(id);
         if (it != null && it.imagePath != null) return it.imagePath;
         return "/Images/gameplay/inventory/item_description/description_slot_" + id + ".png";
+    }
+
+    /** Returns the id produced by combining {@code a} and {@code b}, or null. */
+    public static String getRecipe(String a, String b) {
+        if (a == null || b == null) return null;
+        String key = (a.compareTo(b) <= 0) ? a + "+" + b : b + "+" + a;
+        return RECIPES.get(key);
+    }
+
+    /** Path used for items produced by the combine system. */
+    private static String combinedPath(String id) {
+        return "/Images/gameplay/inventory/combined/combined_" + id + ".png";
     }
 
     private ItemDatabase() {}

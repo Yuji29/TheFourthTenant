@@ -2,13 +2,15 @@ package theforthtenant;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Session-wide state for a single playthrough. Holds everything that must
  * survive a frame being closed and re-opened: collected evidence, unlocked
- * menus, last visited room, and (later) notes, suspect flags, and case-file
- * entries.
+ * menus, last visited room, and discovered deductions (from the combine
+ * system).
  *
  * All state is static — one instance per JVM run. Call {@link #reset()} when
  * starting a new game.
@@ -49,6 +51,33 @@ public final class GameState {
     }
 
     // ---------------------------------------------------------------
+    // Discovered deductions (combine results)
+    // ---------------------------------------------------------------
+
+    /**
+     * Result ids (e.g. "medicine") that the player has successfully combined
+     * at least once this session. Used so the "New Discovery" toast only
+     * fires on the first combine, not on every repeat.
+     */
+    private static final Set<String> discovered =
+        Collections.synchronizedSet(new HashSet<>());
+
+    /** Records that a combination (result id) has been discovered. */
+    public static void markDiscovered(String resultId) {
+        if (resultId != null) discovered.add(resultId);
+    }
+
+    /** Returns true if the combination (result id) has already been discovered. */
+    public static boolean isDiscovered(String resultId) {
+        return resultId != null && discovered.contains(resultId);
+    }
+
+    /** Returns the number of distinct deductions discovered this session. */
+    public static int discoveredCount() {
+        return discovered.size();
+    }
+
+    // ---------------------------------------------------------------
     // Scene position
     // ---------------------------------------------------------------
 
@@ -64,6 +93,7 @@ public final class GameState {
     /** Wipes all state — call when starting a new game. */
     public static void reset() {
         collected.clear();
+        discovered.clear();
         lastSceneIndex = 0;
     }
 

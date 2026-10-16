@@ -21,6 +21,8 @@ public class Interrogate extends javax.swing.JFrame {
     private PauseMenu pauseMenu;
     private OptionsMenu optionsMenu;
     private javax.swing.JComponent activeTooltip;
+    private javax.sound.sampled.Clip humClip;
+    private javax.sound.sampled.Clip rainClip;
 
     /** Metadata for one suspect. */
     private static final class Suspect {
@@ -92,11 +94,16 @@ public class Interrogate extends javax.swing.JFrame {
                 AudioCache.prepare(
                     "/audio/sfx/ui/hover.wav",
                     "/audio/sfx/ui/select.wav",
-                    "/audio/sfx/ui/zipper.wav"
+                    "/audio/sfx/ui/zipper.wav",
+                    "/audio/sfx/gameplay/door_close.wav"
                 );
                 return null;
             }
         }.execute();
+        
+        // ---- Ambience: indoor hum + rain outside ----
+        humClip  = AudioCache.loop("/audio/sfx/ambience/indoor_hum.wav");
+        rainClip = AudioCache.loop("/audio/sfx/ambience/rain_loop.wav");
 
         // ---- Wire up the three suspect portraits ----
         JLabel[] portraitLabels = { cardoButton, cathyButton, andyButton };
@@ -153,7 +160,6 @@ public class Interrogate extends javax.swing.JFrame {
                 backButton.setIcon(backNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/zipper.wav");
                 closeInterrogate();
             }
         });
@@ -163,6 +169,9 @@ public class Interrogate extends javax.swing.JFrame {
         root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(javax.swing.KeyStroke.getKeyStroke(
                     java.awt.event.KeyEvent.VK_ESCAPE, 0), "closeInterrogate");
+        root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(javax.swing.KeyStroke.getKeyStroke(
+                    java.awt.event.KeyEvent.VK_4, 0), "closeInterrogate");
         root.getActionMap().put("closeInterrogate", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 closeInterrogate();
@@ -182,8 +191,14 @@ public class Interrogate extends javax.swing.JFrame {
         // ---- Pause menu ----
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT,
                 new PauseMenu.Callbacks() {
-            @Override public void onPause() {}
-            @Override public void onResume() {}
+            @Override public void onPause() {
+                if (humClip  != null) humClip.stop();
+                if (rainClip != null) rainClip.stop();
+            }
+            @Override public void onResume() {
+                if (humClip  != null) humClip.start();
+                if (rainClip != null) rainClip.start();
+            }
             @Override public void onOptions() {
                 pauseMenu.hidePopupOnly();
                 optionsMenu.show();
@@ -269,12 +284,19 @@ public class Interrogate extends javax.swing.JFrame {
         hideTooltip();
         if (TransitionOverlay.isPlaying()) return;
 
-        TransitionOverlay.play(Interrogate.this, () -> {
-            CrimeScene cs = new CrimeScene();
-            cs.setLocation(getLocation());
-            cs.setVisible(true);
-            Interrogate.this.dispose();
-        });
+        AudioCache.play("/audio/sfx/gameplay/door_close.wav");
+
+        CrimeScene cs = new CrimeScene();
+        cs.setLocation(getLocation());
+        cs.setVisible(true);
+        Interrogate.this.dispose();
+    }
+    
+    @Override
+    public void dispose() {
+        if (humClip  != null) { humClip.stop();  humClip  = null; }
+        if (rainClip != null) { rainClip.stop(); rainClip = null; }
+        super.dispose();
     }
 
     /** Loads an icon resource, or returns null if missing. */
