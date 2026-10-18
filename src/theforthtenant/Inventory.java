@@ -66,12 +66,21 @@ public class Inventory extends javax.swing.JFrame {
         private javax.swing.JComponent activeToast;
         private javax.swing.ImageIcon phoneLockscreenIcon;
         private javax.swing.ImageIcon phoneUnlockedIcon;
+        private javax.swing.ImageIcon phoneMessageScreenIcon;
+        private javax.swing.ImageIcon convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon;
+        private int currentConvo = 0;
 
         // ---- PIN state ----
         private final StringBuilder pinBuffer = new StringBuilder();
         private javax.swing.ImageIcon pinEmptyIcon;
         private javax.swing.ImageIcon pinFilledIcon;
         private javax.swing.JLabel[] pinDots;
+        
+        // ---- Message Box Icons ----
+        private javax.swing.ImageIcon msgCathyNorm, msgCathyHover;
+        private javax.swing.ImageIcon msgCardoNorm, msgCardoHover;
+        private javax.swing.ImageIcon msgAndyNorm, msgAndyHover;
+        private javax.swing.ImageIcon msgAndayaNorm, msgAndayaHover;
 
         private boolean closing = false;
         private PauseMenu pauseMenu;
@@ -122,7 +131,27 @@ public class Inventory extends javax.swing.JFrame {
         phoneUnlockedIcon = new javax.swing.ImageIcon(
             getClass().getResource("/Images/gameplay/inventory/phone_unlocked.png"));
         phoneScreen.setIcon(phoneLockscreenIcon);
+        phoneMessageScreenIcon = new javax.swing.ImageIcon(
+            getClass().getResource("/Images/gameplay/inventory/phone_message_screen.png"));
+        
+        // Load Message Icons
+        msgCathyNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cathy.png"));
+        msgCathyHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cathy_hover.png"));
+        
+        msgAndayaNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andaya.png"));
+        msgAndayaHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andaya_hover.png"));
 
+        msgCardoNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cardo.png"));
+        msgCardoHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cardo_hover.png"));
+
+        msgAndyNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andy.png"));
+        msgAndyHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andy_hover.png"));
+
+        convoCathyIcon  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_cathy.png"));
+        convoAndayaIcon = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_andaya.png"));
+        convoAndyIcon   = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_andy.png"));
+        convoCardoIcon  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_cardo.png"));
+        
         pinDots = new javax.swing.JLabel[] { pin1, pin2, pin3, pin4 };
         for (javax.swing.JLabel dot : pinDots) {
             dot.setIcon(pinEmptyIcon);
@@ -140,6 +169,10 @@ public class Inventory extends javax.swing.JFrame {
                 openPhoneInspect();
             }
         });
+        
+        // ---- Phone hover colors ----
+        final java.awt.Color SUB_NORMAL = new java.awt.Color(255, 255, 255);
+        final java.awt.Color SUB_HOVER  = new java.awt.Color(255, 230, 160);
 
         // ---- Wire up slot labels (row-major: slot1 = top-left) ----
         javax.swing.JLabel[] slotLabels = {
@@ -322,6 +355,10 @@ public class Inventory extends javax.swing.JFrame {
         phoneScreen.setVisible(false);
         phoneHeading.setVisible(false);
         phoneSubheading.setVisible(false);
+        phoneClueText.setVisible(false); 
+        phoneBackText.setVisible(false);
+        phoneAppMsg.setVisible(false);
+        phoneMsgBack.setVisible(false);
         num1.setVisible(false);
         num2.setVisible(false);
         num3.setVisible(false);
@@ -337,6 +374,10 @@ public class Inventory extends javax.swing.JFrame {
         pin2.setVisible(false);
         pin3.setVisible(false);
         pin4.setVisible(false);
+        msg1.setVisible(false);
+        msg2.setVisible(false);
+        msg3.setVisible(false);
+        msg4.setVisible(false);
         
         pin1.addMouseListener(new java.awt.event.MouseAdapter() { });
         pin2.addMouseListener(new java.awt.event.MouseAdapter() { });
@@ -411,8 +452,129 @@ public class Inventory extends javax.swing.JFrame {
 
         // Headings and phone image: swallow clicks without doing anything.
         phoneHeading.addMouseListener(new java.awt.event.MouseAdapter() { });
-        phoneSubheading.addMouseListener(new java.awt.event.MouseAdapter() { });
         phoneScreen.addMouseListener(new java.awt.event.MouseAdapter() { });
+        phoneClueText.addMouseListener(new java.awt.event.MouseAdapter() { });
+        
+        // Set initial color
+        phoneSubheading.setForeground(SUB_NORMAL);
+        phoneSubheading.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        phoneSubheading.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                phoneSubheading.setForeground(SUB_HOVER);
+                AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                phoneSubheading.setForeground(SUB_NORMAL);
+            }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/ui/select.wav");
+                showClueScreen();
+            }
+        });
+        
+        // Hover for phoneBackText
+        phoneBackText.setForeground(SUB_NORMAL);
+        phoneBackText.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        phoneBackText.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                phoneBackText.setForeground(SUB_HOVER);
+                AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                phoneBackText.setForeground(SUB_NORMAL);
+            }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/ui/select.wav");
+                // Clicking Back returns to the lock screen
+                returnToLockScreen();
+            }
+        });
+        
+        // --- Clicking the App Icon ---
+        phoneAppMsg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        phoneAppMsg.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/ui/select.wav");
+
+                currentConvo = 0;
+                phoneScreen.setIcon(phoneMessageScreenIcon);
+                phoneAppMsg.setVisible(false);
+                phoneMsgBack.setVisible(true);
+
+                // Add these four lines to reset the view:
+                msg1.setVisible(false);
+                msg2.setVisible(false);
+                msg3.setVisible(false);
+                msg4.setVisible(false);
+
+                showMessageInbox(); 
+            }
+        });
+        
+        // --- Clicking the Back Button inside the Message App ---
+        phoneMsgBack.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/ui/select.wav");
+
+                if (currentConvo > 0) {
+                    // WE ARE IN A CONVO -> Go back to Inbox
+                    currentConvo = 0;
+                    phoneScreen.setIcon(phoneMessageScreenIcon);
+                    showMessageInbox(); 
+                } else {
+                    // WE ARE IN THE INBOX -> Go back to Home Screen
+                    phoneScreen.setIcon(phoneUnlockedIcon);
+                    phoneMsgBack.setVisible(false);
+                    phoneAppMsg.setVisible(true);
+
+                    // Add these four lines to hide them before leaving:
+                    msg1.setVisible(false);
+                    msg2.setVisible(false);
+                    msg3.setVisible(false);
+                    msg4.setVisible(false);
+                }
+            }
+        });
+        
+        // --- Wire up message box hovers and initial states ---
+        javax.swing.JLabel[] inboxLabels = { msg1, msg2, msg3, msg4 };
+        javax.swing.ImageIcon[] normIcons = { msgCathyNorm, msgAndayaNorm, msgAndyNorm, msgCardoNorm };
+        javax.swing.ImageIcon[] hoverIcons = { msgCathyHover, msgAndayaHover, msgAndyHover, msgCardoHover };
+        javax.swing.ImageIcon[] convoIcons = { convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon };
+
+        for (int i = 0; i < inboxLabels.length; i++) {
+            final javax.swing.JLabel msg = inboxLabels[i];
+            final javax.swing.ImageIcon normal = normIcons[i];
+            final javax.swing.ImageIcon hover = hoverIcons[i];
+            final javax.swing.ImageIcon convo = convoIcons[i];
+            final int convoIndex = i + 1; // 1 = Cathy, 2 = Andaya, etc.
+
+            msg.setIcon(normal);
+            msg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+            msg.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                    msg.setIcon(hover);
+                    AudioCache.play("/audio/sfx/ui/hover.wav");
+                }
+                @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                    msg.setIcon(normal);
+                }
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    AudioCache.play("/audio/sfx/ui/select.wav");
+
+                    // Open the convo!
+                    currentConvo = convoIndex;
+                    phoneScreen.setIcon(convo);
+
+                    // Hide the inbox messages
+                    msg1.setVisible(false);
+                    msg2.setVisible(false);
+                    msg3.setVisible(false);
+                    msg4.setVisible(false);
+                }
+            });
+        }
 
         contentPanel.setComponentZOrder(descriptionPanel, 0);
         contentPanel.setComponentZOrder(inspectButton,    0);
@@ -435,6 +597,18 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.setComponentZOrder(pin4,             0);
         contentPanel.setComponentZOrder(phoneSubheading,  0);
         contentPanel.setComponentZOrder(phoneHeading,     0);
+        contentPanel.setComponentZOrder(phoneClueText, 0);
+        contentPanel.setComponentZOrder(phoneBackText, 0);
+        contentPanel.setComponentZOrder(phoneAppMsg, 0);
+        contentPanel.setComponentZOrder(phoneMsgBack, 0);
+        contentPanel.setComponentZOrder(msg1, 0);
+        contentPanel.setComponentZOrder(msg2, 0);
+        contentPanel.setComponentZOrder(msg3, 0);
+        contentPanel.setComponentZOrder(msg4, 0);
+        
+        // Push the back button to the very top so it's above the scrim
+        contentPanel.setComponentZOrder(backButton,       0); 
+        
         contentPanel.repaint();
     } 
 
@@ -449,6 +623,14 @@ public class Inventory extends javax.swing.JFrame {
 
         contentPanel = new javax.swing.JPanel();
         backButton = new javax.swing.JLabel();
+        msg4 = new javax.swing.JLabel();
+        msg3 = new javax.swing.JLabel();
+        msg2 = new javax.swing.JLabel();
+        msg1 = new javax.swing.JLabel();
+        phoneMsgBack = new javax.swing.JLabel();
+        phoneAppMsg = new javax.swing.JLabel();
+        phoneBackText = new javax.swing.JLabel();
+        phoneClueText = new javax.swing.JLabel();
         backspace = new javax.swing.JLabel();
         pin4 = new javax.swing.JLabel();
         pin3 = new javax.swing.JLabel();
@@ -464,7 +646,7 @@ public class Inventory extends javax.swing.JFrame {
         num3 = new javax.swing.JLabel();
         num2 = new javax.swing.JLabel();
         num1 = new javax.swing.JLabel();
-        phoneHeading = new javax.swing.JLabel();
+        phoneHeading = new javax.swing.JLabel("Enter Passcode", javax.swing.SwingConstants.CENTER);
         phoneSubheading = new javax.swing.JLabel();
         phoneScreen = new javax.swing.JLabel();
         phoneScrim = new javax.swing.JLabel();
@@ -502,7 +684,40 @@ public class Inventory extends javax.swing.JFrame {
         backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
         contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, -1, 50));
 
+        msg4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cardo.png"))); // NOI18N
+        contentPanel.add(msg4, new org.netbeans.lib.awtextra.AbsoluteConstraints(439, 413, 260, -1));
+
+        msg3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andy.png"))); // NOI18N
+        contentPanel.add(msg3, new org.netbeans.lib.awtextra.AbsoluteConstraints(439, 341, 260, -1));
+
+        msg2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andaya.png"))); // NOI18N
+        contentPanel.add(msg2, new org.netbeans.lib.awtextra.AbsoluteConstraints(439, 268, 260, -1));
+
+        msg1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cathy.png"))); // NOI18N
+        contentPanel.add(msg1, new org.netbeans.lib.awtextra.AbsoluteConstraints(439, 200, 260, -1));
+
+        phoneMsgBack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_back_button.png"))); // NOI18N
+        phoneMsgBack.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        contentPanel.add(phoneMsgBack, new org.netbeans.lib.awtextra.AbsoluteConstraints(465, 176, -1, -1));
+
+        phoneAppMsg.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_app_message.png"))); // NOI18N
+        phoneAppMsg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        contentPanel.add(phoneAppMsg, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 485, -1, -1));
+
+        phoneBackText.setFont(new java.awt.Font("Arial Narrow", 0, 14)); // NOI18N
+        phoneBackText.setForeground(new java.awt.Color(255, 255, 255));
+        phoneBackText.setText("Back");
+        phoneBackText.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        contentPanel.add(phoneBackText, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 500, -1, -1));
+
+        phoneClueText.setFont(new java.awt.Font("Arial Narrow", 0, 14)); // NOI18N
+        phoneClueText.setForeground(new java.awt.Color(255, 255, 255));
+        phoneClueText.setText("<html><div style='text-align: center;'>An important date I wish to forget but can't.</div></html>");
+        phoneClueText.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        contentPanel.add(phoneClueText, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 280, 190, 40));
+
         backspace.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btnbackspace.png"))); // NOI18N
+        backspace.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(backspace, new org.netbeans.lib.awtextra.AbsoluteConstraints(623, 460, -1, -1));
 
         pin4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_pin_empty.png"))); // NOI18N
@@ -518,30 +733,39 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.add(pin1, new org.netbeans.lib.awtextra.AbsoluteConstraints(527, 220, -1, -1));
 
         num0.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn0.png"))); // NOI18N
+        num0.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num0, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 460, -1, -1));
 
         num9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn9.png"))); // NOI18N
+        num9.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num9, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 400, -1, -1));
 
         num8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn8.png"))); // NOI18N
+        num8.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num8, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 400, -1, -1));
 
         num7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn7.png"))); // NOI18N
+        num7.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num7, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 400, -1, -1));
 
         num6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn6.png"))); // NOI18N
+        num6.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num6, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 340, -1, -1));
 
         num5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn5.png"))); // NOI18N
+        num5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num5, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 340, -1, -1));
 
         num4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn4.png"))); // NOI18N
+        num4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num4, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 340, -1, -1));
 
         num3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn3.png"))); // NOI18N
+        num3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num3, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 280, -1, -1));
 
         num2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn2.png"))); // NOI18N
+        num2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num2, new org.netbeans.lib.awtextra.AbsoluteConstraints(551, 280, -1, -1));
 
         num1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn1.png"))); // NOI18N
@@ -550,16 +774,18 @@ public class Inventory extends javax.swing.JFrame {
         phoneHeading.setBackground(new java.awt.Color(255, 255, 255));
         phoneHeading.setFont(new java.awt.Font("Arial Narrow", 1, 18)); // NOI18N
         phoneHeading.setForeground(new java.awt.Color(255, 255, 255));
-        phoneHeading.setText("Enter Passcode");
-        contentPanel.add(phoneHeading, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 210, -1, -1));
+        phoneHeading.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        phoneHeading.setText("<html><div style='text-align: center;'>Enter Passcode</div></html>");
+        contentPanel.add(phoneHeading, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 210, 290, -1));
 
         phoneSubheading.setBackground(new java.awt.Color(255, 255, 255));
         phoneSubheading.setFont(new java.awt.Font("Arial Narrow", 0, 14)); // NOI18N
         phoneSubheading.setForeground(new java.awt.Color(255, 255, 255));
-        phoneSubheading.setText("Forgot Pin?");
+        phoneSubheading.setText("<html><u>Forgot Pin?</u></html>");
+        phoneSubheading.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(phoneSubheading, new org.netbeans.lib.awtextra.AbsoluteConstraints(547, 250, -1, -1));
 
-        phoneScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_lockscreen.png"))); // NOI18N
+        phoneScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_message_screen.png"))); // NOI18N
         contentPanel.add(phoneScreen, new org.netbeans.lib.awtextra.AbsoluteConstraints(416, 73, -1, -1));
 
         phoneScrim.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_scrim.png"))); // NOI18N
@@ -673,6 +899,7 @@ public class Inventory extends javax.swing.JFrame {
     /** Shows the phone lockscreen overlay. */
     private void openPhoneInspect() {
         phoneScreen.setIcon(phoneLockscreenIcon);
+        returnToLockScreen();
         
         phoneScrim.setVisible(true);
         phoneScreen.setVisible(true);
@@ -703,6 +930,8 @@ public class Inventory extends javax.swing.JFrame {
         phoneScreen.setVisible(false);
         phoneHeading.setVisible(false);
         phoneSubheading.setVisible(false);
+        phoneSubheading.setForeground(new java.awt.Color(255, 255, 255));
+        phoneAppMsg.setVisible(false);
         num1.setVisible(false);
         num2.setVisible(false);
         num3.setVisible(false);
@@ -718,7 +947,28 @@ public class Inventory extends javax.swing.JFrame {
         pin2.setVisible(false);
         pin3.setVisible(false);
         pin4.setVisible(false);
+        phoneClueText.setVisible(false);
+        phoneBackText.setVisible(false);
+        msg1.setVisible(false);
+        msg2.setVisible(false);
+        msg3.setVisible(false);
+        msg4.setVisible(false);
+        currentConvo = 0;
         AudioCache.play("/audio/sfx/ui/click.wav");
+    }
+    
+    private void showMessageInbox() {
+        // 1. Set the correct icons based on the physical order
+        msg1.setIcon(msgCathyNorm);
+        msg2.setIcon(msgAndayaNorm);
+        msg3.setIcon(msgAndyNorm);
+        msg4.setIcon(msgCardoNorm);
+
+        // 2. Show them
+        msg1.setVisible(true);
+        msg2.setVisible(true);
+        msg3.setVisible(true);
+        msg4.setVisible(true);
     }
     
     /** Appends a digit to the PIN buffer (max 4) and refreshes the dots. */
@@ -744,6 +994,7 @@ public class Inventory extends javax.swing.JFrame {
 
             phoneHeading.setVisible(false);
             phoneSubheading.setVisible(false);
+            phoneAppMsg.setVisible(true);
             num1.setVisible(false);
             num2.setVisible(false);
             num3.setVisible(false);
@@ -767,6 +1018,69 @@ public class Inventory extends javax.swing.JFrame {
             pinBuffer.setLength(0);
             refreshPinDots();
         }
+    }
+    
+    /** Shows the Clue screen when "Forgot Pin?" is clicked. */
+    private void showClueScreen() {
+        // Hide the lock screen UI
+        phoneHeading.setVisible(false);     // "Enter Passcode"
+        phoneSubheading.setVisible(false);  // "Forgot Pin?"
+        num1.setVisible(false);
+        num2.setVisible(false);
+        num3.setVisible(false);
+        num4.setVisible(false);
+        num5.setVisible(false);
+        num6.setVisible(false);
+        num7.setVisible(false);
+        num8.setVisible(false);
+        num9.setVisible(false);
+        num0.setVisible(false);
+        backspace.setVisible(false);
+        pin1.setVisible(false);
+        pin2.setVisible(false);
+        pin3.setVisible(false);
+        pin4.setVisible(false);
+
+        // Show the Clue UI
+        phoneClueText.setVisible(true);
+        phoneBackText.setVisible(true);
+
+        // Optional: Change the text to say "Clue" instead of "Enter Passcode"
+        phoneHeading.setText("Clue");
+        phoneHeading.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        phoneHeading.setVisible(true); 
+
+        // Clear any entered PIN
+        pinBuffer.setLength(0);
+    }
+
+    /** Returns to the normal lock screen from the Clue screen. */
+    private void returnToLockScreen() {
+        // Hide clue UI
+        phoneClueText.setVisible(false);
+        phoneBackText.setVisible(false);
+
+        // Restore the lock screen UI
+        phoneHeading.setText("Enter Passcode");
+        phoneHeading.setVisible(true);
+        phoneSubheading.setVisible(true);
+        num1.setVisible(true);
+        num2.setVisible(true);
+        num3.setVisible(true);
+        num4.setVisible(true);
+        num5.setVisible(true);
+        num6.setVisible(true);
+        num7.setVisible(true);
+        num8.setVisible(true);
+        num9.setVisible(true);
+        num0.setVisible(true);
+        backspace.setVisible(true);
+        pin1.setVisible(true);
+        pin2.setVisible(true);
+        pin3.setVisible(true);
+        pin4.setVisible(true);
+
+        refreshPinDots();
     }
 
     /** Removes the last digit from the PIN buffer and refreshes the dots. */
@@ -861,6 +1175,7 @@ public class Inventory extends javax.swing.JFrame {
 
             // Staging changed — no result until the player clicks COMBINE.
             descriptionPanel.showEmpty();
+            inspectButton.setVisible(false);
             refreshCombineLabel();
         }
 
@@ -904,6 +1219,7 @@ public class Inventory extends javax.swing.JFrame {
 
             // Staging changed — reset the description panel and the COMBINE glow.
             descriptionPanel.showEmpty();
+            inspectButton.setVisible(false);
             refreshCombineLabel();
         }
         
@@ -1156,6 +1472,10 @@ public class Inventory extends javax.swing.JFrame {
     private javax.swing.JLabel combineSlotB;
     private javax.swing.JPanel contentPanel;
     private javax.swing.JLabel inspectButton;
+    private javax.swing.JLabel msg1;
+    private javax.swing.JLabel msg2;
+    private javax.swing.JLabel msg3;
+    private javax.swing.JLabel msg4;
     private javax.swing.JLabel num0;
     private javax.swing.JLabel num1;
     private javax.swing.JLabel num2;
@@ -1166,7 +1486,11 @@ public class Inventory extends javax.swing.JFrame {
     private javax.swing.JLabel num7;
     private javax.swing.JLabel num8;
     private javax.swing.JLabel num9;
+    private javax.swing.JLabel phoneAppMsg;
+    private javax.swing.JLabel phoneBackText;
+    private javax.swing.JLabel phoneClueText;
     private javax.swing.JLabel phoneHeading;
+    private javax.swing.JLabel phoneMsgBack;
     private javax.swing.JLabel phoneScreen;
     private javax.swing.JLabel phoneScrim;
     private javax.swing.JLabel phoneSubheading;

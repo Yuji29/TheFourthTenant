@@ -22,6 +22,7 @@ public class CrimeScene extends javax.swing.JFrame {
         "/Images/gameplay/locations/DiningArea.png",
         "/Images/gameplay/locations/BedRoom.png",
         "/Images/gameplay/locations/CrimeScene.png",
+        "/Images/gameplay/locations/CardosRoom.png"
     };
 
     private int currentScene = 0;
@@ -82,6 +83,7 @@ public class CrimeScene extends javax.swing.JFrame {
     private static final int SCENE_DINING  = 4;
     private static final int SCENE_BED     = 5;
     private static final int SCENE_CRIME   = 6;
+    private static final int SCENE_CARDO   = 7;
 
     /**
      * Creates new form CrimeScene.
@@ -377,7 +379,9 @@ public class CrimeScene extends javax.swing.JFrame {
         makeCollectable(mug,         SCENE_KITCHEN, "mug");
         makeCollectable(toolbox,     SCENE_LIVING,  "toolbox");
         makeCollectable(prescription,SCENE_DINING,  "prescription");
+        makeCollectable(ledger,      SCENE_DINING,  "ledger");
         makeCollectable(rag,         SCENE_BED,     "rag");   
+        makeCollectable(loveLetters, SCENE_CARDO,   "love_letters");
         
         // ---- Restore INTERROGATE unlock state (from a previous visit) ----
         if (GameState.allCollected()) {
@@ -408,6 +412,8 @@ public class CrimeScene extends javax.swing.JFrame {
     private void initComponents() {
 
         contentPanel = new javax.swing.JPanel();
+        ledger = new javax.swing.JLabel();
+        loveLetters = new javax.swing.JLabel();
         rag = new javax.swing.JLabel();
         prescription = new javax.swing.JLabel();
         usb = new javax.swing.JLabel();
@@ -433,6 +439,12 @@ public class CrimeScene extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        ledger.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/ledger.png"))); // NOI18N
+        contentPanel.add(ledger, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 320, -1, -1));
+
+        loveLetters.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/love_letters.png"))); // NOI18N
+        contentPanel.add(loveLetters, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 340, -1, -1));
 
         rag.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/rag.png"))); // NOI18N
         contentPanel.add(rag, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 510, -1, -1));
@@ -987,6 +999,8 @@ public class CrimeScene extends javax.swing.JFrame {
     private javax.swing.JLabel footmarks;
     private javax.swing.JLabel interrogateLabel;
     private javax.swing.JLabel inventoryLabel;
+    private javax.swing.JLabel ledger;
+    private javax.swing.JLabel loveLetters;
     private javax.swing.JLabel mug;
     private javax.swing.JLabel nextButton;
     private javax.swing.JLabel notesLabel;

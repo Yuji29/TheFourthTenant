@@ -25,7 +25,7 @@ public final class GameState {
         Collections.synchronizedList(new ArrayList<>());
 
     /** Total number of collectable items in the game. */
-    public static final int TOTAL_ITEMS = 12;
+    public static final int TOTAL_ITEMS = 14;
 
     public static void markCollected(String id) {
         if (id == null) return;

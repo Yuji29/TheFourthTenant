@@ -6,13 +6,6 @@ import java.util.Map;
 /**
  * Static lookup table for item metadata: display name, description text,
  * and (optionally) the classpath path of the large description image.
- *
- * Image path defaults to:
- *   /Images/gameplay/inventory/item_description/description_slot_<id>.png
- * so you only need to override it if an item uses a different file name.
- *
- * Combined items (produced by the combine system) use:
- *   /Images/gameplay/inventory/combined/combined_<id>.png
  */
 public final class ItemDatabase {
 
@@ -71,7 +64,7 @@ public final class ItemDatabase {
 
         register("usb",
                 "Flash Drive",
-                "Audio recording from a neighbor's CCTV, featuring a woman screaming \"Leave me alone!\" around 2:00 AM.");
+                "An audio recording retrieved from a neighbor's CCTV system, capturing a female voice screaming \"Leave me alone\" around 2:00 AM.");
 
         register("phone",
                 "Abby's Smartphone",
@@ -84,6 +77,15 @@ public final class ItemDatabase {
         register("belt",
                 "Broken Strap",
                 "A broken strap from a large canvas gym bag belonging to Cathy, left near the rooftop door");
+        
+        // --- NEW ITEMS ---
+        register("love_letters",
+                "Love Letters",
+                "A stack of old love letters and hand written notes kept in Cardo's room, detailing his stormy, on-and-off relationship with Abby.");
+        
+        register("ledger",
+                "Ledger",
+                "A small, concealed ledger notebook found inside Andy's medical bag listing personal financial records, including unpaid debts owed to Abby totaling \"67,000\".");
 
         // ---- Combined items (produced by the combine system) ----
         register("damaged_lock",
@@ -108,14 +110,26 @@ public final class ItemDatabase {
 
         register("audio_log",
                 "Audio Log",
-                "Abby fought with a woman after suddenly waking up on the rooftop before she died. This clears Cardo and Andy, leaving Cathy as the only female suspect.",
+                "CCTV audio recording on the flash captures an intense argument between Abby and another woman shortly before the murder, pointing to a female suspect.",
                 combinedPath("audio_log"));
 
         register("gym_bag_trace",
                 "Gym Bag Trace",
                 "Cathy's bag was used to drag an unconscious Abby upstairs to the rooftop drum before the final struggle.",
                 combinedPath("gym_bag_trace"));
+        
+        // --- NEW COMBINED ITEMS ---
+        register("jealousy",
+                "Possessive Jealousy",
+                "Cardo harbored extreme, possessive jealousy towards Abby and previously threatened that neither of them would live if she left him.",
+                combinedPath("jealousy"));
+        
+        register("opened_ledger",
+                "Financial Debt",
+                "Andy owed Abby a massive sum of money (67,000) and was facing severe pressure and harsh demands from her for immediate repayment.",
+                combinedPath("opened_ledger"));
 
+        
         // ---- Recipes ----
         recipe("damaged_lock",   "padlock",      "toolbox");
         recipe("drugged_coffee", "mug",          "prescription");
@@ -123,6 +137,10 @@ public final class ItemDatabase {
         recipe("blood_cleanup",  "rag",          "drum");
         recipe("audio_log",      "usb",          "phone");
         recipe("gym_bag_trace",  "dragpath",     "belt");
+        
+        // --- NEW RECIPES ---
+        recipe("jealousy",       "phone",        "love_letters");
+        recipe("opened_ledger",  "phone",        "ledger");
     }
 
     // ---------------------------------------------------------------
@@ -146,26 +164,22 @@ public final class ItemDatabase {
     // Lookup
     // ---------------------------------------------------------------
 
-    /** Returns the item, or {@code null} if the id is unknown. */
     public static Item get(String id) {
         return ITEMS.get(id);
     }
 
-    /** Returns the classpath path to the large description image for the id. */
     public static String descriptionImagePath(String id) {
         Item it = ITEMS.get(id);
         if (it != null && it.imagePath != null) return it.imagePath;
         return "/Images/gameplay/inventory/item_description/description_slot_" + id + ".png";
     }
 
-    /** Returns the id produced by combining {@code a} and {@code b}, or null. */
     public static String getRecipe(String a, String b) {
         if (a == null || b == null) return null;
         String key = (a.compareTo(b) <= 0) ? a + "+" + b : b + "+" + a;
         return RECIPES.get(key);
     }
 
-    /** Path used for items produced by the combine system. */
     private static String combinedPath(String id) {
         return "/Images/gameplay/inventory/combined/combined_" + id + ".png";
     }
