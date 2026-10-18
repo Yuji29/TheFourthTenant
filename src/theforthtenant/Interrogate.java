@@ -23,6 +23,15 @@ public class Interrogate extends javax.swing.JFrame {
     private javax.swing.JComponent activeTooltip;
     private javax.sound.sampled.Clip humClip;
     private javax.sound.sampled.Clip rainClip;
+    
+    // ---- Interrogation Scene State ----
+    private javax.swing.ImageIcon loungeBgIcon;
+    private int currentSuspect = -1; // -1 = Lounge, 0 = Cardo, 1 = Cathy, 2 = Andy
+    
+    // Suspect images
+    private javax.swing.ImageIcon cardoIdle, cardoTalk;
+    private javax.swing.ImageIcon cathyIdle, cathyTalk;
+    private javax.swing.ImageIcon andyIdle, andyTalk;
 
     /** Metadata for one suspect. */
     private static final class Suspect {
@@ -79,37 +88,32 @@ public class Interrogate extends javax.swing.JFrame {
         setResizable(false);
         setLocationRelativeTo(null);
 
-        // ---- Load the lounge background ----
-        java.net.URL bgUrl = getClass().getResource(
-                "/Images/gameplay/interrogate/lounge_bg.png");
-        if (bgUrl != null) {
-            backgroundLabel.setIcon(new ImageIcon(bgUrl));
-        } else {
-            System.out.println("Missing: lounge_bg.png");
-        }
+        // ---- Load Backgrounds ----
+        loungeBgIcon = loadIcon("/Images/gameplay/interrogate/lounge_bg.png");
+        
+        // Set initial background
+        backgroundLabel.setIcon(loungeBgIcon);
 
-        // ---- Warm the SFX cache on a background thread ----
-        new javax.swing.SwingWorker<Void, Void>() {
-            @Override protected Void doInBackground() {
-                AudioCache.prepare(
-                    "/audio/sfx/ui/hover.wav",
-                    "/audio/sfx/ui/select.wav",
-                    "/audio/sfx/ui/zipper.wav",
-                    "/audio/sfx/gameplay/door_close.wav"
-                );
-                return null;
-            }
-        }.execute();
+        // ---- Load Suspects (Idle & Talk) ----
+        cardoIdle = loadIcon("/Images/gameplay/interrogate/interrogation/cardo_idle.png");
+        cardoTalk = loadIcon("/Images/gameplay/interrogate/interrogation/cardo_talk.png");
+        
+        cathyIdle = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_idle.png");
+        cathyTalk = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_talk.png");
+        
+        andyIdle  = loadIcon("/Images/gameplay/interrogate/interrogation/andy_idle.png");
+        andyTalk  = loadIcon("/Images/gameplay/interrogate/interrogation/andy_talk.png");
         
         // ---- Ambience: indoor hum + rain outside ----
         humClip  = AudioCache.loop("/audio/sfx/ambience/indoor_hum.wav");
         rainClip = AudioCache.loop("/audio/sfx/ambience/rain_loop.wav");
 
-        // ---- Wire up the three suspect portraits ----
+                // ---- Wire up the three suspect portraits ----
         JLabel[] portraitLabels = { cardoButton, cathyButton, andyButton };
         for (int i = 0; i < suspects.length; i++) {
             final Suspect s = suspects[i];
             final JLabel lbl = portraitLabels[i];
+            final int suspectIndex = i; // Need this to pass into the listener
 
             final ImageIcon normal = loadIcon(s.portraitPath);
             final ImageIcon hover  = (s.hoverPath != null)
@@ -136,8 +140,10 @@ public class Interrogate extends javax.swing.JFrame {
                     if (TransitionOverlay.isPlaying()) return;
                     if (pauseMenu != null && pauseMenu.isPaused()) return;
 
-                    AudioCache.play("/audio/sfx/ui/select.wav");
-                    openDialogue(s);
+                    AudioCache.play("/audio/sfx/gameplay/door_close.wav");
+                    
+                    // CALL THE TRANSITION METHOD HERE
+                    startInterrogation(suspectIndex); 
                 }
             });
         }
@@ -378,6 +384,41 @@ public class Interrogate extends javax.swing.JFrame {
            activeTooltip = null;
        }
    }
+   
+    /** Transitions from the lounge into the interrogation room. */
+    private void startInterrogation(int suspectIndex) {
+        currentSuspect = suspectIndex;
+        
+        // 1. Hide the lounge buttons (they are no longer needed)
+        cardoButton.setVisible(false);
+        cathyButton.setVisible(false);
+        andyButton.setVisible(false);
+        
+        // 2. Swap the background to the suspect's idle state
+        javax.swing.ImageIcon idleIcon = null;
+        
+        if (suspectIndex == 0) {
+            idleIcon = cardoIdle;
+        } else if (suspectIndex == 1) {
+            idleIcon = cathyIdle;
+        } else if (suspectIndex == 2) {
+            idleIcon = andyIdle;
+        }
+
+        if (idleIcon != null) {
+            backgroundLabel.setIcon(idleIcon);
+        }
+        
+        // 3. Make sure the background is drawn ON TOP of the hidden buttons
+        // (Index 0 in AbsoluteLayout pushes it to the front)
+        contentPanel.setComponentZOrder(backgroundLabel, 0);
+        
+        // 4. Make sure the back button is STILL on top of the background so you can leave
+        contentPanel.setComponentZOrder(backButton, 0);
+        
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
     
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */

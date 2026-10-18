@@ -8,6 +8,10 @@ public class DescriptionPanel extends javax.swing.JComponent {
     private static final int CONTENT_OFFSET_X = -12;
     private static final int NAME_TO_BODY_GAP = 60;  
     private static final int EMPTY_IMAGE_OFFSET_Y = 60;
+    private float popScale = 1.0f;
+    private javax.swing.Timer popTimer;
+    private int shakeOffset = 0;
+    private javax.swing.Timer shakeTimer;
 
     private javax.swing.ImageIcon image;
     private String name;
@@ -43,12 +47,37 @@ public class DescriptionPanel extends javax.swing.JComponent {
         }
         repaint();
     }
+    
+    /** Animates the panel contents with a quick "pop" scale effect. */
+    public void playSuccessPop() {
+        if (popTimer != null) popTimer.stop();
+        
+        popScale = 0.7f; // Start a bit smaller (makes the pop more obvious)
+        final long start = System.currentTimeMillis();
+        final int DURATION = 300; // milliseconds
+        
+        popTimer = new javax.swing.Timer(16, e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            float progress = Math.min(1f, elapsed / (float) DURATION);
+            
+            // Elastic ease-out: bounces back to 1.0
+            double elastic = 1 - Math.pow(1 - progress, 3); 
+            popScale = (float) (0.7f + (0.3f * elastic));
+            
+            repaint();
+            
+            if (progress >= 1f) {
+                popScale = 1.0f;
+                popTimer.stop();
+                repaint();
+            }
+        });
+        popTimer.start();
+    }
 
-    /** Empty-slot state: shows description_slot_empty.png + the hint. */
+    /** Empty-slot state: completely blank. */
     public void showEmpty() {
-        java.net.URL u = DescriptionPanel.class.getResource(
-                "/Images/gameplay/inventory/item_description/description_slot_empty.png");
-        image = (u != null) ? new javax.swing.ImageIcon(u) : null;
+        image = null;
         name  = null;
         body  = null;
         repaint();
@@ -64,6 +93,12 @@ public class DescriptionPanel extends javax.swing.JComponent {
                             java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
                             java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+
+        // Apply the pop scale centered on the panel
+        java.awt.geom.AffineTransform oldTransform = g2.getTransform();
+        g2.translate(getWidth() / 2.0, getHeight() / 2.0);
+        g2.scale(popScale, popScale);
+        g2.translate(-getWidth() / 2.0, -getHeight() / 2.0);
 
         int w = getWidth();
         int cx = w / 2 + CONTENT_OFFSET_X;
@@ -114,7 +149,37 @@ public class DescriptionPanel extends javax.swing.JComponent {
             g2.drawString(hint, cx - hw / 2, getHeight() - 150);
         }
 
+        g2.setTransform(oldTransform);
         g2.dispose();
+    }
+    
+    /** Shakes the panel horizontally to indicate a failed combination. */
+    public void playErrorShake() {
+        if (shakeTimer != null) shakeTimer.stop();
+        
+        final int originalX = getX();
+        final int duration = 300; // ms
+        final int shakeDistance = 8; // pixels
+        final long start = System.currentTimeMillis();
+        
+        shakeTimer = new javax.swing.Timer(16, e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            
+            if (elapsed >= duration) {
+                shakeOffset = 0;
+                setLocation(originalX, getY());
+                shakeTimer.stop();
+                return;
+            }
+            
+            double progress = (double) elapsed / duration;
+            double amplitude = shakeDistance * (1.0 - progress);
+            double offset = Math.sin(progress * Math.PI * 10) * amplitude;
+            
+            shakeOffset = (int) offset;
+            setLocation(originalX + shakeOffset, getY());
+        });
+        shakeTimer.start();
     }
 
     private int drawWrapped(java.awt.Graphics2D g2, String text, int x, int y,

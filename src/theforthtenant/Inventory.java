@@ -165,7 +165,7 @@ public class Inventory extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/phone/phone_tap.wav");
                 openPhoneInspect();
             }
         });
@@ -421,7 +421,7 @@ public class Inventory extends javax.swing.JFrame {
                     key.setIcon(normal);
                 }
                 @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                    AudioCache.play("/audio/sfx/ui/select.wav");
+                    AudioCache.play("/audio/sfx/phone/phone_tap.wav");
                     onPinDigit(digit);
                 }
             });
@@ -445,7 +445,7 @@ public class Inventory extends javax.swing.JFrame {
                 backspace.setIcon(bsNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/phone/phone_tap.wav");
                 onPinBackspace();
             }
         });
@@ -467,7 +467,7 @@ public class Inventory extends javax.swing.JFrame {
                 phoneSubheading.setForeground(SUB_NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
                 showClueScreen();
             }
         });
@@ -484,7 +484,7 @@ public class Inventory extends javax.swing.JFrame {
                 phoneBackText.setForeground(SUB_NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
                 // Clicking Back returns to the lock screen
                 returnToLockScreen();
             }
@@ -494,7 +494,7 @@ public class Inventory extends javax.swing.JFrame {
         phoneAppMsg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         phoneAppMsg.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                 currentConvo = 0;
                 phoneScreen.setIcon(phoneMessageScreenIcon);
@@ -514,7 +514,7 @@ public class Inventory extends javax.swing.JFrame {
         // --- Clicking the Back Button inside the Message App ---
         phoneMsgBack.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                 if (currentConvo > 0) {
                     // WE ARE IN A CONVO -> Go back to Inbox
@@ -561,7 +561,7 @@ public class Inventory extends javax.swing.JFrame {
                     msg.setIcon(normal);
                 }
                 @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                    AudioCache.play("/audio/sfx/ui/select.wav");
+                    AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                     // Open the convo!
                     currentConvo = convoIndex;
@@ -898,31 +898,43 @@ public class Inventory extends javax.swing.JFrame {
     
     /** Shows the phone lockscreen overlay. */
     private void openPhoneInspect() {
-        phoneScreen.setIcon(phoneLockscreenIcon);
-        returnToLockScreen();
-        
         phoneScrim.setVisible(true);
         phoneScreen.setVisible(true);
-        phoneHeading.setVisible(true);
-        phoneSubheading.setVisible(true);
-        num1.setVisible(true);
-        num2.setVisible(true);
-        num3.setVisible(true);
-        num4.setVisible(true);
-        num5.setVisible(true);
-        num6.setVisible(true);
-        num7.setVisible(true);
-        num8.setVisible(true);
-        num9.setVisible(true);
-        num0.setVisible(true);
-        backspace.setVisible(true);
-        pin1.setVisible(true);
-        pin2.setVisible(true);
-        pin3.setVisible(true);
-        pin4.setVisible(true);
-        
-        pinBuffer.setLength(0);
-        refreshPinDots();
+
+        if (GameState.isPhoneUnlocked()) {
+            // ALREADY UNLOCKED -> Go straight to home screen!
+            phoneScreen.setIcon(phoneUnlockedIcon);
+            phoneAppMsg.setVisible(true);
+            
+            // Hide all the lock screen stuff
+            phoneHeading.setVisible(false);
+            phoneSubheading.setVisible(false);
+            num1.setVisible(false); num2.setVisible(false); num3.setVisible(false);
+            num4.setVisible(false); num5.setVisible(false); num6.setVisible(false);
+            num7.setVisible(false); num8.setVisible(false); num9.setVisible(false);
+            num0.setVisible(false); backspace.setVisible(false);
+            pin1.setVisible(false); pin2.setVisible(false); pin3.setVisible(false); pin4.setVisible(false);
+            phoneMsgBack.setVisible(false);
+            msg1.setVisible(false); msg2.setVisible(false); msg3.setVisible(false); msg4.setVisible(false);
+            
+            pinBuffer.setLength(0);
+            refreshPinDots();
+            
+        } else {
+            // NOT UNLOCKED YET -> Show the lock screen
+            phoneScreen.setIcon(phoneLockscreenIcon);
+            returnToLockScreen();
+            phoneHeading.setVisible(true);
+            phoneSubheading.setVisible(true);
+            num1.setVisible(true); num2.setVisible(true); num3.setVisible(true);
+            num4.setVisible(true); num5.setVisible(true); num6.setVisible(true);
+            num7.setVisible(true); num8.setVisible(true); num9.setVisible(true);
+            num0.setVisible(true); backspace.setVisible(true);
+            pin1.setVisible(true); pin2.setVisible(true); pin3.setVisible(true); pin4.setVisible(true);
+            
+            pinBuffer.setLength(0);
+            refreshPinDots();
+        }
     }
     
     private void closePhoneScreen() {
@@ -989,7 +1001,8 @@ public class Inventory extends javax.swing.JFrame {
 
         if (pinBuffer.toString().equals(CORRECT_PIN)) {
             // Unlocked — swap the phone image and hide the lock UI.
-            AudioCache.play("/audio/sfx/ui/notification.wav");   // or a dedicated unlock sfx
+            AudioCache.play("/audio/sfx/phone/phone_unlock.wav");
+            GameState.setPhoneUnlocked(true);
             phoneScreen.setIcon(phoneUnlockedIcon);
 
             phoneHeading.setVisible(false);
@@ -1014,10 +1027,85 @@ public class Inventory extends javax.swing.JFrame {
             pinBuffer.setLength(0);
         } else {
             // Wrong PIN — clear the buffer for another attempt.
-            AudioCache.play("/audio/sfx/ui/click.wav");   // or a dedicated error sfx
             pinBuffer.setLength(0);
             refreshPinDots();
+            shakePhone(); 
         }
+    }
+    
+    /** Shakes the entire phone (screen, buttons, text) horizontally to indicate an error. */
+    private void shakePhone() {
+        // Play the error sound
+        AudioCache.play("/audio/sfx/phone/phone_error.wav"); 
+
+        // 1. Store the original X positions of everything on the lock screen
+        final int origScreenX = phoneScreen.getX();
+        final int origHeadingX = phoneHeading.getX();
+        final int origSubheadingX = phoneSubheading.getX();
+        
+        final int origNum0X = num0.getX(); final int origNum1X = num1.getX();
+        final int origNum2X = num2.getX(); final int origNum3X = num3.getX();
+        final int origNum4X = num4.getX(); final int origNum5X = num5.getX();
+        final int origNum6X = num6.getX(); final int origNum7X = num7.getX();
+        final int origNum8X = num8.getX(); final int origNum9X = num9.getX();
+        
+        final int origPin1X = pin1.getX(); final int origPin2X = pin2.getX();
+        final int origPin3X = pin3.getX(); final int origPin4X = pin4.getX();
+        
+        final int origBackspaceX = backspace.getX();
+
+        final int duration = 300; // milliseconds
+        final int shakeDistance = 8; // pixels
+        final long startTime = System.currentTimeMillis();
+
+        javax.swing.Timer timer = new javax.swing.Timer(16, null);
+        timer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - startTime;
+            
+            // 2. When time is up, snap everything back to perfectly original positions
+            if (elapsed >= duration) {
+                phoneScreen.setLocation(origScreenX, phoneScreen.getY());
+                phoneHeading.setLocation(origHeadingX, phoneHeading.getY());
+                phoneSubheading.setLocation(origSubheadingX, phoneSubheading.getY());
+                
+                num0.setLocation(origNum0X, num0.getY()); num1.setLocation(origNum1X, num1.getY());
+                num2.setLocation(origNum2X, num2.getY()); num3.setLocation(origNum3X, num3.getY());
+                num4.setLocation(origNum4X, num4.getY()); num5.setLocation(origNum5X, num5.getY());
+                num6.setLocation(origNum6X, num6.getY()); num7.setLocation(origNum7X, num7.getY());
+                num8.setLocation(origNum8X, num8.getY()); num9.setLocation(origNum9X, num9.getY());
+                
+                pin1.setLocation(origPin1X, pin1.getY()); pin2.setLocation(origPin2X, pin2.getY());
+                pin3.setLocation(origPin3X, pin3.getY()); pin4.setLocation(origPin4X, pin4.getY());
+                
+                backspace.setLocation(origBackspaceX, backspace.getY());
+                
+                ((javax.swing.Timer) e.getSource()).stop();
+                return;
+            }
+
+            // 3. Calculate the dampening offset
+            double progress = (double) elapsed / duration;
+            double amplitude = shakeDistance * (1.0 - progress); // Starts at 8px, ends at 0px
+            double offset = Math.sin(progress * Math.PI * 10) * amplitude;
+            int dx = (int) offset;
+
+            // 4. Apply the offset to everything
+            phoneScreen.setLocation(origScreenX + dx, phoneScreen.getY());
+            phoneHeading.setLocation(origHeadingX + dx, phoneHeading.getY());
+            phoneSubheading.setLocation(origSubheadingX + dx, phoneSubheading.getY());
+            
+            num0.setLocation(origNum0X + dx, num0.getY()); num1.setLocation(origNum1X + dx, num1.getY());
+            num2.setLocation(origNum2X + dx, num2.getY()); num3.setLocation(origNum3X + dx, num3.getY());
+            num4.setLocation(origNum4X + dx, num4.getY()); num5.setLocation(origNum5X + dx, num5.getY());
+            num6.setLocation(origNum6X + dx, num6.getY()); num7.setLocation(origNum7X + dx, num7.getY());
+            num8.setLocation(origNum8X + dx, num8.getY()); num9.setLocation(origNum9X + dx, num9.getY());
+            
+            pin1.setLocation(origPin1X + dx, pin1.getY()); pin2.setLocation(origPin2X + dx, pin2.getY());
+            pin3.setLocation(origPin3X + dx, pin3.getY()); pin4.setLocation(origPin4X + dx, pin4.getY());
+            
+            backspace.setLocation(origBackspaceX + dx, backspace.getY());
+        });
+        timer.start();
     }
     
     /** Shows the Clue screen when "Forgot Pin?" is clicked. */
@@ -1236,28 +1324,41 @@ public class Inventory extends javax.swing.JFrame {
 
             String resultId = ItemDatabase.getRecipe(combineItemA, combineItemB);
 
+            // 1. Check if the combination doesn't exist at all
             if (resultId == null) {
+                AudioCache.play("/audio/sfx/phone/phone_error.wav");
                 descriptionPanel.showEmpty();
+                descriptionPanel.playErrorShake(); // <--- ADD THIS
                 return;
             }
 
+            // 2. Check if it's a phone recipe, and if the phone is locked
+            boolean usesPhone = ("phone".equals(combineItemA) || "phone".equals(combineItemB));
+            boolean isPhoneRecipe = ("opened_ledger".equals(resultId) || "jealousy".equals(resultId));
+            
+            if (usesPhone && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
+                AudioCache.play("/audio/sfx/phone/phone_error.wav"); 
+                descriptionPanel.showEmpty();
+                descriptionPanel.playErrorShake(); // <--- ADD THIS
+                System.out.println("You need to unlock the phone first.");
+                return;
+            }
+
+            // 3. We have a valid recipe and the phone is either not used, or it's unlocked
             ItemDatabase.Item result = ItemDatabase.get(resultId);
             if (result != null) {
                 boolean firstTime = !GameState.isDiscovered(resultId);
 
                 descriptionPanel.setItem(result);
+                descriptionPanel.playSuccessPop(); // Trigger the pop animation
 
                 if (firstTime) {
                     GameState.markDiscovered(resultId);
                     AudioCache.play("/audio/sfx/ui/notification.wav");
                     showToast("/Images/ui/notification_new_discovery.png");
                 } else {
-                    // Already discovered — play a softer reveal sound, no toast.
                     AudioCache.play("/audio/sfx/ui/select.wav");
                 }
-
-                System.out.println("Combined: " + combineItemA + " + " + combineItemB
-                    + " → " + resultId + (firstTime ? " (first time)" : " (already known)"));
             }
         }
         

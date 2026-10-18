@@ -68,7 +68,7 @@ public final class ItemDatabase {
 
         register("phone",
                 "Abby's Smartphone",
-                "A drafted text message on Abby's phone created at 1:55 AM stating, \"You are completely losing it, girl. Stay away from me.\"");
+                "Protected by a 4-digits PIN passcode. Unlock to view its contents.");
 
         register("dragpath",
                 "Floor Drag Marks",
