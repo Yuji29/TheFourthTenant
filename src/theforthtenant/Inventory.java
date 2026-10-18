@@ -69,6 +69,9 @@ public class Inventory extends javax.swing.JFrame {
         private javax.swing.ImageIcon phoneMessageScreenIcon;
         private javax.swing.ImageIcon convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon;
         private int currentConvo = 0;
+        
+        // Cache for description images to prevent loading delay
+        private java.util.Map<String, javax.swing.ImageIcon> descriptionCache = new java.util.HashMap<>();
 
         // ---- PIN state ----
         private final StringBuilder pinBuffer = new StringBuilder();
@@ -85,7 +88,6 @@ public class Inventory extends javax.swing.JFrame {
         private boolean closing = false;
         private PauseMenu pauseMenu;
         private OptionsMenu optionsMenu;
-        private DescriptionPanel descriptionPanel;
     
     /**
      * Creates new form Inventory
@@ -267,11 +269,6 @@ public class Inventory extends javax.swing.JFrame {
             }
         });   
         
-        // ---- Right-side description panel ----
-        descriptionPanel = new DescriptionPanel();
-        contentPanel.add(descriptionPanel,
-            new org.netbeans.lib.awtextra.AbsoluteConstraints(815, 95, 310, 500));
-        
         // ---- Back button ----
         final javax.swing.ImageIcon backNormal = new javax.swing.ImageIcon(
                 getClass().getResource("/Images/ui/back_button.png"));
@@ -348,7 +345,17 @@ public class Inventory extends javax.swing.JFrame {
         });
         
         refreshSlots(GameState.getCollected());
-        descriptionPanel.showEmpty();
+        setDescription(null);
+        
+        // ---- Pre-load all description images into memory ----
+        // (This prevents lag when clicking items)
+        for (String itemId : GameState.getCollected()) {
+            String path = ItemDatabase.descriptionImagePath(itemId);
+            java.net.URL u = getClass().getResource(path);
+            if (u != null) {
+                descriptionCache.put(itemId, new javax.swing.ImageIcon(u));
+            }
+        }
         
         // ---- Phone lockscreen: hidden by default, only shows for the phone ----
         phoneScrim.setVisible(false);
@@ -576,7 +583,6 @@ public class Inventory extends javax.swing.JFrame {
             });
         }
 
-        contentPanel.setComponentZOrder(descriptionPanel, 0);
         contentPanel.setComponentZOrder(inspectButton,    0);
         contentPanel.setComponentZOrder(phoneScrim,       0);
         contentPanel.setComponentZOrder(phoneScreen,      0);
@@ -673,6 +679,9 @@ public class Inventory extends javax.swing.JFrame {
         slot3 = new javax.swing.JLabel();
         slot2 = new javax.swing.JLabel();
         slot1 = new javax.swing.JLabel();
+        descTitle = new javax.swing.JLabel();
+        descImage = new javax.swing.JLabel();
+        descText = new javax.swing.JLabel();
         inspectButton = new javax.swing.JLabel();
         backgroundLabel = new javax.swing.JLabel();
 
@@ -860,6 +869,23 @@ public class Inventory extends javax.swing.JFrame {
 
         slot1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
         contentPanel.add(slot1, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, -1, -1));
+
+        descTitle.setFont(new java.awt.Font("Arial Narrow", 1, 18)); // NOI18N
+        descTitle.setForeground(new java.awt.Color(202, 50, 50));
+        descTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        contentPanel.add(descTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(800, 350, 310, 40));
+
+        descImage.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        descImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_description/description_slot_drum.png"))); // NOI18N
+        descImage.setPreferredSize(new java.awt.Dimension(260, 220));
+        contentPanel.add(descImage, new org.netbeans.lib.awtextra.AbsoluteConstraints(810, 130, 290, 240));
+
+        descText.setBackground(new java.awt.Color(28, 28, 28));
+        descText.setFont(new java.awt.Font("Arial Narrow", 1, 18)); // NOI18N
+        descText.setText("click an item to show description");
+        descText.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        descText.setPreferredSize(new java.awt.Dimension(250, 260));
+        contentPanel.add(descText, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 420, 260, 90));
 
         inspectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_description/inspect_button.png"))); // NOI18N
         contentPanel.add(inspectButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1065, 110, -1, -1));
@@ -1222,7 +1248,7 @@ public class Inventory extends javax.swing.JFrame {
                     AudioCache.play("/audio/sfx/ui/select.wav");
 
                     if (slot.isEmpty()) {
-                        descriptionPanel.showEmpty();
+                        setDescription(null);
                         inspectButton.setVisible(false);
                         return;
                     }
@@ -1234,7 +1260,7 @@ public class Inventory extends javax.swing.JFrame {
                     slot.selected = true;
                     slot.refresh();
                     selectedSlot = slot;
-                    descriptionPanel.setItem(ItemDatabase.get(slot.itemId));
+                    setDescription(ItemDatabase.get(slot.itemId));
 
                     // Show the magnifier only when the phone is selected.
                     inspectButton.setVisible("phone".equals(slot.itemId));
@@ -1262,7 +1288,7 @@ public class Inventory extends javax.swing.JFrame {
             }
 
             // Staging changed — no result until the player clicks COMBINE.
-            descriptionPanel.showEmpty();
+            setDescription(null);
             inspectButton.setVisible(false);
             refreshCombineLabel();
         }
@@ -1306,7 +1332,7 @@ public class Inventory extends javax.swing.JFrame {
             }
 
             // Staging changed — reset the description panel and the COMBINE glow.
-            descriptionPanel.showEmpty();
+            setDescription(null);
             inspectButton.setVisible(false);
             refreshCombineLabel();
         }
@@ -1318,7 +1344,7 @@ public class Inventory extends javax.swing.JFrame {
         */
         private void tryCombine() {
             if (combineItemA == null || combineItemB == null) {
-                descriptionPanel.showEmpty();
+                setDescription(null);
                 return;
             }
 
@@ -1327,8 +1353,9 @@ public class Inventory extends javax.swing.JFrame {
             // 1. Check if the combination doesn't exist at all
             if (resultId == null) {
                 AudioCache.play("/audio/sfx/phone/phone_error.wav");
-                descriptionPanel.showEmpty();
-                descriptionPanel.playErrorShake(); // <--- ADD THIS
+                setDescription(null);
+                shakeDescription();
+                AudioCache.play("/audio/sfx/phone/phone_error.wav");
                 return;
             }
 
@@ -1338,8 +1365,7 @@ public class Inventory extends javax.swing.JFrame {
             
             if (usesPhone && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
                 AudioCache.play("/audio/sfx/phone/phone_error.wav"); 
-                descriptionPanel.showEmpty();
-                descriptionPanel.playErrorShake(); // <--- ADD THIS
+                setDescription(null);
                 System.out.println("You need to unlock the phone first.");
                 return;
             }
@@ -1349,9 +1375,7 @@ public class Inventory extends javax.swing.JFrame {
             if (result != null) {
                 boolean firstTime = !GameState.isDiscovered(resultId);
 
-                descriptionPanel.setItem(result);
-                descriptionPanel.playSuccessPop(); // Trigger the pop animation
-
+                setDescription(result);
                 if (firstTime) {
                     GameState.markDiscovered(resultId);
                     AudioCache.play("/audio/sfx/ui/notification.wav");
@@ -1541,6 +1565,89 @@ public class Inventory extends javax.swing.JFrame {
            activeToast = null;
        }
    }
+   
+    /** Shakes the description labels horizontally to indicate an error. */
+    private void shakeDescription() {
+        final int origImgX = descImage.getX();
+        final int origTitleX = descTitle.getX();
+        final int origTextX = descText.getX();
+        final int duration = 300; 
+        final int shakeDistance = 8; 
+        final long start = System.currentTimeMillis();
+        
+        javax.swing.Timer shakeTimer = new javax.swing.Timer(16, null);
+        shakeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed >= duration) {
+                descImage.setLocation(origImgX, descImage.getY());
+                descTitle.setLocation(origTitleX, descTitle.getY());
+                descText.setLocation(origTextX, descText.getY());
+                ((javax.swing.Timer) e.getSource()).stop();
+                return;
+            }
+            double progress = (double) elapsed / duration;
+            double amplitude = shakeDistance * (1.0 - progress);
+            double offset = Math.sin(progress * Math.PI * 10) * amplitude;
+            int dx = (int) offset;
+            
+            descImage.setLocation(origImgX + dx, descImage.getY());
+            descTitle.setLocation(origTitleX + dx, descTitle.getY());
+            descText.setLocation(origTextX + dx, descText.getY());
+        });
+        shakeTimer.start();
+    }
+   
+    /** Updates the design-tab labels with the item's data. */
+    private void setDescription(ItemDatabase.Item item) {
+        if (item == null) {
+            // 1. Clear title and image
+            descTitle.setText("");
+            descImage.setIcon(null);
+            
+            // 2. Set the hint text to match the exact style of normal descriptions
+            String hintHtml = "<html><div style='width: 200px; text-align: center;'>" 
+                            + "Select an item to inspect" 
+                            + "</div></html>";
+            
+            descText.setText(hintHtml);
+            descText.setFont(getCustomFont(14f)); 
+            descText.setForeground(new java.awt.Color(150, 150, 150)); // Gray color so it looks like a hint
+            return;
+        }
+
+        // 1. Set the Title
+        descTitle.setText(item.displayName);
+        descTitle.setFont(getCustomFont(12f)); 
+        descTitle.setForeground(new java.awt.Color(200, 50, 45)); 
+
+        // 2. Set the Image (Check cache first!)
+        javax.swing.ImageIcon cachedIcon = descriptionCache.get(item.id);
+        
+        // If it's not in the cache (e.g., a newly combined item), load it now and save it
+        if (cachedIcon == null) {
+            java.net.URL u = getClass().getResource(ItemDatabase.descriptionImagePath(item.id));
+            if (u != null) {
+                cachedIcon = new javax.swing.ImageIcon(u);
+                descriptionCache.put(item.id, cachedIcon);
+            }
+        }
+
+        if (cachedIcon != null) {
+            java.awt.Image img = cachedIcon.getImage();
+            java.awt.Image newImg = img.getScaledInstance(199, 199, java.awt.Image.SCALE_REPLICATE);
+            descImage.setIcon(new javax.swing.ImageIcon(newImg));
+        } else {
+            descImage.setIcon(null);
+        }
+        
+        // 3. Set the Description Text
+        String htmlText = "<html><div style='width: 200px; text-align: justify;'>" 
+                        + item.description + "</div></html>";
+        
+        descText.setText(htmlText);
+        descText.setFont(getCustomFont(14f)); 
+        descText.setForeground(java.awt.Color.WHITE); 
+    }
 
        public static void main(String args[]) {
            /* Set the Nimbus look and feel */
@@ -1572,6 +1679,9 @@ public class Inventory extends javax.swing.JFrame {
     private javax.swing.JLabel combineSlotA;
     private javax.swing.JLabel combineSlotB;
     private javax.swing.JPanel contentPanel;
+    private javax.swing.JLabel descImage;
+    private javax.swing.JLabel descText;
+    private javax.swing.JLabel descTitle;
     private javax.swing.JLabel inspectButton;
     private javax.swing.JLabel msg1;
     private javax.swing.JLabel msg2;

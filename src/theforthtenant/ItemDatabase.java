@@ -39,15 +39,15 @@ public final class ItemDatabase {
                 "A missing lockpick and pliers from Cardo's always-open toolbox in the living room.");
 
         register("mug",
-                "Abby's Leftover Coffee",
+                "Abby's Coffee",
                 "Traces of a strong sleeping pill in Abby's leftover coffee in the kitchen.");
 
         register("prescription",
-                "Torn Prescription Receipt",
+                "Prescription Receipt",
                 "A torn prescription receipt from Andy's medical bag left on the dining table.");
 
         register("footmarks",
-                "Muddy Footprints (Size 9)",
+                "Footprints (Size 9)",
                 "Large muddy size 9 shoe footprints around the water drum on the rooftop.");
 
         register("boots",
@@ -78,7 +78,6 @@ public final class ItemDatabase {
                 "Broken Strap",
                 "A broken strap from a large canvas gym bag belonging to Cathy, left near the rooftop door");
         
-        // --- NEW ITEMS ---
         register("love_letters",
                 "Love Letters",
                 "A stack of old love letters and hand written notes kept in Cardo's room, detailing his stormy, on-and-off relationship with Abby.");
