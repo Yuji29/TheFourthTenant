@@ -166,23 +166,40 @@ public class Interrogate extends javax.swing.JFrame {
                 backButton.setIcon(backNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                closeInterrogate();
+                if (currentSuspect >= 0) {
+                    // We are in a conversation, just go back to the lounge
+                    AudioCache.play("/audio/sfx/ui/select.wav");
+                    returnToLounge();
+                } else {
+                    // We are in the lounge, exit completely
+                    closeInterrogate();
+                }
             }
         });
 
         // ---- ESC also backs out ----
-        javax.swing.JRootPane root = getRootPane();
-        root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(javax.swing.KeyStroke.getKeyStroke(
-                    java.awt.event.KeyEvent.VK_ESCAPE, 0), "closeInterrogate");
-        root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(javax.swing.KeyStroke.getKeyStroke(
-                    java.awt.event.KeyEvent.VK_4, 0), "closeInterrogate");
-        root.getActionMap().put("closeInterrogate", new javax.swing.AbstractAction() {
+         javax.swing.JRootPane root = getRootPane();
+        
+        // Create the action once
+        javax.swing.AbstractAction backAction = new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                closeInterrogate();
+                if (currentSuspect >= 0) {
+                    returnToLounge();
+                } else {
+                    closeInterrogate();
+                }
             }
-        });
+        };
+
+        // Bind ESC
+        root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "backAction");
+        root.getActionMap().put("backAction", backAction);
+
+        // Bind 4
+        root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_4, 0), "backAction");
+        root.getActionMap().put("backAction", backAction);
 
         // ---- Options popup ----
         optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
@@ -252,10 +269,11 @@ public class Interrogate extends javax.swing.JFrame {
         contentPanel.add(andyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(686, 266, -1, 410));
 
         cathyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/cathy.png"))); // NOI18N
-        contentPanel.add(cathyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 282, -1, -1));
+        contentPanel.add(cathyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 278, -1, 340));
 
         cardoButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/cardo.png"))); // NOI18N
-        contentPanel.add(cardoButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 258, -1, -1));
+        cardoButton.setPreferredSize(new java.awt.Dimension(237, 239));
+        contentPanel.add(cardoButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 250, -1, 430));
 
         backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/lounge_bg.png"))); // NOI18N
         contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, -1));
@@ -387,37 +405,127 @@ public class Interrogate extends javax.swing.JFrame {
    
     /** Transitions from the lounge into the interrogation room. */
     private void startInterrogation(int suspectIndex) {
+        hideTooltip();
         currentSuspect = suspectIndex;
         
-        // 1. Hide the lounge buttons (they are no longer needed)
+        // 1. Hide the lounge buttons
         cardoButton.setVisible(false);
         cathyButton.setVisible(false);
         andyButton.setVisible(false);
         
-        // 2. Swap the background to the suspect's idle state
+        // 2. Get the correct icon
         javax.swing.ImageIcon idleIcon = null;
-        
-        if (suspectIndex == 0) {
-            idleIcon = cardoIdle;
-        } else if (suspectIndex == 1) {
-            idleIcon = cathyIdle;
-        } else if (suspectIndex == 2) {
-            idleIcon = andyIdle;
-        }
+        if (suspectIndex == 0) idleIcon = cardoIdle;
+        else if (suspectIndex == 1) idleIcon = cathyIdle;
+        else if (suspectIndex == 2) idleIcon = andyIdle;
 
+        // 3. Always play the fade transition
         if (idleIcon != null) {
-            backgroundLabel.setIcon(idleIcon);
+            fadeInBackground(idleIcon);
         }
         
-        // 3. Make sure the background is drawn ON TOP of the hidden buttons
-        // (Index 0 in AbsoluteLayout pushes it to the front)
-        contentPanel.setComponentZOrder(backgroundLabel, 0);
-        
-        // 4. Make sure the back button is STILL on top of the background so you can leave
+        // 4. Fix layering
+        contentPanel.setComponentZOrder(backgroundLabel, contentPanel.getComponentCount() - 1);
         contentPanel.setComponentZOrder(backButton, 0);
         
         contentPanel.revalidate();
         contentPanel.repaint();
+    }
+    
+    /** Creates a quick fade-to-black effect, swaps the background image, then fades back in. */
+    private void fadeInBackground(javax.swing.ImageIcon newBg) {
+        // Create our custom fading overlay
+        FadeOverlay fadeOverlay = new FadeOverlay();
+        
+        // Add it to the screen using AbsoluteConstraints
+        contentPanel.add(fadeOverlay, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+        contentPanel.setComponentZOrder(fadeOverlay, 0); // Bring to front
+        contentPanel.revalidate();
+        contentPanel.repaint();
+
+        final int duration = 400; // Total time in ms
+        final long start = System.currentTimeMillis();
+        final boolean[] imageSwapped = { false }; // To ensure we only swap once
+
+        javax.swing.Timer timer = new javax.swing.Timer(16, null);
+        timer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            float progress = Math.min(1f, elapsed / (float) duration);
+
+            if (progress < 0.5f) {
+                // First half: Fade TO black (0.0 -> 1.0)
+                fadeOverlay.setAlpha(progress * 2f);
+            } else {
+                // Second half: Swap image and Fade FROM black (1.0 -> 0.0)
+                if (!imageSwapped[0]) {
+                    backgroundLabel.setIcon(newBg);
+                    imageSwapped[0] = true;
+                }
+                fadeOverlay.setAlpha((1f - progress) * 2f);
+            }
+
+            if (progress >= 1f) {
+                // Done! Remove the overlay.
+                contentPanel.remove(fadeOverlay);
+                contentPanel.revalidate();
+                contentPanel.repaint();
+                ((javax.swing.Timer) e.getSource()).stop();
+            }
+        });
+        timer.start();
+    }
+    
+    /** Returns the screen to the lounge state. */
+    private void returnToLounge() {
+        currentSuspect = -1;
+        backgroundLabel.setIcon(loungeBgIcon);
+        
+        // Restore the lounge suspects
+        cardoButton.setVisible(true);
+        cathyButton.setVisible(true);
+        andyButton.setVisible(true);
+        
+        // Reset their images back to the lounge portraits
+        cardoButton.setIcon(loadIcon("/Images/gameplay/interrogate/suspects/cardo.png"));
+        cathyButton.setIcon(loadIcon("/Images/gameplay/interrogate/suspects/cathy.png"));
+        andyButton.setIcon(loadIcon("/Images/gameplay/interrogate/suspects/andy.png"));
+        
+        // Reset their original positions
+        cardoButton.setLocation(260, 258);
+        cathyButton.setLocation(480, 282);
+        andyButton.setLocation(686, 266);
+        
+        // --- THE FIX: Bring the suspects back to the front ---
+        contentPanel.setComponentZOrder(cardoButton, 0);
+        contentPanel.setComponentZOrder(cathyButton, 0);
+        contentPanel.setComponentZOrder(andyButton, 0);
+        contentPanel.setComponentZOrder(backButton, 0);
+        
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+    
+    /** Simple black overlay that fades out. */
+    private static class FadeOverlay extends javax.swing.JComponent {
+        private float alpha = 1f;
+
+        FadeOverlay() {
+            setOpaque(false);
+        }
+
+        void setAlpha(float a) {
+            this.alpha = Math.max(0f, Math.min(1f, a));
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            if (alpha <= 0f) return;
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            g2.setColor(new java.awt.Color(0, 0, 0, (int)(alpha * 255)));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+        }
     }
     
     public static void main(String args[]) {
