@@ -5,12 +5,11 @@
 package theforthtenant;
 
 /**
- * The Backstory cutscene frame: displays a sequence of story slides with
+ * The Backstory cut scene frame: displays a sequence of story slides with
  * subtitles, voice-over narration, sound effects, and a typewriter effect.
  * Handles navigation, pause/resume, options, and transitions to the main menu
  * or the crime scene.
  *
- * @author yuji
  */
 public class Backstory extends javax.swing.JFrame {
 

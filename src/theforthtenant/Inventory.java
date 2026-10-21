@@ -1361,7 +1361,7 @@ public class Inventory extends javax.swing.JFrame {
 
             // 2. Check if it's a phone recipe, and if the phone is locked
             boolean usesPhone = ("phone".equals(combineItemA) || "phone".equals(combineItemB));
-            boolean isPhoneRecipe = ("opened_ledger".equals(resultId) || "jealousy".equals(resultId));
+            boolean isPhoneRecipe = ("opened_ledger".equals(resultId) || "jealousy".equals(resultId) || "audio_log".equals(resultId));
             
             if (usesPhone && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
                 AudioCache.play("/audio/sfx/phone/phone_error.wav"); 

@@ -47,7 +47,9 @@ public final class GameState {
     }
 
     public static boolean allCollected() {
-        return collectedCount() >= TOTAL_ITEMS;
+        //DEBUG
+        //return collectedCount() >= TOTAL_ITEMS;
+        return true;
     }
     
     private static boolean phoneUnlocked = false;

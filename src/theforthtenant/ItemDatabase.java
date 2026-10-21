@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Static lookup table for item metadata: display name, description text,
- * and (optionally) the classpath path of the large description image.
+ * and (optionally) the class path path of the large description image.
  */
 public final class ItemDatabase {
 
