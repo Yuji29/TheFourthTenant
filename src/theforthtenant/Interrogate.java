@@ -26,6 +26,9 @@ public class Interrogate extends javax.swing.JFrame {
     private javax.sound.sampled.Clip thrillerClip;
     private javax.swing.Timer typewriterTimer;
     private javax.sound.sampled.Clip voiceClip;
+    private javax.swing.Timer hintPulseTimer;
+    private float hintAlpha = 0f;
+    private javax.swing.JComponent hintLabel; 
     
     // ---- Interrogation Scene State ----
     private javax.swing.ImageIcon loungeBgIcon;
@@ -357,12 +360,46 @@ public class Interrogate extends javax.swing.JFrame {
         // ---- Style the suspect name plate (JLabel) ----
         suspectNamePlate.setOpaque(false);            // fully transparent
         suspectNamePlate.setBorder(null);
-        suspectNamePlate.setFont(getCustomFont(14f)); // pixel font
+        suspectNamePlate.setFont(getCustomFont(16f).deriveFont(java.awt.Font.BOLD)); 
         suspectNamePlate.setForeground(java.awt.Color.BLACK);
         suspectNamePlate.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         suspectNamePlate.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
         suspectNamePlate.setText("");
         suspectNamePlate.setVisible(false);           // hidden in the lounge
+        
+        // ---- Custom pulsing Hint Text ----
+        javax.swing.JComponent hintOverlay = new javax.swing.JComponent() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (hintAlpha <= 0f) return;
+                
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                                    java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+                
+                g2.setFont(getCustomFont(10f)); // Pixel font
+                g2.setColor(new java.awt.Color(255, 255, 255, (int)(hintAlpha * 255))); // White text with pulse alpha
+                
+                String text = "Click anywhere to continue";
+                java.awt.FontMetrics fm = g2.getFontMetrics();
+                
+                // Center it horizontally, and put it near the bottom
+                int x = (getWidth() - fm.stringWidth(text)) / 2;
+                int y = getHeight() - 15; 
+                
+                g2.drawString(text, x, y);
+                g2.dispose();
+            }
+        };
+        hintOverlay.setOpaque(false);
+        hintOverlay.setBounds(0, 0, 1150, 680);
+        hintOverlay.setVisible(false); // Hidden by default
+        
+        // Add it to the panel
+        contentPanel.add(hintOverlay, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+        
+        // Save it as a field so we can show/hide it later
+        this.hintLabel = hintOverlay;
 
         // ---- Wire up the three suspect portraits ----
         JLabel[] portraitLabels = { cardoButton, cathyButton, andyButton };
@@ -735,6 +772,29 @@ public class Interrogate extends javax.swing.JFrame {
      */
     
     
+    /** A JLabel that supports a fading alpha value for animations. */
+    private static class FadeLabel extends javax.swing.JLabel {
+        private float alpha = 1f;
+
+        public FadeLabel() { 
+            setOpaque(false); 
+        }
+
+        public void setAlpha(float a) {
+            this.alpha = Math.max(0f, Math.min(1f, a));
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            g2.setComposite(java.awt.AlphaComposite.getInstance(
+                java.awt.AlphaComposite.SRC_OVER, alpha));
+            super.paintComponent(g2);
+            g2.dispose();
+        }
+    }
+    
     /** Opens the dialogue window for the chosen suspect. */
     private void openDialogue(Suspect s) {
         // TODO: build InterrogateDialogue and swap this stub out.
@@ -868,8 +928,13 @@ public class Interrogate extends javax.swing.JFrame {
             typewriterTimer.stop();
             typingArea.setText(typingFull);
             if (voiceClip != null) { voiceClip.stop(); voiceClip = null; }
+            
+            // NEW: Show the hint if they skip the typing
+            startHintPulse(); 
+            
             return;
         }
+        
         AudioCache.play("/audio/sfx/ui/select.wav");
         showNode(next);
     }
@@ -889,6 +954,34 @@ public class Interrogate extends javax.swing.JFrame {
         showLine(true, choice.spokenText[i], choice.spokenAudio[i]);
         
         next = choice.branches[i];           
+    }
+    
+    private void startHintPulse() {
+        hintLabel.setVisible(true);
+        contentPanel.setComponentZOrder(hintLabel, 0); // Bring to front
+
+        if (hintPulseTimer != null && hintPulseTimer.isRunning()) return; // already running
+
+        final long start = System.currentTimeMillis();
+        
+        hintPulseTimer = new javax.swing.Timer(30, e -> {
+            double time = (System.currentTimeMillis() - start) / 500.0;
+            // Pulse between 20% opacity (0.2) and 100% opacity (1.0)
+            hintAlpha = (float) (0.6 + 0.4 * Math.sin(time)); 
+            hintLabel.repaint();
+        });
+        hintPulseTimer.start();
+    }
+
+    private void stopHintPulse() {
+        if (hintPulseTimer != null) {
+            hintPulseTimer.stop();
+            hintPulseTimer = null;
+        }
+        hintAlpha = 0f;
+        if (hintLabel != null) {
+            hintLabel.setVisible(false);
+        }
     }
 
     /** Shows 1, 2 or 3 option boxes depending on how many options the node has. */
@@ -917,7 +1010,8 @@ public class Interrogate extends javax.swing.JFrame {
         suspectAnswer.setVisible(false);
         jScrollPane3.setVisible(false);
         suspectNamePlate.setVisible(false);
-        suspectNamePlate.setText("");   // an empty, transparent label draws nothing
+        suspectNamePlate.setText("");  
+        stopHintPulse();
     }
 
     // Name plate position relative to the bubble's top-left corner.
@@ -1256,8 +1350,8 @@ public class Interrogate extends javax.swing.JFrame {
             tickMs = 25;
             charsPerSecond = (fullText.length() / (audioDurationMs / 1000.0)) * 1.15;
         } else {
-            tickMs = 30;
-            charsPerSecond = 1000.0 / 30.0;
+            tickMs = 10;
+            charsPerSecond = 1000.0 / 10.0;
         }
         final double charsPerTick = charsPerSecond * (tickMs / 1000.0);
         final double[] accumulated = { 0.0 };
@@ -1267,13 +1361,15 @@ public class Interrogate extends javax.swing.JFrame {
             int n = Math.min(fullText.length(), (int) accumulated[0]);
             targetArea.setText(fullText.substring(0, n));
 
-            // Keep the blip only when there's no voice.
             if (voiceClip == null && n > 0 && n % 3 == 0) {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
 
             if (n >= fullText.length()) {
                 typewriterTimer.stop();
+                
+                // NEW: Show the hint when typing is done
+                startHintPulse();
             }
         });
         typewriterTimer.start();
