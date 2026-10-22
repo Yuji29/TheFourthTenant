@@ -155,6 +155,8 @@ public class Interrogate extends javax.swing.JFrame {
         final String bootsQ = "If your boots were missing, why didn't you mention that to us when we first arrived?";
         final String bootsFinal = "I thought someone kicked them aside by mistake! I only realized they were soaked when I found them this morning.";
 
+        // 0. START NODE
+        Node startNode = Node.choice("Start the interrogation");
         // 1. INTRO
         Node intro1 = Node.detective("Let the record show that today, we are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house.\n\nBefore we begin asking any questions, it is my duty to inform you of your constitutional rights under the law.",    
                 "/audio/voice/interrogate/cardo/cardo_s01_detective.wav");
@@ -164,6 +166,8 @@ public class Interrogate extends javax.swing.JFrame {
                 "/audio/voice/interrogate/cardo/cardo_s03_detective.wav");
         Node introReply = Node.suspect("Yeah, I get it. Let's just get this over with so you can realize you're wasting your time.",    
                 "/audio/voice/interrogate/cardo/cardo_s04_suspect.wav");
+        
+        startNode.on(0, "Start the interrogation", intro1);
         
         intro1.then(intro2).then(intro3).then(introReply);
 
@@ -256,7 +260,236 @@ public class Interrogate extends javax.swing.JFrame {
         Node branch3First = mainChoices.branches[2];
         branch3First.then(mainChoices); 
 
-        return intro1;
+        return startNode;
+    }
+    
+    /** The whole Andy interrogation, mapped from the flowchart. */
+    private Node buildAndyTree() {
+        // 0. START NODE
+        Node startNode = Node.choice("Start the interrogation");
+
+        // 1. INTRO
+        Node intro1 = Node.detective("Let the record show that today, We are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house.\n\nBefore we begin asking any questions, it is my duty to inform you of your constitutional rights under the law:",
+                "/audio/voice/interrogate/andy/andy_s01_detective.wav");
+        
+        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law.\n\nYou have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge.\n\nYou have the right to be assisted by counsel during this investigation.",
+                "/audio/voice/interrogate/andy/andy_s02_detective.wav");
+        
+        Node intro3 = Node.detective("Do you understand each of these rights as I have explained them to you? Knowing and understanding your rights, are you speaking to me voluntarily, of your own free will, without any coercion, threats, or promises of leniency?",
+                "/audio/voice/interrogate/andy/andy_s03_detective.wav");
+        
+        Node introReply = Node.suspect("Look, I didn't do anything, and I want to clear this up right now. I'll answer whatever you need.",
+                "/audio/voice/interrogate/andy/andy_s04_suspect.wav");
+
+        startNode.on(0, "Start the interrogation", intro1);
+        intro1.then(intro2).then(intro3).then(introReply);
+
+        // 2. MAIN CHOICES
+        Node mainChoices = Node.choice(
+            "Ask about his whereabout during the time of the crime.",
+            "Ask about his debt",
+            "Ask the sleeping pills"
+        );
+        introReply.then(mainChoices);
+
+        // ============================================================
+        // BRANCH 1: WHEREABOUTS (Left)
+        // ============================================================
+        Node b1_reply = Node.suspect("I was out at a study hub with my friends.",
+                "/audio/voice/interrogate/andy/andy_s06_suspect.wav");
+        
+        Node b1_choices = Node.choice(
+            "What exact time were you out, Andy? Did you remain at the study hub continuously from 1:30 to 2:30 AM?",
+            "A mere word doesn't give you an ironclad alibi for an hour-long window. Can you provide any hard proof?"
+        );
+        
+        Node b1_opt1Reply = Node.suspect("Look, I have a selfie photo timestamped at 1:45 AM. I only stepped out briefly for coffee, but my med school peers can confirm I was back shortly after.",
+                "/audio/voice/interrogate/andy/andy_s08_suspect.wav");
+        Node b1_opt2Reply = Node.suspect("I-I think we have a selfie that time, let me see if I can pull it up",
+                "/audio/voice/interrogate/andy/andy_s10_suspect.wav");
+
+        // Link Branch 1 
+        mainChoices.on(0, "Where were you between 1:30 AM and 2:30 AM? Were you the one who went up to the rooftop?", 
+                "/audio/voice/interrogate/andy/andy_s05_detective.wav", b1_reply);
+        b1_reply.then(b1_choices);
+        
+        b1_choices.on(0, "What exact time were you out, Andy? Did you remain at the study hub continuously from 1:30 to 2:30 AM?", 
+                "/audio/voice/interrogate/andy/andy_s07_detective.wav", b1_opt1Reply);
+        b1_choices.on(1, "A mere word doesn't give you an ironclad alibi for an hour-long window. Can you provide any hard proof?", 
+                "/audio/voice/interrogate/andy/andy_s09_detective.wav", b1_opt2Reply);
+        
+        b1_opt1Reply.then(mainChoices);
+        b1_opt2Reply.then(mainChoices);
+
+        // ============================================================
+        // BRANCH 2: DEBT (Middle)
+        // ============================================================
+        Node b2_reply = Node.suspect("Um... She was... not so kind, but I guess that’s just fair. It’s my fault, afterall.",
+                "/audio/voice/interrogate/andy/andy_s12_suspect.wav");
+        
+        Node b2_choices = Node.choice(
+            "Med school debt creates extreme pressure. Did the debt dispute get out of hand? Maybe causing more than just an argument...",
+            "We found a ledger notebook. You owe Abby 67,000 pesos and she was pressing you hard for payment."
+        );
+        
+        Node b2_opt1Reply = Node.suspect("I'm drowning in tuition fees! I admit we had a talk about the debt, but it never escalated more than that! That’s not reason enough to be violent!",
+                "/audio/voice/interrogate/andy/andy_s14_suspect.wav");
+        Node b2_opt2Reply = Node.suspect("She was pressing me hard, yes... but I was actively securing a loan. I would never resort to violence.",
+                "/audio/voice/interrogate/andy/andy_s16_suspect.wav");
+
+        // Link Branch 2
+        mainChoices.on(1, "I heard Abby hasn’t been very kind to you, because of 67000 you owed her? It Is that true?", 
+                "/audio/voice/interrogate/andy/andy_s11_detective.wav", b2_reply);
+        b2_reply.then(b2_choices);
+        
+        b2_choices.on(0, "Med school debt creates extreme pressure. Did the debt dispute get out of hand? Maybe causing more than just an argument...", 
+                "/audio/voice/interrogate/andy/andy_s13_detective.wav", b2_opt1Reply);
+        b2_choices.on(1, "We found a ledger notebook. You owe Abby 67,000 and she was pressing you hard for payment.", 
+                "/audio/voice/interrogate/andy/andy_s15_detective.wav", b2_opt2Reply);
+        
+        b2_opt1Reply.then(mainChoices);
+        b2_opt2Reply.then(mainChoices);
+
+        // ============================================================
+        // BRANCH 3: SLEEPING PILLS (Right)
+        // ============================================================
+        Node b3_reply1 = Node.suspect("Yes, detective. How did you know about that?",
+                "/audio/voice/interrogate/andy/andy_s18_suspect.wav");
+        
+        Node b3_mid = Node.detective("Traces of sleeping pills were found in Abby's coffee. Were those from your prescription?",
+                "/audio/voice/interrogate/andy/andy_s19_detective.wav");
+                
+        Node b3_reply2 = Node.suspect("I keep it inside my medical bag and it isn't locked... I just leave it in the kitchen or in the living room most times. Anyone in the house could have unzipped it.",
+                "/audio/voice/interrogate/andy/andy_s20_suspect.wav");
+        
+        Node b3_end = Node.detective("One last question, did you notice anything unusual or suspicious in the house before you went out?",
+                "/audio/voice/interrogate/andy/andy_s21_detective.wav");
+                
+        Node b3_reply3 = Node.suspect("I saw Cardo walking around in slippers when he got home around 9PM last night—which is weird because he always wears heavy boots. And around 11:15 PM before I went out, Cathy's light was on and I heard whispering near her room.",
+                "/audio/voice/interrogate/andy/andy_s22_suspect.wav");
+        
+        Node b3_final = Node.detective("Thank you for your cooperation, Andy.",
+                "/audio/voice/interrogate/andy/andy_s23_detective.wav");
+
+        // Link Branch 3
+        mainChoices.on(2, "Were you having a hard time to sleep these past days, Andy?", 
+                "/audio/voice/interrogate/andy/andy_s17_detective.wav", b3_reply1);
+        
+        b3_reply1.then(b3_mid).then(b3_reply2).then(b3_end).then(b3_reply3).then(b3_final);
+        
+        // Loop back to the choices
+        b3_final.then(mainChoices); 
+
+        return startNode;
+    }
+    
+    /** The whole Cathy interrogation, mapped from the flowchart. */
+    private Node buildCathyTree() {
+        // 0. START NODE
+        Node startNode = Node.choice("Start the interrogation");
+
+        // 1. INTRO
+        Node intro1 = Node.detective("Let the record show that today, We are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house.\n\nBefore we begin asking any questions, it is my duty to inform you of your constitutional rights under the law:",
+                "/audio/voice/interrogate/cathy/cathy_s01_detective.wav");
+        
+        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law.\n\nYou have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge.\n\nYou have the right to be assisted by counsel during this investigation.",
+                "/audio/voice/interrogate/cathy/cathy_s02_detective.wav");
+        
+        Node intro3 = Node.detective("Do you understand each of these rights as I have explained them to you? Knowing and understanding your rights, are you speaking to me voluntarily, of your own free will, without any coercion, threats, or promises of leniency?",
+                "/audio/voice/interrogate/cathy/cathy_s03_detective.wav");
+        
+        Node introReply = Node.suspect("I... yes, I understand my rights. I'll cooperate, I just want tthis to be over...",
+                "/audio/voice/interrogate/cathy/cathy_s04_suspect.wav");
+
+        startNode.on(0, "Start the interrogation", intro1);
+        intro1.then(intro2).then(intro3).then(introReply);
+
+        // 2. MAIN CHOICES
+        Node mainChoices = Node.choice(
+            "Ask about her whereabouts during the time of the incident",
+            "Ask about the bleach soaked rag",
+            "Ask about her fight with Abby"
+        );
+        introReply.then(mainChoices);
+
+        // ============================================================
+        // BRANCH 1: WHEREABOUTS (Left)
+        // ============================================================
+        Node b1_reply = Node.suspect("I... I’m asleep. I remember going to bed early, detective.",
+                "/audio/voice/interrogate/cathy/cathy_s06_suspect.wav");
+        
+        Node b1_choices = Node.choice(
+            "Hmm... You don’t seem to certain yourself, Cathy. Are there any other things you remember doing before going to bed?",
+            "You are the only other female tenant here in this boarding house, do you often have female vistors here?"
+        );
+        
+        // Link the choice directly to Cathy's reply
+        mainChoices.on(0, "Cathy, what were you doing between 1:00 AM and 6:00 AM?", 
+                "/audio/voice/interrogate/cathy/cathy_s05_detective.wav", b1_reply);
+        b1_reply.then(b1_choices);
+
+        // Sub-choice 1 (The memory gaps)
+        Node b1_opt1_reply = Node.suspect("I really don't remember... I went to sleep and woke up at 6:00 AM completely exhausted, like five hours vanished.",
+                "/audio/voice/interrogate/cathy/cathy_s08_suspect.wav");
+        
+        Node b1_opt1_followup1 = Node.detective("Do these memory gaps occur frequently when you are under severe psychological stress?",
+                "/audio/voice/interrogate/cathy/cathy_s09_detective.wav");
+        
+        Node b1_opt1_followup2 = Node.suspect("S-sometimes... when stress gets too high, I black out and wake up without knowing what happened.",
+                "/audio/voice/interrogate/cathy/cathy_s10_suspect.wav");
+        
+        Node b1_opt1_followup3 = Node.detective("I see. Interesting.",
+                "/audio/voice/interrogate/cathy/cathy_s11_detective.wav");
+        
+        b1_choices.on(0, "Hmm... You don’t seem to certain yourself, Cathy. Are there any other things you remember doing before going to bed?", 
+                "/audio/voice/interrogate/cathy/cathy_s07_detective.wav", b1_opt1_reply);
+        b1_opt1_reply.then(b1_opt1_followup1).then(b1_opt1_followup2).then(b1_opt1_followup3).then(mainChoices);
+        
+        // Sub-choice 2 (Female visitors)
+        Node b1_opt2_reply = Node.suspect("Almost never, detective. I don’t even remember if there was ever one in the past.",
+                "/audio/voice/interrogate/cathy/cathy_s13_suspect.wav");
+        
+        Node b1_opt2_followup = Node.detective("Hmm. That’s something.",
+                "/audio/voice/interrogate/cathy/cathy_s14_detective.wav");
+        
+        b1_choices.on(1, "You are the only other female tenant here in this boarding house, do you often have female vistors here?", 
+                "/audio/voice/interrogate/cathy/cathy_s12_detective.wav", b1_opt2_reply);
+        b1_opt2_reply.then(b1_opt2_followup).then(mainChoices);
+
+        // ============================================================
+        // BRANCH 2: BLEACH RAG (Middle)
+        // ============================================================
+        Node b2_reply = Node.suspect("I-I don't know anything about that! I don't even lock my door at night—someone must have planted it while I was asleep!",
+                "/audio/voice/interrogate/cathy/cathy_s16_suspect.wav");
+
+        mainChoices.on(1, "A rag soaked in bleach was found under your bed. Why was it with your things?", 
+                "/audio/voice/interrogate/cathy/cathy_s15_detective.wav", b2_reply);
+        b2_reply.then(mainChoices);
+
+        // ============================================================
+        // BRANCH 3: FIGHT WITH ABBY (Right)
+        // ============================================================
+        Node b3_reply1 = Node.suspect("She was... hard on me. She always has been anyway. We were never really close, but I care for her.",
+                "/audio/voice/interrogate/cathy/cathy_s18_suspect.wav");
+        
+        Node b3_followup1 = Node.detective("Has your fight ever escalated? I bet it wasn't easy for you dealing with her everyday, especially with your situation, you're living in the same house.",
+                "/audio/voice/interrogate/cathy/cathy_s19_detective.wav");
+        
+        Node b3_reply2 = Node.suspect("I always try to de-escalate it detective, I just want to live in peace...",
+                "/audio/voice/interrogate/cathy/cathy_s20_suspect.wav");
+        
+        Node b3_followup2 = Node.detective("A voice on the CCTV shouting 'Leave me alone!' near your room, did you and Abby have an encounter again right before the murder?",
+                "/audio/voice/interrogate/cathy/cathy_s21_detective.wav");
+        
+        Node b3_reply3 = Node.suspect("She was hostile toward me lately... But I never hurt her! I swear! I even tried to apologize to her before I slept.",
+                "/audio/voice/interrogate/cathy/cathy_s22_suspect.wav");
+
+        // Link Branch 3
+        mainChoices.on(2, "How was your relationship with Abby recently?", 
+                "/audio/voice/interrogate/cathy/cathy_s17_detective.wav", b3_reply1);
+        b3_reply1.then(b3_followup1).then(b3_reply2).then(b3_followup2).then(b3_reply3).then(mainChoices);
+
+        return startNode;
     }
 
     /**
@@ -320,7 +553,54 @@ public class Interrogate extends javax.swing.JFrame {
                     "/audio/voice/interrogate/cardo/cardo_s17_detective.wav",
                     "/audio/voice/interrogate/cardo/cardo_s18_suspect.wav",
                     "/audio/voice/interrogate/cardo/cardo_s19_detective.wav",
-                    "/audio/voice/interrogate/cardo/cardo_s20_suspect.wav"
+                    "/audio/voice/interrogate/cardo/cardo_s20_suspect.wav",
+                    
+                    "/audio/voice/interrogate/andy/andy_s01_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s02_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s03_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s04_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s05_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s06_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s07_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s08_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s09_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s10_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s11_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s12_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s13_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s14_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s15_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s16_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s17_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s18_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s19_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s20_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s21_detective.wav",
+                    "/audio/voice/interrogate/andy/andy_s22_suspect.wav",
+                    "/audio/voice/interrogate/andy/andy_s23_detective.wav",
+                    
+                    "/audio/voice/interrogate/cathy/cathy_s01_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s02_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s03_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s04_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s05_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s06_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s07_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s08_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s09_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s10_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s11_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s12_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s13_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s14_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s15_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s16_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s17_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s18_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s19_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s20_suspect.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s21_detective.wav",
+                    "/audio/voice/interrogate/cathy/cathy_s22_suspect.wav"
                 );
                 return null;
             }
@@ -716,7 +996,7 @@ public class Interrogate extends javax.swing.JFrame {
         detectiveChosenTextArea.setOpaque(false);
         jScrollPane2.setViewportView(detectiveChosenTextArea);
 
-        contentPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 540, 870, -1));
+        contentPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 524, 870, 100));
 
         detectiveChosen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_chosen.png"))); // NOI18N
         contentPanel.add(detectiveChosen, new org.netbeans.lib.awtextra.AbsoluteConstraints(101, 295, -1, -1));
@@ -909,6 +1189,7 @@ public class Interrogate extends javax.swing.JFrame {
 
         if (n.options != null) {                 // choice node
             hideBubbles();
+            suspectNamePlate.setVisible(false);
             activeChoice = n;
             awaitingChoice = true;
             next = null;                         // the pick decides what's next
@@ -950,10 +1231,19 @@ public class Interrogate extends javax.swing.JFrame {
 
         hideChoices();
         
-        // Show the Detective saying the full sentence, not just the short label!
-        showLine(true, choice.spokenText[i], choice.spokenAudio[i]);
-        
+        // Set the next node first
         next = choice.branches[i];           
+        
+        // Check if this is the "Start the interrogation" menu button
+        boolean isMenuButton = choice.options[i].equals("Start the interrogation");
+
+        // 3. Skip the bubble ONLY for the Start button
+        if (isMenuButton) {
+            showNode(next);
+        } else {
+            // For EVERYTHING else (including identical labels), type out the line!
+            showLine(true, choice.spokenText[i], choice.spokenAudio[i]);
+        }
     }
     
     private void startHintPulse() {
@@ -987,7 +1277,7 @@ public class Interrogate extends javax.swing.JFrame {
     /** Shows 1, 2 or 3 option boxes depending on how many options the node has. */
     private void showChoices(Node n) {
         int g = n.options.length - 1;
-        boolean center = (g >= 1);   // Only the 2-option and 3-option groups get centered
+        boolean center = true;       // Center everything, including the 1-option box
         int m = (g == 0) ? 10 : 5;
 
         for (int i = 0; i < n.options.length; i++) {
@@ -1001,7 +1291,39 @@ public class Interrogate extends javax.swing.JFrame {
             contentPanel.setComponentZOrder(optLabels[g][i], 0);
             contentPanel.setComponentZOrder(optPanes[g][i], 0);
         }
-        if (g == 0) jScrollPane1.setLocation(310, 530);
+        if (g == 0) {
+            final int PAD_X = 20;
+            final int PAD_Y = 14;
+
+            // 1. Graphic dead centre on the screen
+            java.awt.Dimension gfx = option1.getPreferredSize();
+            int pw = contentPanel.getWidth()  > 0 ? contentPanel.getWidth()  : 1150;
+            int ph = contentPanel.getHeight() > 0 ? contentPanel.getHeight() : 680;
+            int gx = (pw - gfx.width)  / 2;
+            int gy = (ph - gfx.height) / 2;
+            option1.setBounds(gx, gy, gfx.width, gfx.height);
+
+            // 2. Scroll pane inset equally inside the graphic, then lay it out so the viewport has its size
+            jScrollPane1.setBounds(gx + PAD_X, gy + PAD_Y, gfx.width - 2 * PAD_X, gfx.height - 2 * PAD_Y);
+            jScrollPane1.doLayout();
+
+            // 3. Horizontal centering: a JTextArea can't align text, so move the LEFT MARGIN instead.
+            //    Measure the node's own string (n.options[0]), not option1TextArea.getText().
+            java.awt.FontMetrics fm = option1TextArea.getFontMetrics(option1TextArea.getFont());
+            int textW = fm.stringWidth(n.options[0]);
+            int vpW   = jScrollPane1.getViewport().getWidth();
+
+            java.awt.Insets all = option1TextArea.getInsets();
+            java.awt.Insets cur = option1TextArea.getMargin();
+            int borderL = all.left - cur.left;          // the border's share of the inset (Nimbus adds some)
+
+            int left = Math.max(m, (vpW - textW) / 2 - borderL);   // never smaller than the normal margin
+
+            // 4. Store it as the base margin. centerVertically() builds on BASE_MARGIN,
+            //    so the vertical padding gets added without losing the new left margin.
+            option1TextArea.putClientProperty(BASE_MARGIN, new java.awt.Insets(m, left, m, m));
+            centerVertically(option1TextArea, jScrollPane1);
+        }
     }
 
         private void hideBubbles() {
@@ -1141,6 +1463,9 @@ public class Interrogate extends javax.swing.JFrame {
                 final javax.swing.JScrollPane pane = optPanes[g][i];
                 final javax.swing.JTextArea area   = optAreas[g][i];
                 final int choiceIndex = i;
+                if (g == 0) {
+                    centerVertically(area, pane);
+                }
 
                 java.awt.event.MouseAdapter l = new java.awt.event.MouseAdapter() {
                     private boolean hovering = false;
@@ -1187,16 +1512,22 @@ public class Interrogate extends javax.swing.JFrame {
         // 2. Get the correct icon
         javax.swing.ImageIcon idleIcon = null;
         if (suspectIndex == 0) idleIcon = cardoIdle;
-        else if (suspectIndex == 1) idleIcon = cathyIdle;
+        else if (suspectIndex == 1) idleIcon = cathyIdle; 
         else if (suspectIndex == 2) idleIcon = andyIdle;
 
         // 3. Swap ambience: lounge hum → thriller ambient.
         if (humClip != null) { humClip.stop(); humClip = null; }
         thrillerClip = AudioCache.loop("/audio/sfx/ambience/thriller_ambient.wav");
 
-        // 4. Always play the fade transition
+        // 4. Build the tree based on who was clicked
+        Node treeToBuild = null;
+        if (suspectIndex == 0) treeToBuild = buildCardoTree();
+        else if (suspectIndex == 1) treeToBuild = buildCathyTree();
+        else if (suspectIndex == 2) treeToBuild = buildAndyTree();
+
+        // 5. Always play the fade transition
         if (idleIcon != null) {
-            fadeInBackground(idleIcon, suspectIndex == 0 ? buildCardoTree() : null);
+            fadeInBackground(idleIcon, treeToBuild);
         }
 
         // 5. Fix layering
