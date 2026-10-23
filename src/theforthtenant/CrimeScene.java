@@ -384,7 +384,7 @@ public class CrimeScene extends javax.swing.JFrame {
         makeCollectable(loveLetters, SCENE_CARDO,   "love_letters");
         
         // ---- Restore INTERROGATE unlock state (from a previous visit) ----
-        if (GameState.allCollected()) {
+        if (GameState.isFullyComplete()) {
             interrogateUnlocked = true;
             interrogateListenerAttached = true; 
             
@@ -888,7 +888,7 @@ public class CrimeScene extends javax.swing.JFrame {
            c.pickedUp = true;
            GameState.markCollected(c.id);
 
-           if (!interrogateUnlocked && allItemsCollected()) {
+           if (!interrogateUnlocked && GameState.isFullyComplete()) {
                setInterrogateUnlocked(true);
            }
 

@@ -50,6 +50,10 @@ public final class GameState {
         return collectedCount() >= TOTAL_ITEMS;
     }
     
+    public static boolean isFullyComplete() {
+        return allCollected() && discoveredCount() >= 8; 
+    }
+    
     private static boolean phoneUnlocked = false;
 
     public static boolean isPhoneUnlocked() {

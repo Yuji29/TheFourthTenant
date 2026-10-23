@@ -39,8 +39,11 @@ public class Interrogate extends javax.swing.JFrame {
     private Node activeChoice;          // the choice node currently on screen
     private boolean awaitingChoice;     // true while option boxes are showing
     private boolean inDialogue;         // true once the first node has appeared
+    private boolean currentIsDetective = false;
+    private String currentEmotion = "";
     private String typingFull = "";     // full text of the line being typed
     private javax.swing.JTextArea typingArea;
+    private javax.swing.Timer emotionDelayTimer;
 
     // Option widgets grouped by option count: [0] = 1 option, [1] = 2, [2] = 3
     private javax.swing.JScrollPane[][] optPanes;
@@ -49,8 +52,8 @@ public class Interrogate extends javax.swing.JFrame {
     
     // Suspect images
     private javax.swing.ImageIcon cardoIdle, cardoTalk;
-    private javax.swing.ImageIcon cathyIdle, cathyTalk;
-    private javax.swing.ImageIcon andyIdle, andyTalk;
+    private javax.swing.ImageIcon cathyIdle, cathyTalk, cathyShocked;
+    private javax.swing.ImageIcon andyIdle, andyTalk, andyPhone, andyAnxious;
 
     /** Metadata for one suspect. */
     private static final class Suspect {
@@ -97,30 +100,39 @@ public class Interrogate extends javax.swing.JFrame {
         final String[] spokenAudio;      // NEW: audio for the detective's spoken sentence
         final Node[] branches;
         final String audioPath;          // NEW: audio for this node's line
+        final String emotion;
         Node next;
 
-    private Node(boolean isDetective, String text, String[] options, String audioPath) {
-        this.isDetective = isDetective;
-        this.text = text;
-        this.options = options;
-        this.audioPath = audioPath;
-        this.spokenText = (options == null) ? null : new String[options.length];
-        this.spokenAudio = (options == null) ? null : new String[options.length];
-        this.branches = (options == null) ? null : new Node[options.length];
-    }
+    private Node(boolean isDetective, String text, String[] options, String audioPath, String emotion) {
+            this.isDetective = isDetective;
+            this.text = text;
+            this.options = options;
+            this.audioPath = audioPath;
+            this.emotion = emotion; // <-- NEW
+            this.spokenText = (options == null) ? null : new String[options.length];
+            this.spokenAudio = (options == null) ? null : new String[options.length];
+            this.branches = (options == null) ? null : new Node[options.length];
+        }
 
     // Old factories (silent) — unchanged.
-    static Node detective(String text)    { return new Node(true,  text, null, null); }
-    static Node suspect(String text)      { return new Node(false, text, null, null); }
-    static Node choice(String... options) { return new Node(true, null, options, null); }
-
-    // New voiced factories.
+    static Node detective(String text)    { return new Node(true,  text, null, null, null); }
+    static Node suspect(String text)      { return new Node(false, text, null, null, null); }
+    static Node choice(String... options) { return new Node(true, null, options, null, null); }
     static Node detective(String text, String audioPath) {
-        return new Node(true, text, null, audioPath);
+        return new Node(true, text, null, audioPath, null);
     }
+
     static Node suspect(String text, String audioPath) {
-        return new Node(false, text, null, audioPath);
+        return new Node(false, text, null, audioPath, null);
     }
+    static Node suspect(String text, String audioPath, String emotion) {
+        return new Node(false, text, null, audioPath, emotion);
+    }
+    
+    static Node detective(String text, String audioPath, String emotion) {
+        return new Node(true, text, null, audioPath, emotion);
+    }
+
 
     Node then(Node n) { next = n; return n; }
 
@@ -306,7 +318,10 @@ public class Interrogate extends javax.swing.JFrame {
         Node b1_opt1Reply = Node.suspect("Look, I have a selfie photo timestamped at 1:45 AM. I only stepped out briefly for coffee, but my med school peers can confirm I was back shortly after.",
                 "/audio/voice/interrogate/andy/andy_s08_suspect.wav");
         Node b1_opt2Reply = Node.suspect("I-I think we have a selfie that time, let me see if I can pull it up",
-                "/audio/voice/interrogate/andy/andy_s10_suspect.wav");
+                "/audio/voice/interrogate/andy/andy_s10_suspect.wav", "anxious");
+
+        Node phoneNode1 = Node.detective("", null, "phone");
+        Node phoneNode2 = Node.detective("", null, "phone");
 
         // Link Branch 1 
         mainChoices.on(0, "Where were you between 1:30 AM and 2:30 AM? Were you the one who went up to the rooftop?", 
@@ -318,8 +333,12 @@ public class Interrogate extends javax.swing.JFrame {
         b1_choices.on(1, "A mere word doesn't give you an ironclad alibi for an hour-long window. Can you provide any hard proof?", 
                 "/audio/voice/interrogate/andy/andy_s09_detective.wav", b1_opt2Reply);
         
-        b1_opt1Reply.then(mainChoices);
-        b1_opt2Reply.then(mainChoices);
+        b1_opt1Reply.then(phoneNode1);
+        b1_opt2Reply.then(phoneNode2);
+        
+        // After the phone image is shown and clicked, go back to the main choices
+        phoneNode1.then(mainChoices);
+        phoneNode2.then(mainChoices);
 
         // ============================================================
         // BRANCH 2: DEBT (Middle)
@@ -333,9 +352,9 @@ public class Interrogate extends javax.swing.JFrame {
         );
         
         Node b2_opt1Reply = Node.suspect("I'm drowning in tuition fees! I admit we had a talk about the debt, but it never escalated more than that! That’s not reason enough to be violent!",
-                "/audio/voice/interrogate/andy/andy_s14_suspect.wav");
+                "/audio/voice/interrogate/andy/andy_s14_suspect.wav", "anxious");
         Node b2_opt2Reply = Node.suspect("She was pressing me hard, yes... but I was actively securing a loan. I would never resort to violence.",
-                "/audio/voice/interrogate/andy/andy_s16_suspect.wav");
+                "/audio/voice/interrogate/andy/andy_s16_suspect.wav", "anxious");
 
         // Link Branch 2
         mainChoices.on(1, "I heard Abby hasn’t been very kind to you, because of 67000 you owed her? It Is that true?", 
@@ -460,8 +479,8 @@ public class Interrogate extends javax.swing.JFrame {
         // BRANCH 2: BLEACH RAG (Middle)
         // ============================================================
         Node b2_reply = Node.suspect("I-I don't know anything about that! I don't even lock my door at night—someone must have planted it while I was asleep!",
-                "/audio/voice/interrogate/cathy/cathy_s16_suspect.wav");
-
+                "/audio/voice/interrogate/cathy/cathy_s16_suspect.wav", "shocked");
+        
         mainChoices.on(1, "A rag soaked in bleach was found under your bed. Why was it with your things?", 
                 "/audio/voice/interrogate/cathy/cathy_s15_detective.wav", b2_reply);
         b2_reply.then(mainChoices);
@@ -482,7 +501,7 @@ public class Interrogate extends javax.swing.JFrame {
                 "/audio/voice/interrogate/cathy/cathy_s21_detective.wav");
         
         Node b3_reply3 = Node.suspect("She was hostile toward me lately... But I never hurt her! I swear! I even tried to apologize to her before I slept.",
-                "/audio/voice/interrogate/cathy/cathy_s22_suspect.wav");
+                "/audio/voice/interrogate/cathy/cathy_s22_suspect.wav", "shocked");
 
         // Link Branch 3
         mainChoices.on(2, "How was your relationship with Abby recently?", 
@@ -523,9 +542,12 @@ public class Interrogate extends javax.swing.JFrame {
         
         cathyIdle = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_idle.png");
         cathyTalk = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_talk.png");
+        cathyShocked = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_shocked.png");
         
         andyIdle  = loadIcon("/Images/gameplay/interrogate/interrogation/andy_idle.png");
         andyTalk  = loadIcon("/Images/gameplay/interrogate/interrogation/andy_talk.png");
+        andyPhone = loadIcon("/Images/gameplay/interrogate/interrogation/andy_phone.png");
+        andyAnxious = loadIcon("/Images/gameplay/interrogate/interrogation/andy_anxious.png");
         
         // ---- Ambience: indoor hum only (no rain in the lounge) ----
         humClip = AudioCache.loop("/audio/sfx/ambience/indoor_hum.wav");
@@ -720,6 +742,40 @@ public class Interrogate extends javax.swing.JFrame {
                 }
             });
         }
+        
+        // ---- Setup Interactive Phone ----
+        phoneScrim.setVisible(false);
+        phoneImg.setVisible(false);
+        phoneHighlighted.setVisible(false);
+        
+        // Make the scrim close the phone when clicked
+        phoneScrim.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        phoneScrim.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
+                phoneScrim.setVisible(false);
+                phoneImg.setVisible(false);
+            }
+        });   
+        
+        // Make the phone image clickable
+        phoneHighlighted.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        phoneHighlighted.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/phone/phone_tap.wav");
+                phoneScrim.setVisible(true);
+                phoneImg.setVisible(true);
+                
+                // Bring them to the very front so they cover the dialogue
+                contentPanel.setComponentZOrder(phoneScrim, 0);
+                contentPanel.setComponentZOrder(phoneImg, 0);
+                
+                // Keep the back button clickable
+                contentPanel.setComponentZOrder(backButton, 0);
+            }
+        });
 
         // Hover effect for the option box
         final java.awt.Color hoverColor  = new java.awt.Color(150, 150, 150);
@@ -764,6 +820,15 @@ public class Interrogate extends javax.swing.JFrame {
                 backButton.setIcon(backNormal);
             }        
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                // NEW: If the phone is open, close it and stop!
+                if (phoneScrim.isVisible()) {
+                    AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
+                    phoneScrim.setVisible(false);
+                    phoneImg.setVisible(false);
+                    phoneHighlighted.setVisible(false);
+                    return; 
+                }
+                
                 if (currentSuspect >= 0) {
                     // We are in a conversation, just go back to the lounge
                     AudioCache.play("/audio/sfx/ui/select.wav");
@@ -849,6 +914,10 @@ public class Interrogate extends javax.swing.JFrame {
     private void initComponents() {
 
         contentPanel = new javax.swing.JPanel();
+        backButton = new javax.swing.JLabel();
+        phoneImg = new javax.swing.JLabel();
+        phoneScrim = new javax.swing.JLabel();
+        phoneHighlighted = new javax.swing.JLabel();
         suspectNamePlate = new javax.swing.JLabel();
         suspectAnswer = new javax.swing.JLabel();
         jScrollPane8 = new javax.swing.JScrollPane();
@@ -874,7 +943,6 @@ public class Interrogate extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         option1TextArea = new javax.swing.JTextArea();
         option1 = new javax.swing.JLabel();
-        backButton = new javax.swing.JLabel();
         andyButton = new javax.swing.JLabel();
         cathyButton = new javax.swing.JLabel();
         cardoButton = new javax.swing.JLabel();
@@ -884,6 +952,18 @@ public class Interrogate extends javax.swing.JFrame {
         setResizable(false);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
+        contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, 60, 50));
+
+        phoneImg.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/phone_img.png"))); // NOI18N
+        contentPanel.add(phoneImg, new org.netbeans.lib.awtextra.AbsoluteConstraints(379, 62, -1, -1));
+
+        phoneScrim.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/phone_scrim.png"))); // NOI18N
+        contentPanel.add(phoneScrim, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        phoneHighlighted.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/highlighted_phone.png"))); // NOI18N
+        contentPanel.add(phoneHighlighted, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 260, -1, -1));
 
         suspectNamePlate.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         contentPanel.add(suspectNamePlate, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 492, 140, 40));
@@ -1017,9 +1097,6 @@ public class Interrogate extends javax.swing.JFrame {
         option1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option1.png"))); // NOI18N
         contentPanel.add(option1, new org.netbeans.lib.awtextra.AbsoluteConstraints(275, 520, -1, -1));
 
-        backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
-        contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, 60, 50));
-
         andyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/andy.png"))); // NOI18N
         contentPanel.add(andyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(686, 266, -1, 410));
 
@@ -1030,7 +1107,7 @@ public class Interrogate extends javax.swing.JFrame {
         cardoButton.setPreferredSize(new java.awt.Dimension(237, 239));
         contentPanel.add(cardoButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 250, -1, 430));
 
-        backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/interrogation/cardo_idle.png"))); // NOI18N
+        backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/interrogation/andy_phone.png"))); // NOI18N
         contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -1187,16 +1264,56 @@ public class Interrogate extends javax.swing.JFrame {
         if (n == null) { returnToLounge(); return; }
         inDialogue = true;
 
-        if (n.options != null) {                 // choice node
+        if (n.options != null) {                
             hideBubbles();
             suspectNamePlate.setVisible(false);
+            
+            // NEW: Hide the phone highlight when choices appear!
+            phoneHighlighted.setVisible(false); 
+            
+            // Reset to idle when choices appear
+            if (currentSuspect == 0) backgroundLabel.setIcon(cardoIdle);
+            else if (currentSuspect == 1) backgroundLabel.setIcon(cathyIdle);
+            else if (currentSuspect == 2) backgroundLabel.setIcon(andyIdle);
+
             activeChoice = n;
             awaitingChoice = true;
-            next = null;                         // the pick decides what's next
+            next = null;                         
             showChoices(n);
-        } else {                                 // spoken line
-            showLine(n.isDetective, n.text, n.audioPath);
+        } else {         
+            currentEmotion = n.emotion;
+            if ("phone".equals(n.emotion)) {
+                backgroundLabel.setIcon(andyPhone);
+                phoneHighlighted.setVisible(true); 
+            } else {
+                phoneHighlighted.setVisible(false); 
+            }
+            
+            // Pass the node to showLine (which will handle the emotion)
+            showLine(n.isDetective, n.text, n.audioPath, n.emotion);
             next = n.next;
+        }
+    }
+    
+    private void setSuspectTalking(boolean isTalking) {
+        if (isTalking) {
+            // If we are currently displaying an emotion, don't overwrite it!
+            if ("anxious".equals(currentEmotion)) {
+                backgroundLabel.setIcon(andyAnxious);
+                return;
+            } else if ("shocked".equals(currentEmotion)) {
+                backgroundLabel.setIcon(cathyShocked);
+                return;
+            }
+        }
+
+        // Otherwise, do the normal idle/talk swap
+        if (currentSuspect == 0) {
+            backgroundLabel.setIcon(isTalking ? cardoTalk : cardoIdle);
+        } else if (currentSuspect == 1) {
+            backgroundLabel.setIcon(isTalking ? cathyTalk : cathyIdle);
+        } else if (currentSuspect == 2) {
+            backgroundLabel.setIcon(isTalking ? andyTalk : andyIdle);
         }
     }
 
@@ -1241,8 +1358,8 @@ public class Interrogate extends javax.swing.JFrame {
         if (isMenuButton) {
             showNode(next);
         } else {
-            // For EVERYTHING else (including identical labels), type out the line!
-            showLine(true, choice.spokenText[i], choice.spokenAudio[i]);
+            // We pass null for emotion here, because choice options don't have emotions yet
+            showLine(true, choice.spokenText[i], choice.spokenAudio[i], null);
         }
     }
     
@@ -1334,6 +1451,10 @@ public class Interrogate extends javax.swing.JFrame {
         suspectNamePlate.setVisible(false);
         suspectNamePlate.setText("");  
         stopHintPulse();
+        
+        if (!"phone".equals(currentEmotion)) {
+            phoneHighlighted.setVisible(false);
+        }
     }
 
     // Name plate position relative to the bubble's top-left corner.
@@ -1341,12 +1462,18 @@ public class Interrogate extends javax.swing.JFrame {
     private static final int NAME_DY = -20;   // negative = sticks out above the bubble
 
     /** Shows one speech bubble (detective or suspect) and types the text. */
-    private void showLine(boolean isDetective, String text, String audioPath) {
+    private void showLine(boolean isDetective, String text, String audioPath, String emotion) {
+        if (text == null || text.trim().isEmpty()) {
+            hideBubbles();
+            startHintPulse(); // Show the "Click anywhere to continue" text
+            return;
+        }
+                
         javax.swing.JLabel box          = isDetective ? detectiveChosen : suspectAnswer;
         javax.swing.JScrollPane pane    = isDetective ? jScrollPane2 : jScrollPane3;
         javax.swing.JTextArea area      = isDetective ? detectiveChosenTextArea : suspectAnswerTextArea;
 
-        hideBubbles();   // hides the plate: detective lines never show it
+        hideBubbles();   // hides the plate: detective lines never show it       
 
         styleBox(area, pane, new java.awt.Insets(10, 10, 10, 10));
 
@@ -1369,7 +1496,7 @@ public class Interrogate extends javax.swing.JFrame {
             contentPanel.setComponentZOrder(suspectNamePlate, 0);
         }
 
-        typeText(text, area, audioPath);
+        typeText(text, area, audioPath, isDetective, emotion);
     }
 
     private void hideChoices() {
@@ -1598,6 +1725,10 @@ public class Interrogate extends javax.swing.JFrame {
         backgroundLabel.setIcon(loungeBgIcon);
 
         hideDialogueUI();
+        
+        phoneHighlighted.setVisible(false);
+        phoneScrim.setVisible(false);
+        phoneImg.setVisible(false);        
 
         // Swap ambience back: thriller ambient → lounge hum.
         if (thrillerClip != null) { thrillerClip.stop(); thrillerClip = null; }
@@ -1654,15 +1785,17 @@ public class Interrogate extends javax.swing.JFrame {
     }
     
     /** Animates typing text letter by letter into a specific text area. */
-    private void typeText(String fullText, javax.swing.JTextArea targetArea, String audioPath) {
+    private void typeText(String fullText, javax.swing.JTextArea targetArea, String audioPath, boolean isDetective, String emotion) {
+        currentIsDetective = isDetective; 
+        currentEmotion = emotion;
         if (typewriterTimer != null) typewriterTimer.stop();
         if (voiceClip != null)       { voiceClip.stop(); voiceClip = null; }
+        if (emotionDelayTimer != null) { emotionDelayTimer.stop(); }
 
         typingFull = fullText;
         typingArea = targetArea;
         targetArea.setText("");
 
-        // Load + start the voice clip if one exists.
         long audioDurationMs = 0;
         if (audioPath != null) {
             voiceClip = AudioCache.get(audioPath);
@@ -1670,8 +1803,50 @@ public class Interrogate extends javax.swing.JFrame {
                 voiceClip.stop();
                 voiceClip.setFramePosition(0);
                 audioDurationMs = voiceClip.getMicrosecondLength() / 1000;
-                voiceClip.start();
+                
+                if (!currentIsDetective) {
+                    if ("shocked".equals(emotion)) {
+                        // Shocked logic (0.5s delay)
+                        backgroundLabel.setIcon(cathyShocked);
+                        emotionDelayTimer = new javax.swing.Timer(500, e -> {
+                            voiceClip.start();
+                            setSuspectTalking(true);
+                            ((javax.swing.Timer)e.getSource()).stop();
+                        });
+                        emotionDelayTimer.setRepeats(false);
+                        emotionDelayTimer.start();
+                    } else if ("anxious".equals(emotion)) {
+                        // Anxious logic (immediate)
+                        backgroundLabel.setIcon(andyAnxious);
+                        voiceClip.start();
+                        setSuspectTalking(true); 
+                    } else {
+                        // Normal talking
+                        voiceClip.start();
+                        setSuspectTalking(true); 
+                    }
+                } else {
+                    voiceClip.start();
+                }
+
+                // Revert to idle when audio finishes
+                voiceClip.addLineListener(event -> {
+                    if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) {
+                        javax.swing.SwingUtilities.invokeLater(() -> setSuspectTalking(false));
+                    }
+                });
             }
+        } else {
+             // If there's no audio but there's an emotion, still show it for 1.5s
+             if (!currentIsDetective && "shocked".equals(emotion)) {
+                 backgroundLabel.setIcon(cathyShocked);
+                 emotionDelayTimer = new javax.swing.Timer(1500, e -> {
+                     setSuspectTalking(true);
+                     ((javax.swing.Timer)e.getSource()).stop();
+                 });
+                 emotionDelayTimer.setRepeats(false);
+                 emotionDelayTimer.start();
+             }
         }
 
         // Tick rate: match voice length if audio exists, else 30ms/char.
@@ -1757,6 +1932,9 @@ public class Interrogate extends javax.swing.JFrame {
     private javax.swing.JTextArea option3middleTextArea;
     private javax.swing.JLabel option3right;
     private javax.swing.JTextArea option3rightTextArea;
+    private javax.swing.JLabel phoneHighlighted;
+    private javax.swing.JLabel phoneImg;
+    private javax.swing.JLabel phoneScrim;
     private javax.swing.JLabel suspectAnswer;
     private javax.swing.JTextArea suspectAnswerTextArea;
     private javax.swing.JLabel suspectNamePlate;

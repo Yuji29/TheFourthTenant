@@ -1380,6 +1380,10 @@ public class Inventory extends javax.swing.JFrame {
                     GameState.markDiscovered(resultId);
                     AudioCache.play("/audio/sfx/ui/notification.wav");
                     showToast("/Images/ui/notification_new_discovery.png");
+                    if (GameState.isFullyComplete()) {
+                        AudioCache.play("/audio/sfx/ui/select.wav");
+                        // Maybe show a different toast or message here if you want!
+                    }
                 } else {
                     AudioCache.play("/audio/sfx/ui/select.wav");
                 }
