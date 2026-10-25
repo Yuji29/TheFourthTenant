@@ -179,57 +179,6 @@ public class Suspects extends javax.swing.JFrame {
             }
         });   
         
-        // =========================================================
-        // DEBUG SHORTCUTS (For testing the notes)
-        // =========================================================
-        
-        // Press 'U' to UNLOCK EVERYTHING for Cardo, Cathy, and Andy
-        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U, 0), "debugUnlock");
-        am.put("debugUnlock", new javax.swing.AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                System.out.println("DEBUG: Unlocking all notes!");
-                
-                // Fake the interrogation triggers (Cardo, Cathy, Andy)
-                GameState.markInterrogated("cardo_time");
-                GameState.markInterrogated("cardo_boots");
-                GameState.markInterrogated("cardo_damage_lock");
-                GameState.markInterrogated("cardo_jealousy");
-                
-                GameState.markInterrogated("cathy_time");
-                GameState.markInterrogated("cathy_rag");
-                GameState.markInterrogated("cathy_audio");
-                GameState.markInterrogated("cathy_gym_bag");
-                
-                GameState.markInterrogated("andy_time");
-                GameState.markInterrogated("andy_debt");
-                GameState.markInterrogated("andy_pills");
-                
-                // Fake the combination discoveries
-                GameState.markDiscovered("damaged_lock");
-                GameState.markDiscovered("shoeprints");
-                GameState.markDiscovered("jealousy");
-                GameState.markDiscovered("audio_log");
-                GameState.markDiscovered("blood_cleanup");
-                GameState.markDiscovered("gym_bag_trace");
-                
-                GameState.markDiscovered("opened_ledger");   // Andy Debt
-                GameState.markDiscovered("drugged_coffee"); // Andy Pills
-                
-                // Refresh the screen
-                updateBackground();
-            }
-        });
-
-        // Press 'L' to LOCK EVERYTHING (Reset notes)
-        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, 0), "debugLock");
-        am.put("debugLock", new javax.swing.AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                System.out.println("DEBUG: Locking all Cardo notes!");
-                GameState.reset(); // Wipes all interrogations and discoveries
-                updateBackground();
-            }
-        });
-        
        note4Alibi1.setVisible(false);
        note4Alibi2.setVisible(false);
        note4Alibi3.setVisible(false);
