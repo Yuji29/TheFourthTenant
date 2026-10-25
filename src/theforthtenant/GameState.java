@@ -63,6 +63,29 @@ public final class GameState {
     public static void setPhoneUnlocked(boolean unlocked) {
         phoneUnlocked = unlocked;
     }
+    
+    // ---------------------------------------------------------------
+    // Interrogation Triggers (for the Suspects board)
+    // ---------------------------------------------------------------
+    private static final Set<String> interrogatedTopics = 
+        Collections.synchronizedSet(new HashSet<>());
+        
+    private static final List<String> interrogationOrder = new ArrayList<>();
+
+    public static void markInterrogated(String topicId) {
+        if (topicId != null && !interrogatedTopics.contains(topicId)) {
+            interrogatedTopics.add(topicId);
+            interrogationOrder.add(topicId);
+        }
+    }
+    
+    public static List<String> getInterrogationOrder() {
+        return new ArrayList<>(interrogationOrder);
+    }    
+
+    public static boolean isInterrogated(String topicId) {
+        return interrogatedTopics.contains(topicId);
+    }
 
     // ---------------------------------------------------------------
     // Discovered deductions (combine results)
@@ -109,6 +132,8 @@ public final class GameState {
         collected.clear();
         discovered.clear();
         lastSceneIndex = 0;
+        interrogatedTopics.clear();
+        interrogationOrder.clear();
     }
 
     private GameState() {}

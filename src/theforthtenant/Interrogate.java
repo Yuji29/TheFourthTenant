@@ -159,20 +159,13 @@ public class Interrogate extends javax.swing.JFrame {
 
     /** The whole Cardo interrogation, mapped from the new flowchart. */
     private Node buildCardoTree() {
-        final String gloves = "The lock on the rooptop was pried open with a lockpick and pliers. Coincedentally, we found your empty toolbox in the living room without the said tools in place. Admit you broke open the roof lock!";
-        final String boots  = "Size 9 heavy boots match the mud prints on the roof stairwell. Yours were hidden, soaked wet, in the laundry room.";
-        
-        final String toolsReply = "I use those tools for every repair in this house! They sit out in the open—anyone could have grabbed them to frame me!";
-        final String bootsMissing = "Those boots went missing from outside my room last night! Someone stole them, wore them out, and dumped them in the laundry!";
-        final String bootsQ = "If your boots were missing, why didn't you mention that to us when we first arrived?";
-        final String bootsFinal = "I thought someone kicked them aside by mistake! I only realized they were soaked when I found them this morning.";
-
         // 0. START NODE
         Node startNode = Node.choice("Start the interrogation");
+        
         // 1. INTRO
-        Node intro1 = Node.detective("Let the record show that today, we are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house.\n\nBefore we begin asking any questions, it is my duty to inform you of your constitutional rights under the law.",    
+        Node intro1 = Node.detective("Let the record show that today, we are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house. Before we begin asking any questions, it is my duty to inform you of your constitutional rights under the law.",    
                 "/audio/voice/interrogate/cardo/cardo_s01_detective.wav");
-        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law.\n\nYou have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge.\n\nYou have the right to be assisted by counsel during this investigation.",    
+        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law.You have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge. You have the right to be assisted by counsel during this investigation.",    
                 "/audio/voice/interrogate/cardo/cardo_s02_detective.wav");
         Node intro3 = Node.detective("Do you understand each of these rights as I have explained them to you? Knowing and understanding your rights, are you speaking to me voluntarily, of your own free will, without any coercion, threats, or promises of leniency?",    
                 "/audio/voice/interrogate/cardo/cardo_s03_detective.wav");
@@ -180,7 +173,6 @@ public class Interrogate extends javax.swing.JFrame {
                 "/audio/voice/interrogate/cardo/cardo_s04_suspect.wav");
         
         startNode.on(0, "Start the interrogation", intro1);
-        
         intro1.then(intro2).then(intro3).then(introReply);
 
         // 2. MAIN CHOICES
@@ -191,35 +183,9 @@ public class Interrogate extends javax.swing.JFrame {
         );
         introReply.then(mainChoices);
 
-        // When the player clicks option 0, the detective says the long question
-        mainChoices.on(0, 
-            "Where were you between 1:30 AM and 2:30 AM? Were you the one who went up to the rooftop?",
-            "/audio/voice/interrogate/cardo/cardo_s05_detective.wav",
-            Node.suspect("I was already in bed around that time.",
-                         "/audio/voice/interrogate/cardo/cardo_s06_suspect.wav")
-        );
-        
-        // Option 1 (Boots) -> The detective says the long boots statement
-        mainChoices.on(1, 
-            "Size 9 heavy boots match the mud prints on the roof stairwell. Yours were hidden, soaked wet, in the laundry room.",
-            "/audio/voice/interrogate/cardo/cardo_s15_detective.wav",
-            Node.suspect(bootsMissing,
-                         "/audio/voice/interrogate/cardo/cardo_s16_suspect.wav")
-        );
-        
-        // Option 2 (Gloves) -> The detective says the long gloves statement
-        mainChoices.on(2, 
-            "The lock on the rooptop was pried open with a lockpick and pliers. Coincedentally, we found your empty toolbox in the living room without the said tools in place. Admit you broke open the roof lock!",
-            "/audio/voice/interrogate/cardo/cardo_s19_detective.wav",
-            Node.suspect(toolsReply,
-                         "/audio/voice/interrogate/cardo/cardo_s20_suspect.wav")
-        );
-        
         // ============================================================
-        // BRANCH 1: EMPATHETIC (Left)
+        // BRANCH 1: WHEREABOUTS (Left)
         // ============================================================
-        // (Note: We already linked option 0 to the first suspect reply in Step 3)
-        Node branch1First = mainChoices.branches[0];
         Node b1_empathy = Node.detective("I know you cared about Abby. Helping us establish a tight timeline is the best way to clear your name.",    
                 "/audio/voice/interrogate/cardo/cardo_s07_detective.wav");
         Node b1_reply = Node.suspect("Look... I really was in bed. But if it helps, someone definitely walked past my door around 1:20 AM heading toward Cathy's room.",    
@@ -229,7 +195,15 @@ public class Interrogate extends javax.swing.JFrame {
         Node b1_breakupReply = Node.suspect("Well, that woman dated a new guy after just 2 weeks! What did you expect?!",
                 "/audio/voice/interrogate/cardo/cardo_s10_suspect.wav");
         
-        branch1First.then(b1_empathy).then(b1_reply).then(b1_breakupQ).then(b1_breakupReply);
+        // Detective asks about whereabouts (Triggers 'time' note)
+        mainChoices.on(0, 
+            "Where were you between 1:30 AM and 2:30 AM? Were you the one who went up to the rooftop?",
+            "/audio/voice/interrogate/cardo/cardo_s05_detective.wav",
+            Node.suspect("I was already in bed around that time.",
+                         "/audio/voice/interrogate/cardo/cardo_s06_suspect.wav")
+        );
+        
+        mainChoices.branches[0].then(b1_empathy).then(b1_reply).then(b1_breakupQ).then(b1_breakupReply);
         
         Node b1_breakupChoices = Node.choice(
             "Neighbors heard you screaming at her two days ago. Was that argument the trigger?",
@@ -256,21 +230,33 @@ public class Interrogate extends javax.swing.JFrame {
         // ============================================================
         // BRANCH 2: BOOTS (Middle)
         // ============================================================
-        // (We linked option 1 to bootsMissing in Step 3)
-        Node branch2First = mainChoices.branches[1];
-        Node b2_Q = Node.detective(bootsQ,
+        Node b2_Q = Node.detective("If your boots were missing, why didn't you mention that to us when we first arrived?",
             "/audio/voice/interrogate/cardo/cardo_s17_detective.wav");
-        Node b2_final = Node.suspect(bootsFinal,
+        Node b2_final = Node.suspect("I thought someone kicked them aside by mistake! I only realized they were soaked when I found them this morning.",
             "/audio/voice/interrogate/cardo/cardo_s18_suspect.wav");
         
-        branch2First.then(b2_Q).then(b2_final).then(mainChoices); 
+        // Detective asks about boots (Triggers 'boots' note)
+        mainChoices.on(1, 
+            "Size 9 heavy boots match the mud prints on the roof stairwell. Yours were hidden, soaked wet, in the laundry room.",
+            "/audio/voice/interrogate/cardo/cardo_s15_detective.wav",
+            Node.suspect("Those boots went missing from outside my room last night! Someone stole them, wore them out, and dumped them in the laundry!",
+                         "/audio/voice/interrogate/cardo/cardo_s16_suspect.wav")
+        );
+        
+        mainChoices.branches[1].then(b2_Q).then(b2_final).then(mainChoices); 
 
         // ============================================================
-        // BRANCH 3: GLOVES (Right)
+        // BRANCH 3: GLOVES/TOOLBOX (Right)
         // ============================================================
-        // (We linked option 2 to toolsReply in Step 3)
-        Node branch3First = mainChoices.branches[2];
-        branch3First.then(mainChoices); 
+        // Detective asks about toolbox (Triggers 'damage_lock' note)
+        mainChoices.on(2, 
+            "The lock on the rooptop was pried open with a lockpick and pliers. Coincedentally, we found your empty toolbox in the living room without the said tools in place. Admit you broke open the roof lock!",
+            "/audio/voice/interrogate/cardo/cardo_s19_detective.wav",
+            Node.suspect("I use those tools for every repair in this house! They sit out in the open—anyone could have grabbed them to frame me!",
+                         "/audio/voice/interrogate/cardo/cardo_s20_suspect.wav")
+        );
+        
+        mainChoices.branches[2].then(mainChoices); 
 
         return startNode;
     }
@@ -281,10 +267,10 @@ public class Interrogate extends javax.swing.JFrame {
         Node startNode = Node.choice("Start the interrogation");
 
         // 1. INTRO
-        Node intro1 = Node.detective("Let the record show that today, We are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house.\n\nBefore we begin asking any questions, it is my duty to inform you of your constitutional rights under the law:",
+        Node intro1 = Node.detective("Let the record show that today, We are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house. Before we begin asking any questions, it is my duty to inform you of your constitutional rights under the law:",
                 "/audio/voice/interrogate/andy/andy_s01_detective.wav");
         
-        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law.\n\nYou have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge.\n\nYou have the right to be assisted by counsel during this investigation.",
+        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law. You have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge. You have the right to be assisted by counsel during this investigation.",
                 "/audio/voice/interrogate/andy/andy_s02_detective.wav");
         
         Node intro3 = Node.detective("Do you understand each of these rights as I have explained them to you? Knowing and understanding your rights, are you speaking to me voluntarily, of your own free will, without any coercion, threats, or promises of leniency?",
@@ -408,16 +394,16 @@ public class Interrogate extends javax.swing.JFrame {
         Node startNode = Node.choice("Start the interrogation");
 
         // 1. INTRO
-        Node intro1 = Node.detective("Let the record show that today, We are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house.\n\nBefore we begin asking any questions, it is my duty to inform you of your constitutional rights under the law:",
+        Node intro1 = Node.detective("Let the record show that today, We are conducting this formal interview at the station regarding the ongoing homicide investigation into the incident at the San Lorenzo Street boarding house. Before we begin asking any questions, it is my duty to inform you of your constitutional rights under the law:",
                 "/audio/voice/interrogate/cathy/cathy_s01_detective.wav");
         
-        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law.\n\nYou have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge.\n\nYou have the right to be assisted by counsel during this investigation.",
+        Node intro2 = Node.detective("You have the right to remain silent. Any statement you make can and will be used against you in a court of law. You have the right to have competent and independent counsel of your own choosing. If you cannot afford the services of counsel, you will be provided with one free of charge. You have the right to be assisted by counsel during this investigation.",
                 "/audio/voice/interrogate/cathy/cathy_s02_detective.wav");
         
         Node intro3 = Node.detective("Do you understand each of these rights as I have explained them to you? Knowing and understanding your rights, are you speaking to me voluntarily, of your own free will, without any coercion, threats, or promises of leniency?",
                 "/audio/voice/interrogate/cathy/cathy_s03_detective.wav");
         
-        Node introReply = Node.suspect("I... yes, I understand my rights. I'll cooperate, I just want tthis to be over...",
+        Node introReply = Node.suspect("I... yes, I understand my rights. I'll cooperate, I just want this to be over...",
                 "/audio/voice/interrogate/cathy/cathy_s04_suspect.wav");
 
         startNode.on(0, "Start the interrogation", intro1);
@@ -481,9 +467,17 @@ public class Interrogate extends javax.swing.JFrame {
         Node b2_reply = Node.suspect("I-I don't know anything about that! I don't even lock my door at night—someone must have planted it while I was asleep!",
                 "/audio/voice/interrogate/cathy/cathy_s16_suspect.wav", "shocked");
         
+        Node b2_midQ = Node.detective("The canvas fibers on the floor match your gym bag, and the drag marks trace back to your doorway. You know this doesn’t look good on you, right?",
+                "/audio/voice/interrogate/cathy/cathy_s23_detective.wav");
+                
+        Node b2_finalReply = Node.suspect("No! That can't be! I was asleep from 1:00 AM to 6:00 AM... I don't remember moving anything! I woke up feeling exhausted, but I swear I don't remember doing that!",
+                "/audio/voice/interrogate/cathy/cathy_s24_suspect.wav", "shocked");
+        
         mainChoices.on(1, "A rag soaked in bleach was found under your bed. Why was it with your things?", 
                 "/audio/voice/interrogate/cathy/cathy_s15_detective.wav", b2_reply);
-        b2_reply.then(mainChoices);
+        
+        // Chain them together: Reply -> Detective Q -> Final shocked reply -> Back to main
+        b2_reply.then(b2_midQ).then(b2_finalReply).then(mainChoices);
 
         // ============================================================
         // BRANCH 3: FIGHT WITH ABBY (Right)
@@ -820,12 +814,10 @@ public class Interrogate extends javax.swing.JFrame {
                 backButton.setIcon(backNormal);
             }        
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                // NEW: If the phone is open, close it and stop!
                 if (phoneScrim.isVisible()) {
                     AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
                     phoneScrim.setVisible(false);
                     phoneImg.setVisible(false);
-                    phoneHighlighted.setVisible(false);
                     return; 
                 }
                 
@@ -1280,7 +1272,8 @@ public class Interrogate extends javax.swing.JFrame {
             awaitingChoice = true;
             next = null;                         
             showChoices(n);
-        } else {         
+        } else {   
+            trackInterrogationTopic(n.audioPath);
             currentEmotion = n.emotion;
             if ("phone".equals(n.emotion)) {
                 backgroundLabel.setIcon(andyPhone);
@@ -1337,28 +1330,52 @@ public class Interrogate extends javax.swing.JFrame {
         showNode(next);
     }
 
+    /** Marks suspect-board topics based on which detective line was just spoken. */
+    private void trackInterrogationTopic(String audio) {
+        if (audio == null) return;
+
+        // Cardo
+        if (audio.endsWith("cardo_s05_detective.wav")) GameState.markInterrogated("cardo_time");
+        if (audio.endsWith("cardo_s15_detective.wav")) GameState.markInterrogated("cardo_boots");
+        if (audio.endsWith("cardo_s19_detective.wav")) GameState.markInterrogated("cardo_damage_lock");
+        if (audio.endsWith("cardo_s11_detective.wav") || audio.endsWith("cardo_s13_detective.wav")) {
+            GameState.markInterrogated("cardo_jealousy");
+        }
+
+        // Cathy
+        if (audio.endsWith("cathy_s05_detective.wav")) GameState.markInterrogated("cathy_time");
+        if (audio.endsWith("cathy_s15_detective.wav")) GameState.markInterrogated("cathy_rag");
+        if (audio.endsWith("cathy_s21_detective.wav")) GameState.markInterrogated("cathy_audio");
+        if (audio.endsWith("cathy_s23_detective.wav")) GameState.markInterrogated("cathy_gym_bag");
+        
+        // Andy
+        if (audio.endsWith("andy_s05_detective.wav")) GameState.markInterrogated("andy_time");
+        if (audio.endsWith("andy_s11_detective.wav")) GameState.markInterrogated("andy_debt");
+        if (audio.endsWith("andy_s17_detective.wav")) GameState.markInterrogated("andy_pills");
+    }    
+    
     /** Player clicked option i of the choices on screen. */
     private void pickChoice(int i) {
         if (!awaitingChoice || activeChoice == null) return;
         AudioCache.play("/audio/sfx/ui/select.wav");
 
         Node choice = activeChoice;
+
+        // --- Track which alibis were brought up ---
+        trackInterrogationTopic(choice.spokenAudio[i]);
+
         awaitingChoice = false;
         activeChoice = null;
 
         hideChoices();
-        
-        // Set the next node first
-        next = choice.branches[i];           
-        
-        // Check if this is the "Start the interrogation" menu button
+
+        next = choice.branches[i];
+
         boolean isMenuButton = choice.options[i].equals("Start the interrogation");
 
-        // 3. Skip the bubble ONLY for the Start button
         if (isMenuButton) {
             showNode(next);
         } else {
-            // We pass null for emotion here, because choice options don't have emotions yet
             showLine(true, choice.spokenText[i], choice.spokenAudio[i], null);
         }
     }
@@ -1692,6 +1709,14 @@ public class Interrogate extends javax.swing.JFrame {
 
         javax.swing.Timer timer = new javax.swing.Timer(16, null);
         timer.addActionListener(e -> {
+            if (currentSuspect == -1) {
+                contentPanel.remove(fadeOverlay);
+                contentPanel.revalidate();
+                contentPanel.repaint();
+                ((javax.swing.Timer) e.getSource()).stop();
+                return;
+            }
+
             long elapsed = System.currentTimeMillis() - start;
             float progress = Math.min(1f, elapsed / (float) duration);
 
@@ -1711,7 +1736,8 @@ public class Interrogate extends javax.swing.JFrame {
                 contentPanel.repaint();
                 ((javax.swing.Timer) e.getSource()).stop();
                 
-                if (startNode != null) {
+                // Final check before showing the dialogue
+                if (startNode != null && currentSuspect != -1) {
                     showNode(startNode);
                 }
             }
@@ -1806,15 +1832,10 @@ public class Interrogate extends javax.swing.JFrame {
                 
                 if (!currentIsDetective) {
                     if ("shocked".equals(emotion)) {
-                        // Shocked logic (0.5s delay)
+                        // Shocked logic (immediate)
                         backgroundLabel.setIcon(cathyShocked);
-                        emotionDelayTimer = new javax.swing.Timer(500, e -> {
-                            voiceClip.start();
-                            setSuspectTalking(true);
-                            ((javax.swing.Timer)e.getSource()).stop();
-                        });
-                        emotionDelayTimer.setRepeats(false);
-                        emotionDelayTimer.start();
+                        voiceClip.start();
+                        setSuspectTalking(true); 
                     } else if ("anxious".equals(emotion)) {
                         // Anxious logic (immediate)
                         backgroundLabel.setIcon(andyAnxious);
@@ -1832,7 +1853,11 @@ public class Interrogate extends javax.swing.JFrame {
                 // Revert to idle when audio finishes
                 voiceClip.addLineListener(event -> {
                     if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) {
-                        javax.swing.SwingUtilities.invokeLater(() -> setSuspectTalking(false));
+                        javax.swing.SwingUtilities.invokeLater(() -> {
+                            if (voiceClip != null) {
+                                setSuspectTalking(false);
+                            }
+                        });
                     }
                 });
             }
@@ -1867,18 +1892,17 @@ public class Interrogate extends javax.swing.JFrame {
             int n = Math.min(fullText.length(), (int) accumulated[0]);
             targetArea.setText(fullText.substring(0, n));
 
+            // Safety check: if voiceClip is null, we skip the typing sound
             if (voiceClip == null && n > 0 && n % 3 == 0) {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
 
             if (n >= fullText.length()) {
                 typewriterTimer.stop();
-                
-                // NEW: Show the hint when typing is done
                 startHintPulse();
             }
         });
-        typewriterTimer.start();
+        typewriterTimer.start();;
     }
     
     public static void main(String args[]) {

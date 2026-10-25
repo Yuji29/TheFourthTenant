@@ -195,13 +195,18 @@ public class CrimeScene extends javax.swing.JFrame {
                             inv.setLocation(CrimeScene.this.getLocation());
                             inv.setVisible(true);
                             CrimeScene.this.dispose();   
-                        } else if (index == 3) {                // INTERROGATE
+                        } else if (index == 1) { // SUSPECTS
+                            AudioCache.play("/audio/sfx/ui/select.wav");
+                            Suspects sus = new Suspects();
+                            sus.setLocation(CrimeScene.this.getLocation());
+                            sus.setVisible(true);
+                            CrimeScene.this.dispose();
+                        } else if (index == 3) { // INTERROGATE
                             AudioCache.play("/audio/sfx/gameplay/door_close.wav");
                             Interrogate ir = new Interrogate();
                             ir.setLocation(CrimeScene.this.getLocation());
                             ir.setVisible(true);
                             CrimeScene.this.dispose();
-
                         } else {
                             AudioCache.play("/audio/sfx/ui/select.wav");
                         }
@@ -269,6 +274,7 @@ public class CrimeScene extends javax.swing.JFrame {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, 0), "scenePrev");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, 0), "sceneNext");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, 0), "openInventory");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_2, 0), "openSuspects");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_4, 0), "openInterrogate");
 
         am.put("scenePrev", new javax.swing.AbstractAction() {
@@ -295,6 +301,20 @@ public class CrimeScene extends javax.swing.JFrame {
                 CrimeScene.this.dispose();
             }
         });
+        
+        am.put("openSuspects", new javax.swing.AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (pauseMenu != null && pauseMenu.isPaused()) return;
+                if (TransitionOverlay.isPlaying()) return;
+
+                AudioCache.play("/audio/sfx/ui/select.wav");
+
+                Suspects sus = new Suspects();
+                sus.setLocation(CrimeScene.this.getLocation());
+                sus.setVisible(true);
+                CrimeScene.this.dispose();
+            }
+        });        
         
         am.put("openInterrogate", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {

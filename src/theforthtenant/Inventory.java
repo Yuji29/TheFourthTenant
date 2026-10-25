@@ -1376,17 +1376,24 @@ public class Inventory extends javax.swing.JFrame {
                 boolean firstTime = !GameState.isDiscovered(resultId);
 
                 setDescription(result);
-                if (firstTime) {
-                    GameState.markDiscovered(resultId);
-                    AudioCache.play("/audio/sfx/ui/notification.wav");
-                    showToast("/Images/ui/notification_new_discovery.png");
-                    if (GameState.isFullyComplete()) {
-                        AudioCache.play("/audio/sfx/ui/select.wav");
-                        // Maybe show a different toast or message here if you want!
-                    }
-                } else {
-                    AudioCache.play("/audio/sfx/ui/select.wav");
+            if (firstTime) {
+                GameState.markDiscovered(resultId);
+                AudioCache.play("/audio/sfx/ui/notification.wav");
+                showToast("/Images/ui/notification_new_discovery.png");
+                
+                // NEW: Check if they just completed the whole game
+                if (GameState.isFullyComplete()) {
+                    // Play a special sound or show a special toast!
+                    javax.swing.Timer delay = new javax.swing.Timer(3200, evt -> {
+                        AudioCache.play("/audio/sfx/ui/notification.wav");
+                        showToast("/Images/ui/notification_phase1.png"); 
+                    });
+                    delay.setRepeats(false);
+                    delay.start();
                 }
+            } else {
+                AudioCache.play("/audio/sfx/ui/select.wav");
+            }
             }
         }
         
@@ -1505,7 +1512,7 @@ public class Inventory extends javax.swing.JFrame {
 
        // Slide boundaries.
        final int START_X = -w - 20;   // fully off-screen
-       final int REST_X  = 40;        // resting position
+       final int REST_X  = -25;        // resting position
 
        // The component just draws the PNG at its own origin.
        javax.swing.JComponent toast = new javax.swing.JComponent() {
