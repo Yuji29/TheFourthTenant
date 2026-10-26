@@ -284,7 +284,7 @@ public class Interrogate extends javax.swing.JFrame {
 
         // 2. MAIN CHOICES
         Node mainChoices = Node.choice(
-            "Ask about his whereabout during the time of the crime.",
+            "Ask about his whereabouts during the time of the crime.",
             "Ask about his debt",
             "Ask the sleeping pills"
         );
@@ -343,7 +343,7 @@ public class Interrogate extends javax.swing.JFrame {
                 "/audio/voice/interrogate/andy/andy_s16_suspect.wav", "anxious");
 
         // Link Branch 2
-        mainChoices.on(1, "I heard Abby hasn’t been very kind to you, because of 67000 you owed her? It Is that true?", 
+        mainChoices.on(1, "I heard Abby hasn’t been very kind to you because of the 67000 you owed her? It—Is that true?", 
                 "/audio/voice/interrogate/andy/andy_s11_detective.wav", b2_reply);
         b2_reply.then(b2_choices);
         
@@ -424,7 +424,7 @@ public class Interrogate extends javax.swing.JFrame {
                 "/audio/voice/interrogate/cathy/cathy_s06_suspect.wav");
         
         Node b1_choices = Node.choice(
-            "Hmm... You don’t seem to certain yourself, Cathy. Are there any other things you remember doing before going to bed?",
+            "Hmm... You don’t seem too certain yourself, Cathy. Are there any other things you remember doing before going to bed?",
             "You are the only other female tenant here in this boarding house, do you often have female vistors here?"
         );
         

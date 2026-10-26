@@ -96,6 +96,14 @@ public final class GameState {
     public static boolean isInterrogated(String topicId) {
         return interrogatedTopics.contains(topicId);
     }
+    
+    // ---------------------------------------------------------------
+    // HealthBar
+    // ---------------------------------------------------------------
+
+    private static int health = 100;
+    public static int getHealth() { return health; }
+    public static void setHealth(int h) { health = Math.max(0, Math.min(100, h)); }
 
     // ---------------------------------------------------------------
     // Discovered deductions (combine results)
@@ -145,7 +153,8 @@ public final class GameState {
         tapeAnimationPlayed = false;
         interrogatedTopics.clear();
         interrogationOrder.clear();
+        health = 100; 
     }
-
+    
     private GameState() {}
 }

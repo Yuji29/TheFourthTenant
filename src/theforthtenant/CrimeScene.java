@@ -60,6 +60,7 @@ public class CrimeScene extends javax.swing.JFrame {
     private final java.util.List<Collectable> collectables = new java.util.ArrayList<>();
     private PauseMenu pauseMenu;
     private OptionsMenu optionsMenu;
+    private boolean isGameOver = false;
     
     // Currently playing ambient loop (rain or indoor hum)
     private javax.sound.sampled.Clip ambienceClip;
@@ -123,12 +124,31 @@ public class CrimeScene extends javax.swing.JFrame {
         // ---- Single hit-test for the whole scene: pick on press ----
         contentPanel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mousePressed(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (pauseMenu != null && pauseMenu.isPaused()) return;
                 if (TransitionOverlay.isPlaying()) return;
+                if (GameState.getHealth() <= 0) return; 
 
                 Collectable hit = pickItem(e.getPoint());
-                if (hit != null) collect(hit);
-                else             AudioCache.play("/audio/sfx/ui/click.wav");
+                if (hit != null) {
+                    collect(hit);
+                } else {
+                    // MISSED AN ITEM - TAKE DAMAGE
+                    AudioCache.play("/audio/sfx/ui/click.wav");
+                    GameState.setHealth(GameState.getHealth() - 1);
+                    
+                    // Update the bar
+                    for (java.awt.Component c : contentPanel.getComponents()) {
+                        if (c instanceof HealthBar) {
+                            ((HealthBar) c).setCurrent(GameState.getHealth());
+                        }
+                    }
+                    
+                    // Check if dead
+                    if (GameState.getHealth() <= 0) {
+                        showGameOver();
+                    }
+                }
             }
         });
         
@@ -180,6 +200,7 @@ public class CrimeScene extends javax.swing.JFrame {
             if (!locked) {
                 lbl.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                        if (isGameOver) return;
                         lbl.setForeground(HOVER_COLOR);
                         AudioCache.play("/audio/sfx/ui/hover.wav");
                     }
@@ -187,6 +208,7 @@ public class CrimeScene extends javax.swing.JFrame {
                         lbl.setForeground(NORMAL_COLOR);
                     }
                     @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                        if (isGameOver) return;
                         System.out.println(menuText[index] + " clicked");
                         
                         if (index == 0) {   // INVENTORY
@@ -207,6 +229,12 @@ public class CrimeScene extends javax.swing.JFrame {
                             ir.setLocation(CrimeScene.this.getLocation());
                             ir.setVisible(true);
                             CrimeScene.this.dispose();
+                        } else if (index == 4) { // CASE FILE
+                            AudioCache.play("/audio/sfx/ui/select.wav");
+                            CaseFile cf = new CaseFile();
+                            cf.setLocation(CrimeScene.this.getLocation());
+                            cf.setVisible(true);
+                            CrimeScene.this.dispose();                          
                         } else {
                             AudioCache.play("/audio/sfx/ui/select.wav");
                         }
@@ -235,6 +263,7 @@ public class CrimeScene extends javax.swing.JFrame {
         // ---- Pause menu ----
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
             @Override public void onPause() {
+                if (isGameOver) return; 
                 if (ambienceClip != null) ambienceClip.stop();
             }
             @Override public void onResume() {
@@ -276,20 +305,24 @@ public class CrimeScene extends javax.swing.JFrame {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, 0), "openInventory");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_2, 0), "openSuspects");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_4, 0), "openInterrogate");
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, 0), "openCaseFile");       
 
         am.put("scenePrev", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isGameOver) return;
                 navigateScene(-1);
             }
         });
         am.put("sceneNext", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isGameOver) return;
                 navigateScene(+1);
             }
         });
         
         am.put("openInventory", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isGameOver) return;
                 if (pauseMenu != null && pauseMenu.isPaused()) return;
                 if (TransitionOverlay.isPlaying()) return;
 
@@ -304,6 +337,7 @@ public class CrimeScene extends javax.swing.JFrame {
         
         am.put("openSuspects", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isGameOver) return;
                 if (pauseMenu != null && pauseMenu.isPaused()) return;
                 if (TransitionOverlay.isPlaying()) return;
 
@@ -318,6 +352,7 @@ public class CrimeScene extends javax.swing.JFrame {
         
         am.put("openInterrogate", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isGameOver) return;
                 if (pauseMenu != null && pauseMenu.isPaused()) return;
                 if (TransitionOverlay.isPlaying()) return;
                 if (!interrogateUnlocked) return;      
@@ -330,6 +365,21 @@ public class CrimeScene extends javax.swing.JFrame {
                 CrimeScene.this.dispose();
             }
         });
+        
+        am.put("openCaseFile", new javax.swing.AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isGameOver) return;
+                if (pauseMenu != null && pauseMenu.isPaused()) return;
+                if (TransitionOverlay.isPlaying()) return;
+
+                AudioCache.play("/audio/sfx/ui/select.wav");
+
+                CaseFile cf = new CaseFile();
+                cf.setLocation(CrimeScene.this.getLocation());
+                cf.setVisible(true);
+                CrimeScene.this.dispose();
+            }
+        }); 
 
         // ---- Arrow buttons: prev (jLabel7) / next (jLabel8) ----
 
@@ -348,6 +398,7 @@ public class CrimeScene extends javax.swing.JFrame {
         prevButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         prevButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 prevButton.setIcon(prevDark);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
@@ -363,6 +414,7 @@ public class CrimeScene extends javax.swing.JFrame {
         nextButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         nextButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 nextButton.setIcon(nextDark);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
@@ -430,10 +482,109 @@ public class CrimeScene extends javax.swing.JFrame {
                     contentPanel.repaint();
                 }
             }
-        }
+        }      
+        
+        // ---- Health Bar ----
+        HealthBar healthBar = new HealthBar(100);
+        // Width is 280 (70px icon + 210px bar), Height is 70
+        contentPanel.add(healthBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 10, 280, 70));
+        contentPanel.setComponentZOrder(healthBar, 0);
         
         // ---- Show the starting scene ----
-        showScene(GameState.getLastSceneIndex());  
+        showScene(GameState.getLastSceneIndex());       
+        
+        // ---- Hide Game Over UI by default ----
+        gameoverLabel.setVisible(false);
+        restartButton.setVisible(false);
+        menuButton.setVisible(false);
+
+        // ---- Style the Game Over Buttons ----
+        java.awt.Font goFont = getCustomFont(20f);
+        
+        javax.swing.JLabel[] goButtons = { restartButton, menuButton };
+        final String[] goTexts = { "RESTART", "MAIN MENU" };
+        
+        final java.awt.Color GO_NORMAL = java.awt.Color.GRAY;
+        final java.awt.Color GO_HOVER  = java.awt.Color.WHITE;
+        
+        // 0 = RESTART, 1 = MAIN MENU (Default to Restart)
+        final int[] selectedIndex = { 0 };
+
+        for (int i = 0; i < goButtons.length; i++) {
+            final javax.swing.JLabel lbl = goButtons[i];
+            final String baseText = goTexts[i];
+            final int btnIndex = i;
+
+            lbl.setFont(goFont);
+            lbl.setForeground(GO_NORMAL);
+            lbl.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            lbl.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            lbl.setOpaque(false);
+            lbl.setText(baseText);
+
+            lbl.setUI(new javax.swing.plaf.basic.BasicLabelUI() {
+                @Override
+                public void paint(java.awt.Graphics g, javax.swing.JComponent c) {
+                    javax.swing.JLabel l = (javax.swing.JLabel) c;
+                    
+                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                    g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+                    g2.setFont(l.getFont());
+                    
+                    String textToDraw;
+                    boolean isSelected = (selectedIndex[0] == btnIndex);
+                    
+                    if (isSelected) {
+                        textToDraw = "> " + baseText + " <";
+                    } else {
+                        textToDraw = "  " + baseText + "  ";
+                    }
+
+                    java.awt.FontMetrics fm = g2.getFontMetrics();
+                    int textW = fm.stringWidth(textToDraw);
+                    int x = (l.getWidth() - textW) / 2;
+                    int y = (l.getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+
+                    g2.setColor(l.getForeground());
+                    g2.drawString(textToDraw, x, y);
+                    g2.dispose();
+                }
+            });
+            
+            lbl.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                    selectedIndex[0] = btnIndex;
+                    restartButton.setForeground(GO_NORMAL);
+                    menuButton.setForeground(GO_NORMAL);
+                    lbl.setForeground(GO_HOVER);
+                    
+                    restartButton.repaint();
+                    menuButton.repaint();
+                    AudioCache.play("/audio/sfx/ui/hover.wav");
+                }
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    AudioCache.play("/audio/sfx/ui/select.wav");
+                    if (lbl == restartButton) {
+                        GameState.reset();
+                        TransitionOverlay.play(CrimeScene.this, () -> {
+                            Backstory bs = new Backstory();
+                            bs.setLocation(getLocation());
+                            bs.setVisible(true);
+                            CrimeScene.this.dispose();
+                        });
+                    } else {
+                        GameState.reset();
+                        TransitionOverlay.play(CrimeScene.this, () -> {
+                            MainMenu menu = new MainMenu();
+                            menu.setLocation(getLocation());
+                            menu.setVisible(true);
+                            CrimeScene.this.dispose();
+                        });
+                    }
+                }
+            });
+        }    
     }
 
     /**
@@ -446,6 +597,9 @@ public class CrimeScene extends javax.swing.JFrame {
     private void initComponents() {
 
         contentPanel = new javax.swing.JPanel();
+        restartButton = new javax.swing.JLabel();
+        menuButton = new javax.swing.JLabel();
+        gameoverLabel = new javax.swing.JLabel();
         ledger = new javax.swing.JLabel();
         loveLetters = new javax.swing.JLabel();
         rag = new javax.swing.JLabel();
@@ -473,6 +627,21 @@ public class CrimeScene extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        restartButton.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        restartButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        restartButton.setText("RESTART");
+        restartButton.setPreferredSize(new java.awt.Dimension(180, 32));
+        contentPanel.add(restartButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 360, -1, -1));
+
+        menuButton.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        menuButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        menuButton.setText("MAIN MENU");
+        menuButton.setPreferredSize(new java.awt.Dimension(180, 32));
+        contentPanel.add(menuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 410, -1, -1));
+
+        gameoverLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/gameover.png"))); // NOI18N
+        contentPanel.add(gameoverLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         ledger.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/items/ledger.png"))); // NOI18N
         contentPanel.add(ledger, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 320, -1, -1));
@@ -674,6 +843,7 @@ public class CrimeScene extends javax.swing.JFrame {
      * wrapping around at the ends. Blocked while a transition is in flight.
      */
     private void navigateScene(int direction) {
+        if (isGameOver) return;
         if (pauseMenu != null && pauseMenu.isPaused()) return;
         if (TransitionOverlay.isPlaying()) return;
         if (sceneImages.length == 0) return;
@@ -758,6 +928,7 @@ public class CrimeScene extends javax.swing.JFrame {
 
         lbl.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 lbl.setForeground(HOVER);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
@@ -1001,6 +1172,61 @@ public class CrimeScene extends javax.swing.JFrame {
         }
     }
     
+    private void showGameOver() {
+        isGameOver = true;
+        
+        // 1. Set initial state
+        restartButton.setForeground(java.awt.Color.WHITE);
+        menuButton.setForeground(java.awt.Color.GRAY);
+        
+        // 2. Make them visible but fully transparent (alpha = 0)
+        gameoverLabel.setVisible(true);
+        restartButton.setVisible(true);
+        menuButton.setVisible(true);
+        
+        gameoverLabel.setOpaque(false);
+        restartButton.setOpaque(false);
+        menuButton.setOpaque(false);
+        
+        contentPanel.setComponentZOrder(gameoverLabel, 0);
+        contentPanel.setComponentZOrder(restartButton, 0);
+        contentPanel.setComponentZOrder(menuButton, 0);
+        
+        // 3. Create the fade animation overlay
+        FadeOverlay fade = new FadeOverlay();
+        fade.setAlpha(1f); // Start solid black
+        contentPanel.add(fade, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+        contentPanel.setComponentZOrder(fade, 0); // Bring to very front
+        
+        final int DURATION_MS = 800; // 0.8 seconds
+        final long start = System.currentTimeMillis();
+        
+        javax.swing.Timer fadeTimer = new javax.swing.Timer(16, null);
+        fadeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            float p = Math.min(1f, elapsed / (float) DURATION_MS);
+            
+            // Fade out from 1.0 to 0.0
+            fade.setAlpha(1f - p);
+            
+            if (p >= 1f) {
+                fadeTimer.stop();
+                contentPanel.remove(fade); // Clean up
+                contentPanel.revalidate();
+                contentPanel.repaint();
+            }
+        });
+        fadeTimer.start();
+        
+        // Stop all background audio and lock the game
+        pauseMenu.hideOverlay();
+        getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).clear();
+        getRootPane().getActionMap().clear();
+        
+        // Optional: Dramatic sound
+        AudioCache.play("/audio/sfx/ui/splatter.wav");
+    }
+    
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -1032,10 +1258,12 @@ public class CrimeScene extends javax.swing.JFrame {
     private javax.swing.JLabel dragpath;
     private javax.swing.JLabel drum;
     private javax.swing.JLabel footmarks;
+    private javax.swing.JLabel gameoverLabel;
     private javax.swing.JLabel interrogateLabel;
     private javax.swing.JLabel inventoryLabel;
     private javax.swing.JLabel ledger;
     private javax.swing.JLabel loveLetters;
+    private javax.swing.JLabel menuButton;
     private javax.swing.JLabel mug;
     private javax.swing.JLabel nextButton;
     private javax.swing.JLabel notesLabel;
@@ -1045,6 +1273,7 @@ public class CrimeScene extends javax.swing.JFrame {
     private javax.swing.JLabel prescription;
     private javax.swing.JLabel prevButton;
     private javax.swing.JLabel rag;
+    private javax.swing.JLabel restartButton;
     private javax.swing.JLabel suspectsLabel;
     private javax.swing.JLabel toolbox;
     private javax.swing.JLabel usb;

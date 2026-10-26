@@ -69,6 +69,7 @@ public class Inventory extends javax.swing.JFrame {
         private javax.swing.ImageIcon phoneMessageScreenIcon;
         private javax.swing.ImageIcon convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon;
         private int currentConvo = 0;
+        private boolean isGameOver = false;
         
         // Cache for description images to prevent loading delay
         private java.util.Map<String, javax.swing.ImageIcon> descriptionCache = new java.util.HashMap<>();
@@ -164,9 +165,11 @@ public class Inventory extends javax.swing.JFrame {
         inspectButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         inspectButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_tap.wav");
                 openPhoneInspect();
             }
@@ -195,6 +198,7 @@ public class Inventory extends javax.swing.JFrame {
         combineSlotA.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         combineSlotA.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (combineItemA != null && combineAHover != null) {
                     combineSlotA.setIcon(combineAHover);
                 }
@@ -205,8 +209,9 @@ public class Inventory extends javax.swing.JFrame {
                 }
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (combineItemA != null) {
-                    AudioCache.play("/audio/sfx/ui/select.wav");   // ← new removal sound
+                    AudioCache.play("/audio/sfx/ui/select.wav");  
                     clearCombineSlot(true);
                 }
             }
@@ -216,6 +221,7 @@ public class Inventory extends javax.swing.JFrame {
         combineSlotB.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         combineSlotB.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (combineItemB != null && combineBHover != null) {
                     combineSlotB.setIcon(combineBHover);
                 }
@@ -226,8 +232,9 @@ public class Inventory extends javax.swing.JFrame {
                 }
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (combineItemB != null) {
-                    AudioCache.play("/audio/sfx/ui/select.wav");   // ← new removal sound
+                    AudioCache.play("/audio/sfx/ui/select.wav");   
                     clearCombineSlot(false);
                 }
             }
@@ -250,6 +257,7 @@ public class Inventory extends javax.swing.JFrame {
 
         combineLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (combineItemA != null && combineItemB != null) {
                     combineLabel.setForeground(COMBINE_HOVER);
                 }
@@ -259,6 +267,7 @@ public class Inventory extends javax.swing.JFrame {
                 refreshCombineLabel();   // restores dim or gold depending on state
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 if (combineItemA == null || combineItemB == null) {
                     // Nothing staged — soft error.
                     AudioCache.play("/audio/sfx/ui/click.wav");
@@ -280,6 +289,7 @@ public class Inventory extends javax.swing.JFrame {
 
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 backButton.setIcon(backHover);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
@@ -287,6 +297,7 @@ public class Inventory extends javax.swing.JFrame {
                 backButton.setIcon(backNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/ui/zipper.wav");
                 closeInventory();
             }
@@ -394,6 +405,7 @@ public class Inventory extends javax.swing.JFrame {
         phoneScrim.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         phoneScrim.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 closePhoneScreen();
             }
         });
@@ -421,6 +433,7 @@ public class Inventory extends javax.swing.JFrame {
             key.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
             key.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (isGameOver) return;
                     key.setIcon(hover);
                     AudioCache.play("/audio/sfx/ui/hover.wav");
                 }
@@ -428,6 +441,7 @@ public class Inventory extends javax.swing.JFrame {
                     key.setIcon(normal);
                 }
                 @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (isGameOver) return;
                     AudioCache.play("/audio/sfx/phone/phone_tap.wav");
                     onPinDigit(digit);
                 }
@@ -445,6 +459,7 @@ public class Inventory extends javax.swing.JFrame {
         backspace.setIcon(bsNormal);
         backspace.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 backspace.setIcon(bsHover);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
@@ -452,6 +467,7 @@ public class Inventory extends javax.swing.JFrame {
                 backspace.setIcon(bsNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_tap.wav");
                 onPinBackspace();
             }
@@ -467,6 +483,7 @@ public class Inventory extends javax.swing.JFrame {
         phoneSubheading.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         phoneSubheading.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 phoneSubheading.setForeground(SUB_HOVER);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
@@ -474,6 +491,7 @@ public class Inventory extends javax.swing.JFrame {
                 phoneSubheading.setForeground(SUB_NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
                 showClueScreen();
             }
@@ -484,6 +502,7 @@ public class Inventory extends javax.swing.JFrame {
         phoneBackText.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         phoneBackText.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 phoneBackText.setForeground(SUB_HOVER);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
@@ -491,6 +510,7 @@ public class Inventory extends javax.swing.JFrame {
                 phoneBackText.setForeground(SUB_NORMAL);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
                 // Clicking Back returns to the lock screen
                 returnToLockScreen();
@@ -501,6 +521,7 @@ public class Inventory extends javax.swing.JFrame {
         phoneAppMsg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         phoneAppMsg.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                 currentConvo = 0;
@@ -521,6 +542,7 @@ public class Inventory extends javax.swing.JFrame {
         // --- Clicking the Back Button inside the Message App ---
         phoneMsgBack.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                 if (currentConvo > 0) {
@@ -561,6 +583,7 @@ public class Inventory extends javax.swing.JFrame {
 
             msg.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (isGameOver) return;
                     msg.setIcon(hover);
                     AudioCache.play("/audio/sfx/ui/hover.wav");
                 }
@@ -568,6 +591,7 @@ public class Inventory extends javax.swing.JFrame {
                     msg.setIcon(normal);
                 }
                 @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (isGameOver) return;
                     AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                     // Open the convo!
@@ -579,6 +603,108 @@ public class Inventory extends javax.swing.JFrame {
                     msg2.setVisible(false);
                     msg3.setVisible(false);
                     msg4.setVisible(false);
+                }
+            });
+        }
+
+        // ---- Health Bar ----
+        HealthBar healthBar = new HealthBar(100);
+        // Width is 280 (70px icon + 210px bar), Height is 70
+        contentPanel.add(healthBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 10, 280, 70));
+        contentPanel.setComponentZOrder(healthBar, 0);
+
+        // ---- Hide Game Over UI by default ----
+        gameoverLabel.setVisible(false);
+        restartButton.setVisible(false);
+        menuButton.setVisible(false);
+
+        // ---- Style the Game Over Buttons ----
+        java.awt.Font goFont = getCustomFont(20f);
+        
+        javax.swing.JLabel[] goButtons = { restartButton, menuButton };
+        final String[] goTexts = { "RESTART", "MAIN MENU" };
+        
+        final java.awt.Color GO_NORMAL = java.awt.Color.GRAY;
+        final java.awt.Color GO_HOVER  = java.awt.Color.WHITE;
+        
+        // 0 = RESTART, 1 = MAIN MENU (Default to Restart)
+        final int[] selectedIndex = { 0 };
+
+        for (int i = 0; i < goButtons.length; i++) {
+            final javax.swing.JLabel lbl = goButtons[i];
+            final String baseText = goTexts[i];
+            final int btnIndex = i;
+
+            lbl.setFont(goFont);
+            lbl.setForeground(GO_NORMAL);
+            lbl.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            lbl.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            lbl.setOpaque(false);
+            lbl.setText(baseText);
+
+            lbl.setUI(new javax.swing.plaf.basic.BasicLabelUI() {
+                @Override
+                public void paint(java.awt.Graphics g, javax.swing.JComponent c) {
+                    javax.swing.JLabel l = (javax.swing.JLabel) c;
+                    
+                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                    g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+                    g2.setFont(l.getFont());
+                    
+                    String textToDraw;
+                    boolean isSelected = (selectedIndex[0] == btnIndex);
+                    
+                    if (isSelected) {
+                        textToDraw = "> " + baseText + " <";
+                    } else {
+                        textToDraw = "  " + baseText + "  ";
+                    }
+
+                    java.awt.FontMetrics fm = g2.getFontMetrics();
+                    int textW = fm.stringWidth(textToDraw);
+                    int x = (l.getWidth() - textW) / 2;
+                    int y = (l.getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+
+                    g2.setColor(l.getForeground());
+                    g2.drawString(textToDraw, x, y);
+                    g2.dispose();
+                }
+            });
+            
+            lbl.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (!isGameOver) return; 
+                    selectedIndex[0] = btnIndex;
+                    restartButton.setForeground(GO_NORMAL);
+                    menuButton.setForeground(GO_NORMAL);
+                    lbl.setForeground(GO_HOVER);
+                    
+                    restartButton.repaint();
+                    menuButton.repaint();
+                    AudioCache.play("/audio/sfx/ui/hover.wav");
+                }
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (!isGameOver) return; 
+                    AudioCache.play("/audio/sfx/ui/select.wav");
+                    
+                    if (lbl == restartButton) {
+                        GameState.reset();
+                        TransitionOverlay.play(Inventory.this, () -> {
+                            Backstory bs = new Backstory();
+                            bs.setLocation(getLocation());
+                            bs.setVisible(true);
+                            Inventory.this.dispose();
+                        });
+                    } else {
+                        GameState.reset();
+                        TransitionOverlay.play(Inventory.this, () -> {
+                            MainMenu menu = new MainMenu();
+                            menu.setLocation(getLocation());
+                            menu.setVisible(true);
+                            Inventory.this.dispose();
+                        });
+                    }
                 }
             });
         }
@@ -628,6 +754,9 @@ public class Inventory extends javax.swing.JFrame {
     private void initComponents() {
 
         contentPanel = new javax.swing.JPanel();
+        restartButton = new javax.swing.JLabel();
+        menuButton = new javax.swing.JLabel();
+        gameoverLabel = new javax.swing.JLabel();
         backButton = new javax.swing.JLabel();
         msg4 = new javax.swing.JLabel();
         msg3 = new javax.swing.JLabel();
@@ -689,6 +818,21 @@ public class Inventory extends javax.swing.JFrame {
         setResizable(false);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        restartButton.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        restartButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        restartButton.setText("RESTART");
+        restartButton.setPreferredSize(new java.awt.Dimension(180, 32));
+        contentPanel.add(restartButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 360, -1, -1));
+
+        menuButton.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        menuButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        menuButton.setText("MAIN MENU");
+        menuButton.setPreferredSize(new java.awt.Dimension(180, 32));
+        contentPanel.add(menuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 410, -1, -1));
+
+        gameoverLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/gameover.png"))); // NOI18N
+        contentPanel.add(gameoverLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
         contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, -1, 50));
@@ -1023,6 +1167,7 @@ public class Inventory extends javax.swing.JFrame {
 
     /** Verifies the entered PIN and swaps the phone screen if correct. */
     private void checkPin() {
+        if (isGameOver) return;
         final String CORRECT_PIN = "0818";
 
         if (pinBuffer.toString().equals(CORRECT_PIN)) {
@@ -1056,6 +1201,16 @@ public class Inventory extends javax.swing.JFrame {
             pinBuffer.setLength(0);
             refreshPinDots();
             shakePhone(); 
+            
+            // TAKE DAMAGE FOR WRONG PIN
+                GameState.setHealth(GameState.getHealth() - 2);
+                for (java.awt.Component c : contentPanel.getComponents()) {
+                    if (c instanceof HealthBar) {
+                        ((HealthBar) c).setCurrent(GameState.getHealth());
+                    }
+                }
+                if (GameState.getHealth() <= 0) showGameOver();
+                return;
         }
     }
     
@@ -1222,7 +1377,7 @@ public class Inventory extends javax.swing.JFrame {
 
             s.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                    // Show hover only if this slot isn't already the selected one.
+                    if (isGameOver) return;
                     if (!slot.selected) slot.showHover();
                     s.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
                     AudioCache.play("/audio/sfx/ui/hover.wav");
@@ -1235,6 +1390,7 @@ public class Inventory extends javax.swing.JFrame {
                 }
 
                 @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (isGameOver) return;
                     if (e.getClickCount() == 2) {
                         // Double-click → stage into a combine slot.
                         if (!slot.isEmpty()) {
@@ -1343,6 +1499,7 @@ public class Inventory extends javax.swing.JFrame {
         * Otherwise resets the description panel to its empty state.
         */
         private void tryCombine() {
+            if (isGameOver) return;
             if (combineItemA == null || combineItemB == null) {
                 setDescription(null);
                 return;
@@ -1355,7 +1512,14 @@ public class Inventory extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/phone/phone_error.wav");
                 setDescription(null);
                 shakeDescription();
-                AudioCache.play("/audio/sfx/phone/phone_error.wav");
+                
+                GameState.setHealth(GameState.getHealth() - 2);
+                for (java.awt.Component c : contentPanel.getComponents()) {
+                    if (c instanceof HealthBar) {
+                        ((HealthBar) c).setCurrent(GameState.getHealth());
+                    }
+                }
+                if (GameState.getHealth() <= 0) showGameOver();
                 return;
             }
 
@@ -1659,6 +1823,82 @@ public class Inventory extends javax.swing.JFrame {
         descText.setFont(getCustomFont(14f)); 
         descText.setForeground(java.awt.Color.WHITE); 
     }
+    
+    private void showGameOver() {
+        isGameOver = true;
+        
+        // 1. Set initial state
+        restartButton.setForeground(java.awt.Color.WHITE);
+        menuButton.setForeground(java.awt.Color.GRAY);
+        
+        // 2. Make them visible
+        gameoverLabel.setVisible(true);
+        restartButton.setVisible(true);
+        menuButton.setVisible(true);
+        
+        gameoverLabel.setOpaque(false);
+        restartButton.setOpaque(false);
+        menuButton.setOpaque(false);
+        
+        contentPanel.setComponentZOrder(gameoverLabel, 0);
+        contentPanel.setComponentZOrder(restartButton, 0);
+        contentPanel.setComponentZOrder(menuButton, 0);
+        
+        // 3. Create the fade animation overlay
+        FadeOverlay fade = new FadeOverlay();
+        fade.setAlpha(1f); // Start solid black
+        contentPanel.add(fade, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+        contentPanel.setComponentZOrder(fade, 0); 
+        
+        final int DURATION_MS = 800;
+        final long start = System.currentTimeMillis();
+        
+        javax.swing.Timer fadeTimer = new javax.swing.Timer(16, null);
+        fadeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            float p = Math.min(1f, elapsed / (float) DURATION_MS);
+            
+            fade.setAlpha(1f - p);
+            
+            if (p >= 1f) {
+                fadeTimer.stop();
+                contentPanel.remove(fade); 
+                contentPanel.revalidate();
+                contentPanel.repaint();
+            }
+        });
+        fadeTimer.start();
+        
+        // Stop all background audio and lock the game
+        pauseMenu.hideOverlay();
+        getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).clear();
+        getRootPane().getActionMap().clear();
+        
+        AudioCache.play("/audio/sfx/ui/splatter.wav");
+    }
+    
+    /** Simple black overlay that fades out. */
+    private static class FadeOverlay extends javax.swing.JComponent {
+        private float alpha = 1f;
+
+        FadeOverlay() {
+            setOpaque(false);
+        }
+
+        void setAlpha(float a) {
+            this.alpha = Math.max(0f, Math.min(1f, a));
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            if (alpha <= 0f) return;
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            g2.setColor(new java.awt.Color(0, 0, 0, (int)(alpha * 255)));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+        }
+    }    
 
        public static void main(String args[]) {
            /* Set the Nimbus look and feel */
@@ -1693,7 +1933,9 @@ public class Inventory extends javax.swing.JFrame {
     private javax.swing.JLabel descImage;
     private javax.swing.JLabel descText;
     private javax.swing.JLabel descTitle;
+    private javax.swing.JLabel gameoverLabel;
     private javax.swing.JLabel inspectButton;
+    private javax.swing.JLabel menuButton;
     private javax.swing.JLabel msg1;
     private javax.swing.JLabel msg2;
     private javax.swing.JLabel msg3;
@@ -1720,6 +1962,7 @@ public class Inventory extends javax.swing.JFrame {
     private javax.swing.JLabel pin2;
     private javax.swing.JLabel pin3;
     private javax.swing.JLabel pin4;
+    private javax.swing.JLabel restartButton;
     private javax.swing.JLabel slot1;
     private javax.swing.JLabel slot10;
     private javax.swing.JLabel slot11;
