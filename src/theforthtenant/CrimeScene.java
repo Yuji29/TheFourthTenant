@@ -406,16 +406,30 @@ public class CrimeScene extends javax.swing.JFrame {
         // ---- Restore INTERROGATE unlock state (from a previous visit) ----
         if (GameState.isFullyComplete()) {
             interrogateUnlocked = true;
-            interrogateListenerAttached = true; 
-            
-            // Remove the police tape without playing the animation.
-            if (policeTape != null && policeTape.getParent() != null) {
-                policeTape.getParent().remove(policeTape);
-                contentPanel.revalidate();
-                contentPanel.repaint();
-            }
+            interrogateListenerAttached = true;
             interrogateLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
             attachInterrogateListener();
+
+            if (!GameState.hasTapeAnimationPlayed()) {
+                // First time — play the tape fall animation
+                GameState.setTapeAnimationPlayed(true);
+                AudioCache.play("/audio/sfx/gameplay/tape_ripping.wav");
+
+                javax.swing.Timer tapeDelay = new javax.swing.Timer(150, e -> {
+                    if (policeTape != null && policeTape.getParent() != null) {
+                        playTapeFallAnimation();
+                    }
+                });
+                tapeDelay.setRepeats(false);
+                tapeDelay.start();
+            } else {
+                // Already played before — just remove the tape quietly
+                if (policeTape != null && policeTape.getParent() != null) {
+                    policeTape.getParent().remove(policeTape);
+                    contentPanel.revalidate();
+                    contentPanel.repaint();
+                }
+            }
         }
         
         // ---- Show the starting scene ----
@@ -718,6 +732,7 @@ public class CrimeScene extends javax.swing.JFrame {
         interrogateUnlocked = unlocked;
 
         if (unlocked) {
+            GameState.setTapeAnimationPlayed(true);
             AudioCache.play("/audio/sfx/gameplay/tape_ripping.wav");
 
             if (policeTape != null && policeTape.getParent() != null) {

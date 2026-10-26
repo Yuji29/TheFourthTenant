@@ -152,17 +152,20 @@ public class SubtitleBox extends JComponent {
 
         int w = getWidth();
         int h = getHeight();
+        
+        // The background box starts 15 pixels down to make room for the nameplate
+        int boxStartY = 15; 
 
         // Background box (skipped in plain mode).
         if (!plainMode) {
             g2.setColor(BOX_BG);
-            g2.fillRoundRect(0, 0, w, h, 14, 14);
+            g2.fillRoundRect(0, boxStartY, w, h - boxStartY, 14, 14);
             g2.setColor(BOX_BORDER);
             g2.setStroke(new java.awt.BasicStroke(1.2f));
-            g2.drawRoundRect(1, 1, w - 2, h - 2, 14, 14);
+            g2.drawRoundRect(1, boxStartY + 1, w - 2, h - boxStartY - 2, 14, 14);
         }
 
-        int cursorY = PADDING_TOP;
+        int cursorY = PADDING_TOP + boxStartY;
         int visibleCharsLocal = visibleChars;
         int textMaxW = w - PADDING_X * 2;
 
@@ -176,15 +179,20 @@ public class SubtitleBox extends JComponent {
                 int pillW = nfm.stringWidth(line.speaker) + NAME_PILL_PAD_X * 2;
                 int pillH = nfm.getHeight() + NAME_PILL_PAD_Y * 2;
 
+                // --- Put the pill on the top-left border ---
+                int pillX = PADDING_X; 
+                int pillY = 2; // Sticks out slightly at the top
+
                 g2.setColor(Color.WHITE);
-                drawHexagonPill(g2, PADDING_X, cursorY, pillW, pillH);
+                drawHexagonPill(g2, pillX, pillY, pillW, pillH);
 
                 g2.setColor(NAME_RED);
                 g2.drawString(line.speaker,
-                        PADDING_X + NAME_PILL_PAD_X,
-                        cursorY + NAME_PILL_PAD_Y + nfm.getAscent());
+                        pillX + NAME_PILL_PAD_X,
+                        pillY + NAME_PILL_PAD_Y + nfm.getAscent());
 
-                cursorY += pillH + GAP_NAME_BODY;
+                // Push the text down past the pill
+                cursorY = pillY + pillH + GAP_NAME_BODY;
             }
 
             // Body text.
@@ -289,7 +297,7 @@ public class SubtitleBox extends JComponent {
         Graphics2D g2 = img.createGraphics();
 
         int maxW = width - PADDING_X * 2;
-        int total = PADDING_TOP;
+        int total = PADDING_TOP + 15;
 
         for (int i = 0; i < list.size(); i++) {
             Line line = list.get(i);

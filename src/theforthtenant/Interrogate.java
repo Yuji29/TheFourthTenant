@@ -510,6 +510,16 @@ public class Interrogate extends javax.swing.JFrame {
      */
         public Interrogate() {
         initComponents();
+        
+        // ---- Replace the form's JTextAreas with line-spaced ones ----
+        option1TextArea         = spaced(jScrollPane1);
+        detectiveChosenTextArea = spaced(jScrollPane2);
+        suspectAnswerTextArea   = spaced(jScrollPane3);
+        option3leftTextArea     = spaced(jScrollPane4);
+        option3middleTextArea   = spaced(jScrollPane5);
+        option3rightTextArea    = spaced(jScrollPane6);
+        option2leftTextArea     = spaced(jScrollPane7);
+        option2rightTextArea    = spaced(jScrollPane8);        
 
         // ---- Window icon ----
         try {
@@ -1068,7 +1078,7 @@ public class Interrogate extends javax.swing.JFrame {
         detectiveChosenTextArea.setOpaque(false);
         jScrollPane2.setViewportView(detectiveChosenTextArea);
 
-        contentPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 524, 870, 100));
+        contentPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 534, 870, 90));
 
         detectiveChosen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_chosen.png"))); // NOI18N
         contentPanel.add(detectiveChosen, new org.netbeans.lib.awtextra.AbsoluteConstraints(101, 295, -1, -1));
@@ -1492,10 +1502,10 @@ public class Interrogate extends javax.swing.JFrame {
 
         hideBubbles();   // hides the plate: detective lines never show it       
 
-        styleBox(area, pane, new java.awt.Insets(10, 10, 10, 10));
+        styleBox(area, pane, new java.awt.Insets(15, 15, 15, 15));
 
         box.setLocation(101, 295);
-        pane.setLocation(isDetective ? 136 : 120, 305);
+        pane.setLocation(isDetective ? 136 : 120, 320);
 
         box.setVisible(true);
         pane.setVisible(true);
@@ -1553,7 +1563,7 @@ public class Interrogate extends javax.swing.JFrame {
         area.setFocusable(false);
         area.setOpaque(false);
         area.setBackground(clear);
-        area.setMargin(margin);
+        area.setMargin(new java.awt.Insets(15, 15, 15, 15));
 
         pane.setOpaque(false);
         pane.setBackground(clear);
@@ -1904,6 +1914,70 @@ public class Interrogate extends javax.swing.JFrame {
         });
         typewriterTimer.start();;
     }
+    
+    // ---- Line spacing for the dialogue/choice text areas ----
+    private static final float LINE_HEIGHT = 1.3f;     // 1.0 = normal, 1.3 = 30% taller lines
+
+    /** JTextArea whose lines are taller. Wrapping and painting follow automatically. */
+    private static final class SpacedTextArea extends javax.swing.JTextArea {
+        private final float factor;
+        SpacedTextArea(float factor) { this.factor = factor; }
+
+        @Override public java.awt.FontMetrics getFontMetrics(java.awt.Font f) {
+            java.awt.FontMetrics base = super.getFontMetrics(f);
+            int extra = Math.round(base.getHeight() * (factor - 1f));
+            return new SpacedMetrics(base, extra);
+        }
+    }
+
+    /** Real metrics, except every line is `extra` px taller: half above the glyphs, half below. */
+    private static final class SpacedMetrics extends java.awt.FontMetrics {
+        private final java.awt.FontMetrics d;
+        private final int up, down;
+
+        SpacedMetrics(java.awt.FontMetrics d, int extra) {
+            super(d.getFont());
+            this.d = d;
+            this.up = extra / 2;
+            this.down = extra - up;
+        }
+        @Override public java.awt.font.FontRenderContext getFontRenderContext() { return d.getFontRenderContext(); }
+        @Override public int getAscent()     { return d.getAscent() + up; }
+        @Override public int getDescent()    { return d.getDescent() + down; }
+        @Override public int getLeading()    { return d.getLeading(); }
+        @Override public int getHeight()     { return d.getHeight() + up + down; }
+        @Override public int getMaxAscent()  { return d.getMaxAscent() + up; }
+        @Override public int getMaxDescent() { return d.getMaxDescent() + down; }
+        @Override public int getMaxAdvance() { return d.getMaxAdvance(); }
+        @Override public int charWidth(char c) { return d.charWidth(c); }
+        @Override public int charWidth(int cp) { return d.charWidth(cp); }
+        @Override public int charsWidth(char[] a, int o, int l) { return d.charsWidth(a, o, l); }
+        @Override public int stringWidth(String s) { return d.stringWidth(s); }
+        @Override public int bytesWidth(byte[] a, int o, int l) { return d.bytesWidth(a, o, l); }
+        @Override public int[] getWidths() { return d.getWidths(); }
+        @Override public boolean hasUniformLineMetrics() { return d.hasUniformLineMetrics(); }
+        @Override public java.awt.font.LineMetrics getLineMetrics(String s, java.awt.Graphics g) { return d.getLineMetrics(s, g); }
+        @Override public java.awt.font.LineMetrics getLineMetrics(String s, int a, int b, java.awt.Graphics g) { return d.getLineMetrics(s, a, b, g); }
+        @Override public java.awt.font.LineMetrics getLineMetrics(char[] c, int a, int b, java.awt.Graphics g) { return d.getLineMetrics(c, a, b, g); }
+        @Override public java.awt.font.LineMetrics getLineMetrics(java.text.CharacterIterator ci, int a, int b, java.awt.Graphics g) { return d.getLineMetrics(ci, a, b, g); }
+        @Override public java.awt.geom.Rectangle2D getStringBounds(String s, java.awt.Graphics g) { return d.getStringBounds(s, g); }
+        @Override public java.awt.geom.Rectangle2D getStringBounds(String s, int a, int b, java.awt.Graphics g) { return d.getStringBounds(s, a, b, g); }
+        @Override public java.awt.geom.Rectangle2D getStringBounds(char[] c, int a, int b, java.awt.Graphics g) { return d.getStringBounds(c, a, b, g); }
+        @Override public java.awt.geom.Rectangle2D getStringBounds(java.text.CharacterIterator ci, int a, int b, java.awt.Graphics g) { return d.getStringBounds(ci, a, b, g); }
+        @Override public java.awt.geom.Rectangle2D getMaxCharBounds(java.awt.Graphics g) { return d.getMaxCharBounds(g); }
+    }
+
+    /** Builds a spaced text area with the same settings the form gave the original. */
+    private static javax.swing.JTextArea spaced(javax.swing.JScrollPane pane) {
+        SpacedTextArea a = new SpacedTextArea(LINE_HEIGHT);
+        a.setEditable(false);
+        a.setLineWrap(true);
+        a.setWrapStyleWord(true);
+        a.setColumns(20);
+        a.setRows(5);
+        pane.setViewportView(a);
+        return a;
+    }    
     
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */

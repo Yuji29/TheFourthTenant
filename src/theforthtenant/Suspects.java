@@ -178,7 +178,6 @@ public class Suspects extends javax.swing.JFrame {
                 updateBackground();
             }
         });   
-        
        note4Alibi1.setVisible(false);
        note4Alibi2.setVisible(false);
        note4Alibi3.setVisible(false);

@@ -64,6 +64,16 @@ public final class GameState {
         phoneUnlocked = unlocked;
     }
     
+    private static boolean tapeAnimationPlayed = false;
+
+    public static boolean hasTapeAnimationPlayed() {
+        return tapeAnimationPlayed;
+    }
+
+    public static void setTapeAnimationPlayed(boolean played) {
+        tapeAnimationPlayed = played;
+    }    
+    
     // ---------------------------------------------------------------
     // Interrogation Triggers (for the Suspects board)
     // ---------------------------------------------------------------
@@ -132,6 +142,7 @@ public final class GameState {
         collected.clear();
         discovered.clear();
         lastSceneIndex = 0;
+        tapeAnimationPlayed = false;
         interrogatedTopics.clear();
         interrogationOrder.clear();
     }
