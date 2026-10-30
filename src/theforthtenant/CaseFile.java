@@ -23,31 +23,31 @@ public class CaseFile extends javax.swing.JFrame {
         // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/common/logo.png"));
+                    getClass().getResourceAsStream("/Images/common/logo.png"));
             setIconImage(icon);
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
         }
-
-        setTitle("The Fourth Tenant");
-        setResizable(false);
-        setLocationRelativeTo(null);
         
+        setLocationRelativeTo(null);
+
         // ---- Options Menu ----
+        // Closing the options menu returns the player to the pause menu popup.
         final OptionsMenu optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
             @Override public void onSoundChanged(int percent) {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void onClose() {
-                pauseMenu.showPopupOnly(); 
+                pauseMenu.showPopupOnly();
             }
         });
-        
+
         // ---- Pause Menu ----
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
             @Override public void onPause() {}
             @Override public void onResume() {}
             @Override public void onOptions() {
+                // Hide pause popup while the options menu is open.
                 pauseMenu.hidePopupOnly();
                 optionsMenu.show();
             }
@@ -62,12 +62,14 @@ public class CaseFile extends javax.swing.JFrame {
                     CaseFile.this.dispose();
                 });
             }
-        });        
+        });    
         
         // ---- Back Button ----
-        final javax.swing.ImageIcon backNormal = new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"));
-        final javax.swing.ImageIcon backHover = new javax.swing.ImageIcon(darken(backNormal.getImage()));
-        
+        final javax.swing.ImageIcon backNormal =
+                new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"));
+        final javax.swing.ImageIcon backHover =
+                new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button_hovered.png"));
+
         backButton.setIcon(backNormal);
         backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -80,27 +82,36 @@ public class CaseFile extends javax.swing.JFrame {
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 AudioCache.play("/audio/sfx/ui/select.wav");
-                CrimeScene cs = new CrimeScene();
-                cs.setLocation(getLocation());
-                cs.setVisible(true);
-                CaseFile.this.dispose();
+                goToCrimeScene();
             }
-        }); 
-        
+        });
+
+        // ---- Go Button Logic (Hover sound + click — no color change) ----
+        GoLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                AudioCache.play("/audio/sfx/ui/select.wav");
+                handleGoClick();
+            }
+        });
+
         // ---- Keyboard shortcut: 5 returns to CrimeScene ----
         javax.swing.JRootPane root = getRootPane();
-        javax.swing.KeyStroke backKey = javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, 0);
+        javax.swing.KeyStroke backKey =
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, 0);
         root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(backKey, "closeCaseFileKey");
+                .put(backKey, "closeCaseFileKey");
         root.getActionMap().put("closeCaseFileKey", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 AudioCache.play("/audio/sfx/ui/select.wav");
-                CrimeScene cs = new CrimeScene();
-                cs.setLocation(getLocation());
-                cs.setVisible(true);
-                CaseFile.this.dispose();
+                goToCrimeScene();
             }
-        });        
+        });
+
+        // Populate the task label with the current objective.
+        updateObjective();
     }
 
     /**
@@ -113,12 +124,29 @@ public class CaseFile extends javax.swing.JFrame {
     private void initComponents() {
 
         contentPanel = new javax.swing.JPanel();
+        GoLabel = new javax.swing.JLabel();
+        taskLabel = new javax.swing.JLabel();
         backButton = new javax.swing.JLabel();
         backgroundLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("The Fourth Tenant");
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        GoLabel.setBackground(new java.awt.Color(255, 255, 255));
+        GoLabel.setFont(new java.awt.Font("Press Start 2P", 0, 12)); // NOI18N
+        GoLabel.setForeground(new java.awt.Color(255, 255, 255));
+        GoLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        GoLabel.setText("Go");
+        GoLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        contentPanel.add(GoLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(357, 376, 80, 40));
+
+        taskLabel.setFont(new java.awt.Font("Press Start 2P", 0, 10)); // NOI18N
+        taskLabel.setForeground(new java.awt.Color(0, 0, 0));
+        taskLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        taskLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        contentPanel.add(taskLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 290, 190, 80));
 
         backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
         contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 635, -1, -1));
@@ -144,21 +172,120 @@ public class CaseFile extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     
-    /** Returns a darkened copy of the given image (for the back-arrow hover state). */
-    private static java.awt.Image darken(java.awt.Image src) {
-        java.awt.image.ImageFilter filter = new java.awt.image.RGBImageFilter() {
-            @Override public int filterRGB(int x, int y, int rgb) {
-                int a = (rgb >> 24) & 0xff;
-                int r = (int)(((rgb >> 16) & 0xff) * 0.35);
-                int g = (int)(((rgb >> 8)  & 0xff) * 0.35);
-                int b = (int)((rgb & 0xff) * 0.35);
-                return (a << 24) | (r << 16) | (g << 8) | b;
-            }
-        };
-        return java.awt.Toolkit.getDefaultToolkit().createImage(
-                new java.awt.image.FilteredImageSource(src.getSource(), filter));
+    /** Updates the objective label based on the current game progress. */
+    private void updateObjective() {
+        String currentTask;
+
+        if (!GameState.allCollected()) {
+            // Task 1: Gather all evidence
+            currentTask = "Gather all 14 pieces of evidence\n("
+                    + GameState.collectedCount() + "/14)";
+
+        } else if (!GameState.isPhoneUnlocked()) {
+            // Task 2: Unlock Abby's phone
+            currentTask = "Unlock Abby's Phone";
+
+        } else if (GameState.discoveredCount() < 8) {
+            // Task 3: Combine evidence into deductions
+            currentTask = "Combine evidence to form deductions\n("
+                    + GameState.discoveredCount() + "/8)";
+
+        } else if (!GameState.allInterrogated()) {
+            // Task 4: Interrogate all suspects
+            currentTask = "Interrogate suspects";
+
+        } else if (!GameState.isPoliceReportDone()) {
+            // Task 5: Report to Officer Morales
+            currentTask = "Talk to Officer Morales";
+            
+        } else if (!GameState.isCathyConfronted()) {   
+            // Task 6: Confront Cathy
+            currentTask = "Confront Cathy";
+
+        } else {
+            // Task 7: Arrest the killer
+            currentTask = "Arrest the killer";
+        }
+        
+
+        taskLabel.setText("<html>" + currentTask.replace("\n", "<br>") + "</html>");
     }
     
+    /**
+     * Redirects the player to the correct screen based on their current task.
+     * The order of these checks mirrors {@link #updateObjective()}, so the
+     * "Go" button always takes the player to the step shown on the case file.
+     */
+    private void handleGoClick() {
+        if (!GameState.allCollected()) {
+            // Still gathering evidence -> Crime Scene
+            goToCrimeScene();
+
+        } else if (!GameState.isPhoneUnlocked() || GameState.discoveredCount() < 8) {
+            // Either unlock the phone or combine evidence -> Inventory
+            goToInventory();
+
+        } else if (!GameState.allInterrogated()) {
+            // All deductions done, but not everyone interrogated -> Interrogation
+            goToInterrogation();
+            
+        } else if (!GameState.isPoliceReportDone()) {
+            goToPoliceReport();
+
+        } else if (!GameState.isCathyConfronted()) {    
+            goToInterrogation();
+
+        } else {
+            // Go to Suspects to make the arrest
+            goToSuspects();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Navigation helpers — one per destination screen.
+    // Each preserves the window position so transitions feel seamless.
+    // ------------------------------------------------------------------
+
+    /** Opens the Crime Scene screen and closes the Case File. */
+    private void goToCrimeScene() {
+        CrimeScene cs = new CrimeScene();
+        cs.setLocation(getLocation());
+        cs.setVisible(true);
+        dispose();
+    }
+
+    /** Opens the Inventory screen and closes the Case File. */
+    private void goToInventory() {
+        Inventory inv = new Inventory();
+        inv.setLocation(getLocation());
+        inv.setVisible(true);
+        dispose();
+    }
+
+    /** Opens the Interrogation screen and closes the Case File. */
+    private void goToInterrogation() {
+        Interrogate ir = new Interrogate();
+        ir.setLocation(getLocation());
+        ir.setVisible(true);
+        dispose();
+    }
+
+    /** Opens the Police Report screen and closes the Case File. */
+    private void goToPoliceReport() {
+        PoliceReport pr = new PoliceReport();
+        pr.setLocation(getLocation());
+        pr.setVisible(true);
+        dispose();
+    }
+    
+    /** Opens the Suspects screen and closes the Case File. */
+    private void goToSuspects() {
+        Suspects s = new Suspects();
+        s.setLocation(getLocation());
+        s.setVisible(true);
+        dispose();
+    }
+            
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -182,8 +309,10 @@ public class CaseFile extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel GoLabel;
     private javax.swing.JLabel backButton;
     private javax.swing.JLabel backgroundLabel;
     private javax.swing.JPanel contentPanel;
+    private javax.swing.JLabel taskLabel;
     // End of variables declaration//GEN-END:variables
 }

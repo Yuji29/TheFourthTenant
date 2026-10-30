@@ -52,7 +52,7 @@ public class Interrogate extends javax.swing.JFrame {
     
     // Suspect images
     private javax.swing.ImageIcon cardoIdle, cardoTalk;
-    private javax.swing.ImageIcon cathyIdle, cathyTalk, cathyShocked;
+    private javax.swing.ImageIcon cathyIdle, cathyTalk, cathyShocked, cathyCry, cathySmug;
     private javax.swing.ImageIcon andyIdle, andyTalk, andyPhone, andyAnxious;
 
     /** Metadata for one suspect. */
@@ -504,6 +504,47 @@ public class Interrogate extends javax.swing.JFrame {
 
         return startNode;
     }
+    
+    /** The final confrontation with Cathy after the Police Report. */
+    private Node buildCathyConfrontationTree() {
+        // 0. START NODE
+        Node startNode = Node.choice("Confront Abby");
+        
+        Node conf1 = Node.detective("The front door logs show no exits, but your neighbor saw someone matching your build walking toward the utility shed at 3:15 AM. Where were you?",
+                "/audio/voice/interrogate/cathy/confront_s01_detective.wav");
+                
+        Node conf2 = Node.suspect("I told you, I was asleep! If someone was outside, it must’ve been someone else!",
+                "/audio/voice/interrogate/cathy/confront_s02_suspect.wav", "shocked");
+                
+        Node conf3 = Node.detective("Well then how will you explain this lab report saying that the blood on the rag under your bed matches directly to Abby's DNA, mixed with your own skin cells. Nobody planted that!",
+                "/audio/voice/interrogate/cathy/confront_s03_detective.wav");
+                
+        Node conf4 = Node.suspect("No... no, that's impossible. I didn't touch her! Someone must have... I don't remember putting it there, I swear to God!",
+                "/audio/voice/interrogate/cathy/confront_s04_suspect.wav");
+                
+        Node conf5 = Node.detective("Hah! Don’t play with me! Abby's smartwatch recorded her pulse drastically slowing down two minutes after your voice was recorded on the hallway mic shouting 'Leave me alone!'. You weren't in your room! You were out there, murdering Abby!",
+                "/audio/voice/interrogate/cathy/confront_s05_detective.wav");
+                
+        Node conf6 = Node.suspect("I don’t know! I was asleep, please, detective, believe me! Why won't anyone believe me?!",
+                "/audio/voice/interrogate/cathy/confront_s06_suspect.wav", "cry");
+                
+        Node conf7 = Node.detective("There's nowhere left to shift the blame, Cathy! Every verified alibi, every forensic footprint, and every second on that clock converges on this room. You're out of time.",
+                "/audio/voice/interrogate/cathy/confront_s07_detective.wav");
+                
+        Node conf8 = Node.suspect("You're barking up an empty tree, Detective. Cathy doesn't know anything about what we did. And she's not waking up to clean up your mess.",
+                "/audio/voice/interrogate/cathy/confront_s08_suspect.wav", "smug");
+
+        // Link them in a straight line
+        startNode.on(0, "Confront Abby", conf1);
+        conf1.then(conf2).then(conf3).then(conf4).then(conf5).then(conf6).then(conf7).then(conf8).then(
+            Node.detective("") // Empty node to trigger the return to lounge
+        );
+
+        // Attach a special action to the very last node to set the flag
+        conf8.next = Node.detective("").then(null); 
+          
+        return startNode;
+    }
 
     /**
      * Creates new form Interrogate
@@ -547,6 +588,8 @@ public class Interrogate extends javax.swing.JFrame {
         cathyIdle = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_idle.png");
         cathyTalk = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_talk.png");
         cathyShocked = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_shocked.png");
+        cathyCry  = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_cry.png");
+        cathySmug = loadIcon("/Images/gameplay/interrogate/interrogation/cathy_smug.png");        
         
         andyIdle  = loadIcon("/Images/gameplay/interrogate/interrogation/andy_idle.png");
         andyTalk  = loadIcon("/Images/gameplay/interrogate/interrogation/andy_talk.png");
@@ -1263,7 +1306,13 @@ public class Interrogate extends javax.swing.JFrame {
    
     /** The only place that decides what appears on screen. */
     private void showNode(Node n) {
-        if (n == null) { returnToLounge(); return; }
+        if (n == null) { 
+            if (currentSuspect == 1 && GameState.isPoliceReportDone()) {
+                GameState.setCathyConfronted(true);
+            }
+            returnToLounge(); 
+            return; 
+        }
         inDialogue = true;
 
         if (n.options != null) {                
@@ -1306,6 +1355,12 @@ public class Interrogate extends javax.swing.JFrame {
                 return;
             } else if ("shocked".equals(currentEmotion)) {
                 backgroundLabel.setIcon(cathyShocked);
+                return;
+            } else if ("cry".equals(currentEmotion)) {
+                backgroundLabel.setIcon(cathyCry);     
+                return;
+            } else if ("smug".equals(currentEmotion)) {
+                backgroundLabel.setIcon(cathySmug);    
                 return;
             }
         }
@@ -1381,7 +1436,8 @@ public class Interrogate extends javax.swing.JFrame {
 
         next = choice.branches[i];
 
-        boolean isMenuButton = choice.options[i].equals("Start the interrogation");
+        boolean isMenuButton = choice.options[i].equals("Start the interrogation") 
+                            || choice.options[i].equals("Confront Abby");
 
         if (isMenuButton) {
             showNode(next);
@@ -1675,9 +1731,18 @@ public class Interrogate extends javax.swing.JFrame {
 
         // 4. Build the tree based on who was clicked
         Node treeToBuild = null;
-        if (suspectIndex == 0) treeToBuild = buildCardoTree();
-        else if (suspectIndex == 1) treeToBuild = buildCathyTree();
-        else if (suspectIndex == 2) treeToBuild = buildAndyTree();
+        if (suspectIndex == 0) {
+            treeToBuild = buildCardoTree();
+        } else if (suspectIndex == 1) {
+            // If the Police Report is done, load the Confrontation. Otherwise, normal tree.
+            if (GameState.isPoliceReportDone()) {
+                treeToBuild = buildCathyConfrontationTree();
+            } else {
+                treeToBuild = buildCathyTree();
+            }
+        } else if (suspectIndex == 2) {
+            treeToBuild = buildAndyTree();
+        }
 
         // 5. Always play the fade transition
         if (idleIcon != null) {

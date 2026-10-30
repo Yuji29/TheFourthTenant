@@ -141,6 +141,62 @@ public final class GameState {
     public static int  getLastSceneIndex()          { return lastSceneIndex; }
     public static void setLastSceneIndex(int index) { lastSceneIndex = index; }
 
+    
+    // ---------------------------------------------------------------
+    // Interrogate
+    // ---------------------------------------------------------------  
+    
+    /** Returns true if all 10 core interrogation topics have been triggered. */
+    public static boolean allInterrogated() {
+        // Cardo (4)
+        boolean cardoDone = interrogatedTopics.contains("cardo_time") &&
+                            interrogatedTopics.contains("cardo_boots") &&
+                            interrogatedTopics.contains("cardo_damage_lock") &&
+                            interrogatedTopics.contains("cardo_jealousy");
+                            
+        // Cathy (4)
+        boolean cathyDone = interrogatedTopics.contains("cathy_time") &&
+                            interrogatedTopics.contains("cathy_audio") &&
+                            interrogatedTopics.contains("cathy_rag") &&
+                            interrogatedTopics.contains("cathy_gym_bag");
+
+        // Andy (3)
+        boolean andyDone = interrogatedTopics.contains("andy_time") &&
+                           interrogatedTopics.contains("andy_debt") &&
+                           interrogatedTopics.contains("andy_pills");
+
+        return cardoDone && cathyDone && andyDone;
+    }    
+    
+    // ---------------------------------------------------------------
+    // Detective's Notes
+    // ---------------------------------------------------------------
+    private static String detectiveNotesLeft = "";
+    private static String detectiveNotesRight = "";
+
+    public static String getDetectiveNotesLeft() { return detectiveNotesLeft; }
+    public static void setDetectiveNotesLeft(String notes) { detectiveNotesLeft = notes; }
+
+    public static String getDetectiveNotesRight() { return detectiveNotesRight; }
+    public static void setDetectiveNotesRight(String notes) { detectiveNotesRight = notes; } 
+    
+    // ---------------------------------------------------------------
+    // Endgame phase
+    // ---------------------------------------------------------------
+    
+    private static boolean policeReportDone = false;
+
+    public static boolean isPoliceReportDone() { return policeReportDone; }
+    public static void setPoliceReportDone(boolean done) { policeReportDone = done; }   
+    
+    private static boolean cathyConfronted = false;
+    public static boolean isCathyConfronted() { return cathyConfronted; }
+    public static void setCathyConfronted(boolean done) { cathyConfronted = done; }
+    
+    private static boolean cathyArrested = false;
+    public static boolean isCathyArrested() { return cathyArrested; }
+    public static void setCathyArrested(boolean arrested) { cathyArrested = arrested; }
+    
     // ---------------------------------------------------------------
     // Lifecycle
     // ---------------------------------------------------------------
@@ -153,8 +209,16 @@ public final class GameState {
         tapeAnimationPlayed = false;
         interrogatedTopics.clear();
         interrogationOrder.clear();
+        policeReportDone = false;
+        cathyConfronted = false;
         health = 100; 
-    }
+        phoneUnlocked = false; 
+        policeReportDone = false;
+        cathyConfronted = false;
+        cathyArrested = false;     
+        detectiveNotesLeft = "";
+        detectiveNotesRight = "";
+    }   
     
     private GameState() {}
 }

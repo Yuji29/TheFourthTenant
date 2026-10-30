@@ -12,135 +12,142 @@ public class Inventory extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Inventory.class.getName());
     
-        // ---- Slot model ----
+    // =========================================================
+    // Slot model
+    // =========================================================
 
-        /**
-         * One inventory slot: owns its label, its current item id (null = empty),
-         * and the two icons it can show (normal / hover). All per-slot state lives
-         * here, so the frame never has to consult a parallel map or client property.
-         */
-        private static final class Slot {
-            final javax.swing.JLabel label;
-            final int index;              // 0-based position, row-major
-            String itemId;                // null when empty
-            javax.swing.ImageIcon normal; // shown when not hovered
-            javax.swing.ImageIcon hover;  // shown while hovered
-            boolean selected = false;
+    /**
+     * One inventory slot: owns its label, its current item id (null = empty),
+     * and the two icons it can show (normal / hover). All per-slot state lives
+     * here, so the frame never has to consult a parallel map or client property.
+     */
+    private static final class Slot {
+        final javax.swing.JLabel label;
+        final int index;              // 0-based position, row-major
+        String itemId;                // null when empty
+        javax.swing.ImageIcon normal; // shown when not hovered
+        javax.swing.ImageIcon hover;  // shown while hovered
+        boolean selected = false;
 
-            Slot(javax.swing.JLabel label, int index) {
-                this.label = label;
-                this.index = index;
-            }
-
-            boolean isEmpty() { return itemId == null; }
-
-            /** Paints the non-hover icon. Safe to call at any time. */
-            void showNormal() {
-                if (normal != null) label.setIcon(normal);
-            }
-
-            /** Paints the hover icon. Safe to call at any time. */
-            void showHover() {
-                if (hover != null) label.setIcon(hover);
-            }
-            
-            /** Paints the appropriate icon given the slot's current state. */
-            void refresh() {               // ← add this method
-                if (selected) showHover();
-                else          showNormal();
-            }
+        Slot(javax.swing.JLabel label, int index) {
+            this.label = label;
+            this.index = index;
         }
 
-        // ---- Fields ----
-        private Slot[] slots;
+        boolean isEmpty() { return itemId == null; }
 
-        // Shared icons for the empty state — every slot uses the same pair.
-        private javax.swing.ImageIcon emptyIcon;
-        private javax.swing.ImageIcon emptyHoverIcon;
-        private Slot selectedSlot;
-        private String combineItemA;
-        private String combineItemB;  
-        private javax.swing.ImageIcon emptyCombineIcon;
-        private javax.swing.ImageIcon combineAHover;   
-        private javax.swing.ImageIcon combineBHover;   
-        private javax.swing.JComponent activeToast;
-        private javax.swing.ImageIcon phoneLockscreenIcon;
-        private javax.swing.ImageIcon phoneUnlockedIcon;
-        private javax.swing.ImageIcon phoneMessageScreenIcon;
-        private javax.swing.ImageIcon convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon;
-        private int currentConvo = 0;
-        private boolean isGameOver = false;
-        
-        // Cache for description images to prevent loading delay
-        private java.util.Map<String, javax.swing.ImageIcon> descriptionCache = new java.util.HashMap<>();
+        /** Paints the non-hover icon. Safe to call at any time. */
+        void showNormal() {
+            if (normal != null) label.setIcon(normal);
+        }
 
-        // ---- PIN state ----
-        private final StringBuilder pinBuffer = new StringBuilder();
-        private javax.swing.ImageIcon pinEmptyIcon;
-        private javax.swing.ImageIcon pinFilledIcon;
-        private javax.swing.JLabel[] pinDots;
-        
-        // ---- Message Box Icons ----
-        private javax.swing.ImageIcon msgCathyNorm, msgCathyHover;
-        private javax.swing.ImageIcon msgCardoNorm, msgCardoHover;
-        private javax.swing.ImageIcon msgAndyNorm, msgAndyHover;
-        private javax.swing.ImageIcon msgAndayaNorm, msgAndayaHover;
+        /** Paints the hover icon. Safe to call at any time. */
+        void showHover() {
+            if (hover != null) label.setIcon(hover);
+        }
 
-        private boolean closing = false;
-        private PauseMenu pauseMenu;
-        private OptionsMenu optionsMenu;
+        /** Paints the appropriate icon given the slot's current state. */
+        void refresh() {
+            if (selected) showHover();
+            else          showNormal();
+        }
+    }
+
+    // ---- Slot state ----
+    private Slot[] slots;
+
+    // Shared icons for the empty state — every slot uses the same pair.
+    private javax.swing.ImageIcon emptyIcon;
+    private javax.swing.ImageIcon emptyHoverIcon;
+    private Slot selectedSlot;
+
+    // ---- Combine slots ----
+    private String combineItemA;
+    private String combineItemB;
+    private javax.swing.ImageIcon emptyCombineIcon;
+    private javax.swing.ImageIcon combineAHover;
+    private javax.swing.ImageIcon combineBHover;
+
+    // ---- Toast ----
+    private javax.swing.JComponent activeToast;
+
+    // ---- Phone screen state ----
+    private javax.swing.ImageIcon phoneLockscreenIcon;
+    private javax.swing.ImageIcon phoneUnlockedIcon;
+    private javax.swing.ImageIcon phoneMessageScreenIcon;
+    private javax.swing.ImageIcon convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon;
+    private int currentConvo = 0;
+
+    // ---- Game state ----
+    private boolean isGameOver = false;
+    private boolean closing = false;
+
+    // Description images pre-loaded so clicking an item doesn't stutter.
+    private java.util.Map<String, javax.swing.ImageIcon> descriptionCache = new java.util.HashMap<>();
+
+    // ---- PIN entry ----
+    private final StringBuilder pinBuffer = new StringBuilder();
+    private javax.swing.ImageIcon pinEmptyIcon;
+    private javax.swing.ImageIcon pinFilledIcon;
+    private javax.swing.JLabel[] pinDots;
+
+    // ---- Message-box icons ----
+    private javax.swing.ImageIcon msgCathyNorm,  msgCathyHover;
+    private javax.swing.ImageIcon msgCardoNorm,  msgCardoHover;
+    private javax.swing.ImageIcon msgAndyNorm,   msgAndyHover;
+    private javax.swing.ImageIcon msgAndayaNorm, msgAndayaHover;
+
+    // ---- Menus ----
+    private PauseMenu pauseMenu;
+    private OptionsMenu optionsMenu;
     
     /**
      * Creates new form Inventory
      */
-    public Inventory() {
+     public Inventory() {
         initComponents();
-        
+
         // ---- Window icon ----
         try {
             java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/common/logo.png"));
+                    getClass().getResourceAsStream("/Images/common/logo.png"));
             setIconImage(icon);
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
         }
 
-        setTitle("The Fourth Tenant");
-        setResizable(false);
-        setLocationRelativeTo(null);    
-        
-        // ---- Cache the empty slot icon ----
+        setLocationRelativeTo(null);
+
+        // ---- Empty slot icons (shared across all 20 slots) ----
         emptyIcon = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"));
-        
+                getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"));
         emptyCombineIcon = emptyIcon;
-        
-        // Empty-slot hover
+
         java.net.URL emptyHoverUrl = getClass().getResource(
                 "/Images/gameplay/inventory/item_slots/highlighted_slot_empty.png");
         emptyHoverIcon = (emptyHoverUrl != null)
                 ? new javax.swing.ImageIcon(emptyHoverUrl)
                 : emptyIcon;
-        
+
         // ---- PIN dot icons ----
         pinEmptyIcon = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_pin_empty.png"));
+                getClass().getResource("/Images/gameplay/inventory/phone_pin_empty.png"));
         pinFilledIcon = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_pin_filled.png"));
-        
+                getClass().getResource("/Images/gameplay/inventory/phone_pin_filled.png"));
+
         // ---- Phone screen states ----
         phoneLockscreenIcon = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_lockscreen.png"));
+                getClass().getResource("/Images/gameplay/inventory/phone_lockscreen.png"));
         phoneUnlockedIcon = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_unlocked.png"));
+                getClass().getResource("/Images/gameplay/inventory/phone_unlocked.png"));
         phoneScreen.setIcon(phoneLockscreenIcon);
         phoneMessageScreenIcon = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_message_screen.png"));
-        
-        // Load Message Icons
+                getClass().getResource("/Images/gameplay/inventory/phone_message_screen.png"));
+
+        // ---- Message inbox icons ----
         msgCathyNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cathy.png"));
         msgCathyHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cathy_hover.png"));
-        
+
         msgAndayaNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andaya.png"));
         msgAndayaHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andaya_hover.png"));
 
@@ -150,19 +157,19 @@ public class Inventory extends javax.swing.JFrame {
         msgAndyNorm  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andy.png"));
         msgAndyHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_andy_hover.png"));
 
+        // ---- Message-conversation screens ----
         convoCathyIcon  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_cathy.png"));
         convoAndayaIcon = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_andaya.png"));
         convoAndyIcon   = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_andy.png"));
         convoCardoIcon  = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_convo_cardo.png"));
-        
+
         pinDots = new javax.swing.JLabel[] { pin1, pin2, pin3, pin4 };
         for (javax.swing.JLabel dot : pinDots) {
             dot.setIcon(pinEmptyIcon);
         }
-        
+
         // ---- Inspect button: hidden by default, only shows for the phone ----
         inspectButton.setVisible(false);
-        inspectButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         inspectButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -175,10 +182,6 @@ public class Inventory extends javax.swing.JFrame {
             }
         });
         
-        // ---- Phone hover colors ----
-        final java.awt.Color SUB_NORMAL = new java.awt.Color(255, 255, 255);
-        final java.awt.Color SUB_HOVER  = new java.awt.Color(255, 230, 160);
-
         // ---- Wire up slot labels (row-major: slot1 = top-left) ----
         javax.swing.JLabel[] slotLabels = {
             slot1,  slot2,  slot3,  slot4,  slot5,
@@ -193,9 +196,8 @@ public class Inventory extends javax.swing.JFrame {
             slots[i].hover  = emptyHoverIcon;
             wireSlot(slots[i]);
         }
-        
+
         // ---- Combine slot A: hover preview + click to remove ----
-        combineSlotA.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         combineSlotA.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -205,20 +207,19 @@ public class Inventory extends javax.swing.JFrame {
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
                 if (combineItemA != null) {
-                    setCombineSlotIcon(combineSlotA, combineItemA);   // restore normal
+                    setCombineSlotIcon(combineSlotA, combineItemA); // restore normal
                 }
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 if (combineItemA != null) {
-                    AudioCache.play("/audio/sfx/ui/select.wav");  
+                    AudioCache.play("/audio/sfx/ui/select.wav");
                     clearCombineSlot(true);
                 }
             }
         });
 
         // ---- Combine slot B: hover preview + click to remove ----
-        combineSlotB.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         combineSlotB.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -228,43 +229,29 @@ public class Inventory extends javax.swing.JFrame {
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
                 if (combineItemB != null) {
-                    setCombineSlotIcon(combineSlotB, combineItemB);   // restore normal
+                    setCombineSlotIcon(combineSlotB, combineItemB); // restore normal
                 }
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 if (combineItemB != null) {
-                    AudioCache.play("/audio/sfx/ui/select.wav");   
+                    AudioCache.play("/audio/sfx/ui/select.wav");
                     clearCombineSlot(false);
                 }
             }
         });
-        
+
         // Start with empty combine slots.
         clearAllCombineSlots();
-        
-        // ---- Style the COMBINE button (label on the red ribbon) ----
-        combineLabel.setText("COMBINE");
-        combineLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        combineLabel.setFont(getCustomFont(12f));
-        combineLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
-        final java.awt.Color COMBINE_READY   = new java.awt.Color(255, 230, 160);   // warm gold
-        final java.awt.Color COMBINE_DIM     = new java.awt.Color(120, 120, 120);   // muted gray
-        final java.awt.Color COMBINE_HOVER   = new java.awt.Color(255, 255, 255);   // white on hover
-
-        combineLabel.setForeground(COMBINE_DIM);   // starts dim
-
+        // ---- COMBINE button (label on the red ribbon) ----
         combineLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
-                if (combineItemA != null && combineItemB != null) {
-                    combineLabel.setForeground(COMBINE_HOVER);
-                }
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                refreshCombineLabel();   // restores dim or gold depending on state
+                // no-op
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -276,17 +263,15 @@ public class Inventory extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/select.wav");
                 tryCombine();
             }
-        });   
-        
+        });
+
         // ---- Back button ----
         final javax.swing.ImageIcon backNormal = new javax.swing.ImageIcon(
                 getClass().getResource("/Images/ui/back_button.png"));
         final javax.swing.ImageIcon backHover = new javax.swing.ImageIcon(
-                darken(backNormal.getImage()));
+                getClass().getResource("/Images/ui/back_button_hovered.png"));
 
         backButton.setIcon(backNormal);
-        backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -312,14 +297,14 @@ public class Inventory extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void onClose() {
-                pauseMenu.showPopupOnly();   // bring back the pause popup
+                pauseMenu.showPopupOnly();
             }
         });
 
         // ---- Pause menu ----
         pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
             @Override public void onPause() {
-                // Nothing to pause in Inventory — hover sounds are fire-and-forget.
+                // Nothing to pause here — hover sounds are fire-and-forget.
             }
             @Override public void onResume() {
                 // Nothing to resume.
@@ -341,25 +326,24 @@ public class Inventory extends javax.swing.JFrame {
                 });
             }
         });
-        
-        // ---- Keyboard shortcut: E returns to CrimeScene ----
+
+        // ---- Keyboard shortcut: 1 returns to CrimeScene ----
         javax.swing.JRootPane root = getRootPane();
         javax.swing.KeyStroke backKey =
-            javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, 0);
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, 0);
         root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(backKey, "closeInventoryKey");
+                .put(backKey, "closeInventoryKey");
         root.getActionMap().put("closeInventoryKey", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 AudioCache.play("/audio/sfx/ui/zipper.wav");
                 closeInventory();
             }
         });
-        
+
+        // ---- Fill slots from GameState, prep description cache ----
         refreshSlots(GameState.getCollected());
         setDescription(null);
-        
-        // ---- Pre-load all description images into memory ----
-        // (This prevents lag when clicking items)
+
         for (String itemId : GameState.getCollected()) {
             String path = ItemDatabase.descriptionImagePath(itemId);
             java.net.URL u = getClass().getResource(path);
@@ -368,49 +352,24 @@ public class Inventory extends javax.swing.JFrame {
             }
         }
         
-        // ---- Phone lockscreen: hidden by default, only shows for the phone ----
-        phoneScrim.setVisible(false);
-        phoneScreen.setVisible(false);
-        phoneHeading.setVisible(false);
-        phoneSubheading.setVisible(false);
-        phoneClueText.setVisible(false); 
-        phoneBackText.setVisible(false);
-        phoneAppMsg.setVisible(false);
-        phoneMsgBack.setVisible(false);
-        num1.setVisible(false);
-        num2.setVisible(false);
-        num3.setVisible(false);
-        num4.setVisible(false);
-        num5.setVisible(false);
-        num6.setVisible(false);
-        num7.setVisible(false);
-        num8.setVisible(false);
-        num9.setVisible(false);
-        num0.setVisible(false);
-        backspace.setVisible(false);
-        pin1.setVisible(false);
-        pin2.setVisible(false);
-        pin3.setVisible(false);
-        pin4.setVisible(false);
-        msg1.setVisible(false);
-        msg2.setVisible(false);
-        msg3.setVisible(false);
-        msg4.setVisible(false);
-        
+        // ---- Phone overlay: everything hidden by default ----
+        hidePhoneOverlay();
+
+        // Swallow clicks on the PIN dots so they don't fall through to the scrim.
         pin1.addMouseListener(new java.awt.event.MouseAdapter() { });
         pin2.addMouseListener(new java.awt.event.MouseAdapter() { });
         pin3.addMouseListener(new java.awt.event.MouseAdapter() { });
         pin4.addMouseListener(new java.awt.event.MouseAdapter() { });
 
-        phoneScrim.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        // Clicking outside the phone screen closes it.
         phoneScrim.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 closePhoneScreen();
             }
         });
-        
-        // ---- Phone keypad: swallow clicks so they don't fall through to the scrim ----
+
+        // ---- Phone keypad (0–9): hover swap + click → onPinDigit() ----
         javax.swing.JLabel[] keypad = {
             num1, num2, num3, num4, num5,
             num6, num7, num8, num9, num0
@@ -422,15 +381,14 @@ public class Inventory extends javax.swing.JFrame {
             final javax.swing.JLabel key = keypad[i];
 
             final javax.swing.ImageIcon normal = new javax.swing.ImageIcon(
-                getClass().getResource("/Images/gameplay/inventory/phone_btn" + digit + ".png"));
+                    getClass().getResource("/Images/gameplay/inventory/phone_btn" + digit + ".png"));
             java.net.URL hoverUrl = getClass().getResource(
-                "/Images/gameplay/inventory/phone_hover_btn" + digit + ".png");
+                    "/Images/gameplay/inventory/phone_hover_btn" + digit + ".png");
             final javax.swing.ImageIcon hover = (hoverUrl != null)
-                ? new javax.swing.ImageIcon(hoverUrl)
-                : normal;
+                    ? new javax.swing.ImageIcon(hoverUrl)
+                    : normal;
 
             key.setIcon(normal);
-            key.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
             key.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                     if (isGameOver) return;
@@ -448,13 +406,11 @@ public class Inventory extends javax.swing.JFrame {
             });
         }
 
-        // Backspace: swallow the click (real action wired later).
-        backspace.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-
+        // ---- Backspace key ----
         final javax.swing.ImageIcon bsNormal = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_btnbackspace.png"));
+                getClass().getResource("/Images/gameplay/inventory/phone_btnbackspace.png"));
         final javax.swing.ImageIcon bsHover = new javax.swing.ImageIcon(
-            getClass().getResource("/Images/gameplay/inventory/phone_hover_btnbackspace.png"));
+                getClass().getResource("/Images/gameplay/inventory/phone_hover_btnbackspace.png"));
 
         backspace.setIcon(bsNormal);
         backspace.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -473,22 +429,19 @@ public class Inventory extends javax.swing.JFrame {
             }
         });
 
-        // Headings and phone image: swallow clicks without doing anything.
+        // Swallow clicks on non-interactive phone widgets.
         phoneHeading.addMouseListener(new java.awt.event.MouseAdapter() { });
         phoneScreen.addMouseListener(new java.awt.event.MouseAdapter() { });
         phoneClueText.addMouseListener(new java.awt.event.MouseAdapter() { });
         
-        // Set initial color
-        phoneSubheading.setForeground(SUB_NORMAL);
-        phoneSubheading.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        // ---- "Forgot Pin?" link ----
         phoneSubheading.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
-                phoneSubheading.setForeground(SUB_HOVER);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                phoneSubheading.setForeground(SUB_NORMAL);
+                // no-op
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -496,29 +449,24 @@ public class Inventory extends javax.swing.JFrame {
                 showClueScreen();
             }
         });
-        
-        // Hover for phoneBackText
-        phoneBackText.setForeground(SUB_NORMAL);
-        phoneBackText.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        // ---- "Back" link inside the clue screen ----
         phoneBackText.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
-                phoneBackText.setForeground(SUB_HOVER);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                phoneBackText.setForeground(SUB_NORMAL);
+                // no-op
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
-                // Clicking Back returns to the lock screen
                 returnToLockScreen();
             }
         });
-        
-        // --- Clicking the App Icon ---
-        phoneAppMsg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        // ---- Message-app icon: opens the inbox ----
         phoneAppMsg.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -529,58 +477,46 @@ public class Inventory extends javax.swing.JFrame {
                 phoneAppMsg.setVisible(false);
                 phoneMsgBack.setVisible(true);
 
-                // Add these four lines to reset the view:
-                msg1.setVisible(false);
-                msg2.setVisible(false);
-                msg3.setVisible(false);
-                msg4.setVisible(false);
-
-                showMessageInbox(); 
+                hideInboxMessages();
+                showMessageInbox();
             }
         });
-        
-        // --- Clicking the Back Button inside the Message App ---
+
+        // ---- Message-app back button ----
         phoneMsgBack.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
                 if (currentConvo > 0) {
-                    // WE ARE IN A CONVO -> Go back to Inbox
+                    // Inside a conversation → back to the inbox.
                     currentConvo = 0;
                     phoneScreen.setIcon(phoneMessageScreenIcon);
-                    showMessageInbox(); 
+                    showMessageInbox();
                 } else {
-                    // WE ARE IN THE INBOX -> Go back to Home Screen
+                    // In the inbox → back to the home screen.
                     phoneScreen.setIcon(phoneUnlockedIcon);
                     phoneMsgBack.setVisible(false);
                     phoneAppMsg.setVisible(true);
-
-                    // Add these four lines to hide them before leaving:
-                    msg1.setVisible(false);
-                    msg2.setVisible(false);
-                    msg3.setVisible(false);
-                    msg4.setVisible(false);
+                    hideInboxMessages();
                 }
             }
         });
-        
-        // --- Wire up message box hovers and initial states ---
+
+        // ---- Inbox entries: hover swap + click → open conversation ----
         javax.swing.JLabel[] inboxLabels = { msg1, msg2, msg3, msg4 };
-        javax.swing.ImageIcon[] normIcons = { msgCathyNorm, msgAndayaNorm, msgAndyNorm, msgCardoNorm };
+        javax.swing.ImageIcon[] normIcons  = { msgCathyNorm,  msgAndayaNorm, msgAndyNorm, msgCardoNorm };
         javax.swing.ImageIcon[] hoverIcons = { msgCathyHover, msgAndayaHover, msgAndyHover, msgCardoHover };
         javax.swing.ImageIcon[] convoIcons = { convoCathyIcon, convoAndayaIcon, convoAndyIcon, convoCardoIcon };
 
         for (int i = 0; i < inboxLabels.length; i++) {
             final javax.swing.JLabel msg = inboxLabels[i];
             final javax.swing.ImageIcon normal = normIcons[i];
-            final javax.swing.ImageIcon hover = hoverIcons[i];
-            final javax.swing.ImageIcon convo = convoIcons[i];
-            final int convoIndex = i + 1; // 1 = Cathy, 2 = Andaya, etc.
+            final javax.swing.ImageIcon hover  = hoverIcons[i];
+            final javax.swing.ImageIcon convo  = convoIcons[i];
+            final int convoIndex = i + 1; // 1 = Cathy, 2 = Andaya, 3 = Andy, 4 = Cardo
 
             msg.setIcon(normal);
-            msg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-
             msg.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                     if (isGameOver) return;
@@ -594,121 +530,62 @@ public class Inventory extends javax.swing.JFrame {
                     if (isGameOver) return;
                     AudioCache.play("/audio/sfx/phone/phone_swipe.wav");
 
-                    // Open the convo!
                     currentConvo = convoIndex;
                     phoneScreen.setIcon(convo);
-
-                    // Hide the inbox messages
-                    msg1.setVisible(false);
-                    msg2.setVisible(false);
-                    msg3.setVisible(false);
-                    msg4.setVisible(false);
+                    hideInboxMessages();
                 }
             });
         }
 
-        // ---- Health Bar ----
+        // ---- Health bar ----
         HealthBar healthBar = new HealthBar(100);
-        // Width is 280 (70px icon + 210px bar), Height is 70
-        contentPanel.add(healthBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 10, 280, 70));
+        // 280 wide = 70px icon + 210px bar; 70 tall.
+        contentPanel.add(healthBar,
+                new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 10, 280, 70));
         contentPanel.setComponentZOrder(healthBar, 0);
 
-        // ---- Hide Game Over UI by default ----
+        // ---- Hide game-over UI by default ----
         gameoverLabel.setVisible(false);
         restartButton.setVisible(false);
         menuButton.setVisible(false);
 
-        // ---- Style the Game Over Buttons ----
-        java.awt.Font goFont = getCustomFont(20f);
-        
-        javax.swing.JLabel[] goButtons = { restartButton, menuButton };
-        final String[] goTexts = { "RESTART", "MAIN MENU" };
-        
-        final java.awt.Color GO_NORMAL = java.awt.Color.GRAY;
-        final java.awt.Color GO_HOVER  = java.awt.Color.WHITE;
-        
-        // 0 = RESTART, 1 = MAIN MENU (Default to Restart)
-        final int[] selectedIndex = { 0 };
+        // ---- Game-over buttons (hover sound + click) ----
+        restartButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (!isGameOver) return;
+                AudioCache.play("/audio/sfx/ui/select.wav");
+                GameState.reset();
+                TransitionOverlay.play(Inventory.this, () -> {
+                    Backstory bs = new Backstory();
+                    bs.setLocation(getLocation());
+                    bs.setVisible(true);
+                    Inventory.this.dispose();
+                });
+            }
+        });
 
-        for (int i = 0; i < goButtons.length; i++) {
-            final javax.swing.JLabel lbl = goButtons[i];
-            final String baseText = goTexts[i];
-            final int btnIndex = i;
+        menuButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (!isGameOver) return;
+                AudioCache.play("/audio/sfx/ui/select.wav");
+                GameState.reset();
+                TransitionOverlay.play(Inventory.this, () -> {
+                    MainMenu menu = new MainMenu();
+                    menu.setLocation(getLocation());
+                    menu.setVisible(true);
+                    Inventory.this.dispose();
+                });
+            }
+        });
 
-            lbl.setFont(goFont);
-            lbl.setForeground(GO_NORMAL);
-            lbl.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-            lbl.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-            lbl.setOpaque(false);
-            lbl.setText(baseText);
-
-            lbl.setUI(new javax.swing.plaf.basic.BasicLabelUI() {
-                @Override
-                public void paint(java.awt.Graphics g, javax.swing.JComponent c) {
-                    javax.swing.JLabel l = (javax.swing.JLabel) c;
-                    
-                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-                    g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-                                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-                    g2.setFont(l.getFont());
-                    
-                    String textToDraw;
-                    boolean isSelected = (selectedIndex[0] == btnIndex);
-                    
-                    if (isSelected) {
-                        textToDraw = "> " + baseText + " <";
-                    } else {
-                        textToDraw = "  " + baseText + "  ";
-                    }
-
-                    java.awt.FontMetrics fm = g2.getFontMetrics();
-                    int textW = fm.stringWidth(textToDraw);
-                    int x = (l.getWidth() - textW) / 2;
-                    int y = (l.getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-
-                    g2.setColor(l.getForeground());
-                    g2.drawString(textToDraw, x, y);
-                    g2.dispose();
-                }
-            });
-            
-            lbl.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                    if (!isGameOver) return; 
-                    selectedIndex[0] = btnIndex;
-                    restartButton.setForeground(GO_NORMAL);
-                    menuButton.setForeground(GO_NORMAL);
-                    lbl.setForeground(GO_HOVER);
-                    
-                    restartButton.repaint();
-                    menuButton.repaint();
-                    AudioCache.play("/audio/sfx/ui/hover.wav");
-                }
-                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                    if (!isGameOver) return; 
-                    AudioCache.play("/audio/sfx/ui/select.wav");
-                    
-                    if (lbl == restartButton) {
-                        GameState.reset();
-                        TransitionOverlay.play(Inventory.this, () -> {
-                            Backstory bs = new Backstory();
-                            bs.setLocation(getLocation());
-                            bs.setVisible(true);
-                            Inventory.this.dispose();
-                        });
-                    } else {
-                        GameState.reset();
-                        TransitionOverlay.play(Inventory.this, () -> {
-                            MainMenu menu = new MainMenu();
-                            menu.setLocation(getLocation());
-                            menu.setVisible(true);
-                            Inventory.this.dispose();
-                        });
-                    }
-                }
-            });
-        }
-
+        // ---- Z-order pass: phone overlay widgets on top, back button very top ----
+        // (Kept explicit so future additions don't accidentally hide the phone.)
         contentPanel.setComponentZOrder(inspectButton,    0);
         contentPanel.setComponentZOrder(phoneScrim,       0);
         contentPanel.setComponentZOrder(phoneScreen,      0);
@@ -729,20 +606,20 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.setComponentZOrder(pin4,             0);
         contentPanel.setComponentZOrder(phoneSubheading,  0);
         contentPanel.setComponentZOrder(phoneHeading,     0);
-        contentPanel.setComponentZOrder(phoneClueText, 0);
-        contentPanel.setComponentZOrder(phoneBackText, 0);
-        contentPanel.setComponentZOrder(phoneAppMsg, 0);
-        contentPanel.setComponentZOrder(phoneMsgBack, 0);
-        contentPanel.setComponentZOrder(msg1, 0);
-        contentPanel.setComponentZOrder(msg2, 0);
-        contentPanel.setComponentZOrder(msg3, 0);
-        contentPanel.setComponentZOrder(msg4, 0);
-        
-        // Push the back button to the very top so it's above the scrim
-        contentPanel.setComponentZOrder(backButton,       0); 
-        
+        contentPanel.setComponentZOrder(phoneClueText,    0);
+        contentPanel.setComponentZOrder(phoneBackText,    0);
+        contentPanel.setComponentZOrder(phoneAppMsg,      0);
+        contentPanel.setComponentZOrder(phoneMsgBack,     0);
+        contentPanel.setComponentZOrder(msg1,             0);
+        contentPanel.setComponentZOrder(msg2,             0);
+        contentPanel.setComponentZOrder(msg3,             0);
+        contentPanel.setComponentZOrder(msg4,             0);
+
+        // Back button must sit above the scrim so the player can always exit.
+        contentPanel.setComponentZOrder(backButton, 0);
+
         contentPanel.repaint();
-    } 
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -815,17 +692,20 @@ public class Inventory extends javax.swing.JFrame {
         backgroundLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("The Fourth Tenant");
         setResizable(false);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        restartButton.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        restartButton.setFont(new java.awt.Font("Press Start 2P", 0, 20)); // NOI18N
+        restartButton.setForeground(new java.awt.Color(255, 255, 255));
         restartButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         restartButton.setText("RESTART");
         restartButton.setPreferredSize(new java.awt.Dimension(180, 32));
         contentPanel.add(restartButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 360, -1, -1));
 
-        menuButton.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        menuButton.setFont(new java.awt.Font("Press Start 2P", 0, 20)); // NOI18N
+        menuButton.setForeground(new java.awt.Color(255, 255, 255));
         menuButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         menuButton.setText("MAIN MENU");
         menuButton.setPreferredSize(new java.awt.Dimension(180, 32));
@@ -835,6 +715,7 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.add(gameoverLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
+        backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, -1, 50));
 
         msg4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/message_cardo.png"))); // NOI18N
@@ -922,6 +803,7 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.add(num2, new org.netbeans.lib.awtextra.AbsoluteConstraints(551, 280, -1, -1));
 
         num1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_btn1.png"))); // NOI18N
+        num1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(num1, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 280, -1, -1));
 
         phoneHeading.setBackground(new java.awt.Color(255, 255, 255));
@@ -942,16 +824,22 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.add(phoneScreen, new org.netbeans.lib.awtextra.AbsoluteConstraints(416, 73, -1, -1));
 
         phoneScrim.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/phone_scrim.png"))); // NOI18N
+        phoneScrim.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(phoneScrim, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
+        combineLabel.setFont(new java.awt.Font("Press Start 2P", 0, 12)); // NOI18N
+        combineLabel.setForeground(new java.awt.Color(255, 255, 255));
         combineLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         combineLabel.setText("Combine");
+        combineLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(combineLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(824, 555, 260, 50));
 
         combineSlotB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
+        combineSlotB.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(combineSlotB, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 510, -1, -1));
 
         combineSlotA.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
+        combineSlotA.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(combineSlotA, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 510, -1, -1));
 
         slot20.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
@@ -1014,7 +902,7 @@ public class Inventory extends javax.swing.JFrame {
         slot1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_slots/slot_empty.png"))); // NOI18N
         contentPanel.add(slot1, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 50, -1, -1));
 
-        descTitle.setFont(new java.awt.Font("Arial Narrow", 1, 18)); // NOI18N
+        descTitle.setFont(new java.awt.Font("Press Start 2P", 1, 12)); // NOI18N
         descTitle.setForeground(new java.awt.Color(202, 50, 50));
         descTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         contentPanel.add(descTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(800, 350, 310, 40));
@@ -1025,13 +913,15 @@ public class Inventory extends javax.swing.JFrame {
         contentPanel.add(descImage, new org.netbeans.lib.awtextra.AbsoluteConstraints(810, 130, 290, 240));
 
         descText.setBackground(new java.awt.Color(28, 28, 28));
-        descText.setFont(new java.awt.Font("Arial Narrow", 1, 18)); // NOI18N
+        descText.setFont(new java.awt.Font("Press Start 2P", 1, 10)); // NOI18N
+        descText.setForeground(new java.awt.Color(255, 255, 255));
         descText.setText("click an item to show description");
         descText.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         descText.setPreferredSize(new java.awt.Dimension(250, 260));
         contentPanel.add(descText, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 420, 260, 90));
 
         inspectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/item_description/inspect_button.png"))); // NOI18N
+        inspectButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(inspectButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1065, 110, -1, -1));
 
         backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/inventory/Inventory.png"))); // NOI18N
@@ -1055,65 +945,23 @@ public class Inventory extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     
-    /** Closes this Inventory and returns to the CrimeScene. */
-    private void closeInventory() {
-        if (closing) return;
-        closing = true;
+    // ------------------------------------------------------------------
+    // Phone overlay visibility helpers
+    // Each of these collapses what used to be ~20 lines of setVisible()
+    // calls per place. Change the widget list here once and every screen
+    // picks it up.
+    // ------------------------------------------------------------------
 
-        CrimeScene cs = new CrimeScene();
-        cs.setLocation(getLocation());
-        cs.setVisible(true);
-        Inventory.this.dispose();
-    }
-    
-    /** Shows the phone lockscreen overlay. */
-    private void openPhoneInspect() {
-        phoneScrim.setVisible(true);
-        phoneScreen.setVisible(true);
-
-        if (GameState.isPhoneUnlocked()) {
-            // ALREADY UNLOCKED -> Go straight to home screen!
-            phoneScreen.setIcon(phoneUnlockedIcon);
-            phoneAppMsg.setVisible(true);
-            
-            // Hide all the lock screen stuff
-            phoneHeading.setVisible(false);
-            phoneSubheading.setVisible(false);
-            num1.setVisible(false); num2.setVisible(false); num3.setVisible(false);
-            num4.setVisible(false); num5.setVisible(false); num6.setVisible(false);
-            num7.setVisible(false); num8.setVisible(false); num9.setVisible(false);
-            num0.setVisible(false); backspace.setVisible(false);
-            pin1.setVisible(false); pin2.setVisible(false); pin3.setVisible(false); pin4.setVisible(false);
-            phoneMsgBack.setVisible(false);
-            msg1.setVisible(false); msg2.setVisible(false); msg3.setVisible(false); msg4.setVisible(false);
-            
-            pinBuffer.setLength(0);
-            refreshPinDots();
-            
-        } else {
-            // NOT UNLOCKED YET -> Show the lock screen
-            phoneScreen.setIcon(phoneLockscreenIcon);
-            returnToLockScreen();
-            phoneHeading.setVisible(true);
-            phoneSubheading.setVisible(true);
-            num1.setVisible(true); num2.setVisible(true); num3.setVisible(true);
-            num4.setVisible(true); num5.setVisible(true); num6.setVisible(true);
-            num7.setVisible(true); num8.setVisible(true); num9.setVisible(true);
-            num0.setVisible(true); backspace.setVisible(true);
-            pin1.setVisible(true); pin2.setVisible(true); pin3.setVisible(true); pin4.setVisible(true);
-            
-            pinBuffer.setLength(0);
-            refreshPinDots();
-        }
-    }
-    
-    private void closePhoneScreen() {
+    /** Hides every phone overlay widget (scrim, screen, keypad, message UI, ...). */
+    private void hidePhoneOverlay() {
         phoneScrim.setVisible(false);
         phoneScreen.setVisible(false);
         phoneHeading.setVisible(false);
         phoneSubheading.setVisible(false);
-        phoneSubheading.setForeground(new java.awt.Color(255, 255, 255));
+        phoneClueText.setVisible(false);
+        phoneBackText.setVisible(false);
         phoneAppMsg.setVisible(false);
+        phoneMsgBack.setVisible(false);
         num1.setVisible(false);
         num2.setVisible(false);
         num3.setVisible(false);
@@ -1129,24 +977,123 @@ public class Inventory extends javax.swing.JFrame {
         pin2.setVisible(false);
         pin3.setVisible(false);
         pin4.setVisible(false);
-        phoneClueText.setVisible(false);
-        phoneBackText.setVisible(false);
+        hideInboxMessages();
+    }
+
+    /** Hides the four inbox message rows. */
+    private void hideInboxMessages() {
         msg1.setVisible(false);
         msg2.setVisible(false);
         msg3.setVisible(false);
         msg4.setVisible(false);
+    }
+
+    /** Hides the lock-screen keypad (digits + backspace + pin dots). */
+    private void hideLockScreenKeypad() {
+        phoneHeading.setVisible(false);
+        phoneSubheading.setVisible(false);
+        num1.setVisible(false);
+        num2.setVisible(false);
+        num3.setVisible(false);
+        num4.setVisible(false);
+        num5.setVisible(false);
+        num6.setVisible(false);
+        num7.setVisible(false);
+        num8.setVisible(false);
+        num9.setVisible(false);
+        num0.setVisible(false);
+        backspace.setVisible(false);
+        pin1.setVisible(false);
+        pin2.setVisible(false);
+        pin3.setVisible(false);
+        pin4.setVisible(false);
+    }
+
+    /** Shows the lock-screen keypad (digits + backspace + pin dots). */
+    private void showLockScreenKeypad() {
+        phoneHeading.setVisible(true);
+        phoneSubheading.setVisible(true);
+        num1.setVisible(true);
+        num2.setVisible(true);
+        num3.setVisible(true);
+        num4.setVisible(true);
+        num5.setVisible(true);
+        num6.setVisible(true);
+        num7.setVisible(true);
+        num8.setVisible(true);
+        num9.setVisible(true);
+        num0.setVisible(true);
+        backspace.setVisible(true);
+        pin1.setVisible(true);
+        pin2.setVisible(true);
+        pin3.setVisible(true);
+        pin4.setVisible(true);
+    }
+
+    /**
+     * Applies damage to the player, refreshes the health bar, and shows the
+     * game-over screen if this hit killed them.
+     */
+    private void damage(int amount) {
+        GameState.setHealth(GameState.getHealth() - amount);
+        for (java.awt.Component c : contentPanel.getComponents()) {
+            if (c instanceof HealthBar) {
+                ((HealthBar) c).setCurrent(GameState.getHealth());
+            }
+        }
+        if (GameState.getHealth() <= 0) showGameOver();
+    }    
+    
+    /** Closes this Inventory and returns to the CrimeScene. */
+    private void closeInventory() {
+        if (closing) return;
+        closing = true;
+
+        CrimeScene cs = new CrimeScene();
+        cs.setLocation(getLocation());
+        cs.setVisible(true);
+        dispose();
+    }
+
+    /** Shows the phone overlay (lockscreen or home screen depending on state). */
+    private void openPhoneInspect() {
+        phoneScrim.setVisible(true);
+        phoneScreen.setVisible(true);
+
+        if (GameState.isPhoneUnlocked()) {
+            // Already unlocked → straight to the home screen.
+            phoneScreen.setIcon(phoneUnlockedIcon);
+            phoneAppMsg.setVisible(true);
+            hideLockScreenKeypad();
+            phoneMsgBack.setVisible(false);
+            hideInboxMessages();
+
+            pinBuffer.setLength(0);
+            refreshPinDots();
+        } else {
+            // Locked → show the PIN entry screen.
+            phoneScreen.setIcon(phoneLockscreenIcon);
+            returnToLockScreen();
+
+            pinBuffer.setLength(0);
+            refreshPinDots();
+        }
+    }
+
+    /** Hides every phone widget and resets the current conversation. */
+    private void closePhoneScreen() {
+        hidePhoneOverlay();
         currentConvo = 0;
         AudioCache.play("/audio/sfx/ui/click.wav");
     }
-    
+
+    /** Shows all four inbox rows in normal (non-hover) state. */
     private void showMessageInbox() {
-        // 1. Set the correct icons based on the physical order
         msg1.setIcon(msgCathyNorm);
         msg2.setIcon(msgAndayaNorm);
         msg3.setIcon(msgAndyNorm);
         msg4.setIcon(msgCardoNorm);
 
-        // 2. Show them
         msg1.setVisible(true);
         msg2.setVisible(true);
         msg3.setVisible(true);
@@ -1171,185 +1118,20 @@ public class Inventory extends javax.swing.JFrame {
         final String CORRECT_PIN = "0818";
 
         if (pinBuffer.toString().equals(CORRECT_PIN)) {
-            // Unlocked — swap the phone image and hide the lock UI.
+            // Correct — swap the phone image and hide the lock UI.
             AudioCache.play("/audio/sfx/phone/phone_unlock.wav");
             GameState.setPhoneUnlocked(true);
             phoneScreen.setIcon(phoneUnlockedIcon);
-
-            phoneHeading.setVisible(false);
-            phoneSubheading.setVisible(false);
             phoneAppMsg.setVisible(true);
-            num1.setVisible(false);
-            num2.setVisible(false);
-            num3.setVisible(false);
-            num4.setVisible(false);
-            num5.setVisible(false);
-            num6.setVisible(false);
-            num7.setVisible(false);
-            num8.setVisible(false);
-            num9.setVisible(false);
-            num0.setVisible(false);
-            backspace.setVisible(false);
-            pin1.setVisible(false);
-            pin2.setVisible(false);
-            pin3.setVisible(false);
-            pin4.setVisible(false);
-
+            hideLockScreenKeypad();
             pinBuffer.setLength(0);
         } else {
-            // Wrong PIN — clear the buffer for another attempt.
+            // Wrong — clear, shake, and take 2 damage.
             pinBuffer.setLength(0);
             refreshPinDots();
-            shakePhone(); 
-            
-            // TAKE DAMAGE FOR WRONG PIN
-                GameState.setHealth(GameState.getHealth() - 2);
-                for (java.awt.Component c : contentPanel.getComponents()) {
-                    if (c instanceof HealthBar) {
-                        ((HealthBar) c).setCurrent(GameState.getHealth());
-                    }
-                }
-                if (GameState.getHealth() <= 0) showGameOver();
-                return;
+            shakePhone();
+            damage(2);
         }
-    }
-    
-    /** Shakes the entire phone (screen, buttons, text) horizontally to indicate an error. */
-    private void shakePhone() {
-        // Play the error sound
-        AudioCache.play("/audio/sfx/phone/phone_error.wav"); 
-
-        // 1. Store the original X positions of everything on the lock screen
-        final int origScreenX = phoneScreen.getX();
-        final int origHeadingX = phoneHeading.getX();
-        final int origSubheadingX = phoneSubheading.getX();
-        
-        final int origNum0X = num0.getX(); final int origNum1X = num1.getX();
-        final int origNum2X = num2.getX(); final int origNum3X = num3.getX();
-        final int origNum4X = num4.getX(); final int origNum5X = num5.getX();
-        final int origNum6X = num6.getX(); final int origNum7X = num7.getX();
-        final int origNum8X = num8.getX(); final int origNum9X = num9.getX();
-        
-        final int origPin1X = pin1.getX(); final int origPin2X = pin2.getX();
-        final int origPin3X = pin3.getX(); final int origPin4X = pin4.getX();
-        
-        final int origBackspaceX = backspace.getX();
-
-        final int duration = 300; // milliseconds
-        final int shakeDistance = 8; // pixels
-        final long startTime = System.currentTimeMillis();
-
-        javax.swing.Timer timer = new javax.swing.Timer(16, null);
-        timer.addActionListener(e -> {
-            long elapsed = System.currentTimeMillis() - startTime;
-            
-            // 2. When time is up, snap everything back to perfectly original positions
-            if (elapsed >= duration) {
-                phoneScreen.setLocation(origScreenX, phoneScreen.getY());
-                phoneHeading.setLocation(origHeadingX, phoneHeading.getY());
-                phoneSubheading.setLocation(origSubheadingX, phoneSubheading.getY());
-                
-                num0.setLocation(origNum0X, num0.getY()); num1.setLocation(origNum1X, num1.getY());
-                num2.setLocation(origNum2X, num2.getY()); num3.setLocation(origNum3X, num3.getY());
-                num4.setLocation(origNum4X, num4.getY()); num5.setLocation(origNum5X, num5.getY());
-                num6.setLocation(origNum6X, num6.getY()); num7.setLocation(origNum7X, num7.getY());
-                num8.setLocation(origNum8X, num8.getY()); num9.setLocation(origNum9X, num9.getY());
-                
-                pin1.setLocation(origPin1X, pin1.getY()); pin2.setLocation(origPin2X, pin2.getY());
-                pin3.setLocation(origPin3X, pin3.getY()); pin4.setLocation(origPin4X, pin4.getY());
-                
-                backspace.setLocation(origBackspaceX, backspace.getY());
-                
-                ((javax.swing.Timer) e.getSource()).stop();
-                return;
-            }
-
-            // 3. Calculate the dampening offset
-            double progress = (double) elapsed / duration;
-            double amplitude = shakeDistance * (1.0 - progress); // Starts at 8px, ends at 0px
-            double offset = Math.sin(progress * Math.PI * 10) * amplitude;
-            int dx = (int) offset;
-
-            // 4. Apply the offset to everything
-            phoneScreen.setLocation(origScreenX + dx, phoneScreen.getY());
-            phoneHeading.setLocation(origHeadingX + dx, phoneHeading.getY());
-            phoneSubheading.setLocation(origSubheadingX + dx, phoneSubheading.getY());
-            
-            num0.setLocation(origNum0X + dx, num0.getY()); num1.setLocation(origNum1X + dx, num1.getY());
-            num2.setLocation(origNum2X + dx, num2.getY()); num3.setLocation(origNum3X + dx, num3.getY());
-            num4.setLocation(origNum4X + dx, num4.getY()); num5.setLocation(origNum5X + dx, num5.getY());
-            num6.setLocation(origNum6X + dx, num6.getY()); num7.setLocation(origNum7X + dx, num7.getY());
-            num8.setLocation(origNum8X + dx, num8.getY()); num9.setLocation(origNum9X + dx, num9.getY());
-            
-            pin1.setLocation(origPin1X + dx, pin1.getY()); pin2.setLocation(origPin2X + dx, pin2.getY());
-            pin3.setLocation(origPin3X + dx, pin3.getY()); pin4.setLocation(origPin4X + dx, pin4.getY());
-            
-            backspace.setLocation(origBackspaceX + dx, backspace.getY());
-        });
-        timer.start();
-    }
-    
-    /** Shows the Clue screen when "Forgot Pin?" is clicked. */
-    private void showClueScreen() {
-        // Hide the lock screen UI
-        phoneHeading.setVisible(false);     // "Enter Passcode"
-        phoneSubheading.setVisible(false);  // "Forgot Pin?"
-        num1.setVisible(false);
-        num2.setVisible(false);
-        num3.setVisible(false);
-        num4.setVisible(false);
-        num5.setVisible(false);
-        num6.setVisible(false);
-        num7.setVisible(false);
-        num8.setVisible(false);
-        num9.setVisible(false);
-        num0.setVisible(false);
-        backspace.setVisible(false);
-        pin1.setVisible(false);
-        pin2.setVisible(false);
-        pin3.setVisible(false);
-        pin4.setVisible(false);
-
-        // Show the Clue UI
-        phoneClueText.setVisible(true);
-        phoneBackText.setVisible(true);
-
-        // Optional: Change the text to say "Clue" instead of "Enter Passcode"
-        phoneHeading.setText("Clue");
-        phoneHeading.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        phoneHeading.setVisible(true); 
-
-        // Clear any entered PIN
-        pinBuffer.setLength(0);
-    }
-
-    /** Returns to the normal lock screen from the Clue screen. */
-    private void returnToLockScreen() {
-        // Hide clue UI
-        phoneClueText.setVisible(false);
-        phoneBackText.setVisible(false);
-
-        // Restore the lock screen UI
-        phoneHeading.setText("Enter Passcode");
-        phoneHeading.setVisible(true);
-        phoneSubheading.setVisible(true);
-        num1.setVisible(true);
-        num2.setVisible(true);
-        num3.setVisible(true);
-        num4.setVisible(true);
-        num5.setVisible(true);
-        num6.setVisible(true);
-        num7.setVisible(true);
-        num8.setVisible(true);
-        num9.setVisible(true);
-        num0.setVisible(true);
-        backspace.setVisible(true);
-        pin1.setVisible(true);
-        pin2.setVisible(true);
-        pin3.setVisible(true);
-        pin4.setVisible(true);
-
-        refreshPinDots();
     }
 
     /** Removes the last digit from the PIN buffer and refreshes the dots. */
@@ -1367,95 +1149,189 @@ public class Inventory extends javax.swing.JFrame {
         }
     }
     
-        // =========================================================
-        // Slot behavior
-        // =========================================================
+    /** Shakes the entire phone (screen, buttons, text) horizontally to indicate an error. */
+    private void shakePhone() {
+        AudioCache.play("/audio/sfx/phone/phone_error.wav");
 
-        /** Wires hover + click listeners to a single slot. */
-        private void wireSlot(final Slot slot) {
-            final javax.swing.JLabel s = slot.label;
+        // Capture original X positions.
+        final int origScreenX = phoneScreen.getX();
+        final int origHeadingX = phoneHeading.getX();
+        final int origSubheadingX = phoneSubheading.getX();
 
-            s.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                    if (isGameOver) return;
-                    if (!slot.selected) slot.showHover();
-                    s.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                    AudioCache.play("/audio/sfx/ui/hover.wav");
-                }
+        final int origNum0X = num0.getX(); final int origNum1X = num1.getX();
+        final int origNum2X = num2.getX(); final int origNum3X = num3.getX();
+        final int origNum4X = num4.getX(); final int origNum5X = num5.getX();
+        final int origNum6X = num6.getX(); final int origNum7X = num7.getX();
+        final int origNum8X = num8.getX(); final int origNum9X = num9.getX();
 
-                @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                    // Restore the slot's persistent state — hover if selected, normal otherwise.
-                    slot.refresh();
-                    s.setCursor(java.awt.Cursor.getDefaultCursor());
-                }
+        final int origPin1X = pin1.getX(); final int origPin2X = pin2.getX();
+        final int origPin3X = pin3.getX(); final int origPin4X = pin4.getX();
 
-                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                    if (isGameOver) return;
-                    if (e.getClickCount() == 2) {
-                        // Double-click → stage into a combine slot.
-                        if (!slot.isEmpty()) {
-                            stageForCombine(slot.itemId);
-                            AudioCache.play("/audio/sfx/ui/select.wav");
-                        }
-                        return;   // don't run the single-click logic on the second click
-                    }
+        final int origBackspaceX = backspace.getX();
 
-                    // Single-click → original behavior (highlight + description).
-                    AudioCache.play("/audio/sfx/ui/select.wav");
+        final int duration = 300;
+        final int shakeDistance = 8;
+        final long startTime = System.currentTimeMillis();
 
-                    if (slot.isEmpty()) {
-                        setDescription(null);
-                        inspectButton.setVisible(false);
-                        return;
-                    }
+        javax.swing.Timer timer = new javax.swing.Timer(16, null);
+        timer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - startTime;
 
-                    if (selectedSlot != null && selectedSlot != slot) {
-                        selectedSlot.selected = false;
-                        selectedSlot.refresh();
-                    }
-                    slot.selected = true;
-                    slot.refresh();
-                    selectedSlot = slot;
-                    setDescription(ItemDatabase.get(slot.itemId));
+            if (elapsed >= duration) {
+                // Snap back exactly.
+                phoneScreen.setLocation(origScreenX, phoneScreen.getY());
+                phoneHeading.setLocation(origHeadingX, phoneHeading.getY());
+                phoneSubheading.setLocation(origSubheadingX, phoneSubheading.getY());
 
-                    // Show the magnifier only when the phone is selected.
-                    inspectButton.setVisible("phone".equals(slot.itemId));
-                }
-            });
-        }
-        
-        /** Places an item into combine slot A or B, whichever is free. */
-        private void stageForCombine(String itemId) {
-            if (itemId == null) return;
+                num0.setLocation(origNum0X, num0.getY()); num1.setLocation(origNum1X, num1.getY());
+                num2.setLocation(origNum2X, num2.getY()); num3.setLocation(origNum3X, num3.getY());
+                num4.setLocation(origNum4X, num4.getY()); num5.setLocation(origNum5X, num5.getY());
+                num6.setLocation(origNum6X, num6.getY()); num7.setLocation(origNum7X, num7.getY());
+                num8.setLocation(origNum8X, num8.getY()); num9.setLocation(origNum9X, num9.getY());
 
-            // Already staged? Ignore.
-            if (itemId.equals(combineItemA) || itemId.equals(combineItemB)) return;
+                pin1.setLocation(origPin1X, pin1.getY()); pin2.setLocation(origPin2X, pin2.getY());
+                pin3.setLocation(origPin3X, pin3.getY()); pin4.setLocation(origPin4X, pin4.getY());
 
-            if (combineItemA == null) {
-                combineItemA = itemId;
-                setCombineSlotIcon(combineSlotA, itemId);
-            } else if (combineItemB == null) {
-                combineItemB = itemId;
-                setCombineSlotIcon(combineSlotB, itemId);
-            } else {
-                AudioCache.play("/audio/sfx/ui/click.wav");
-                System.out.println("Combine slots full");
+                backspace.setLocation(origBackspaceX, backspace.getY());
+
+                ((javax.swing.Timer) e.getSource()).stop();
                 return;
             }
 
-            // Staging changed — no result until the player clicks COMBINE.
-            setDescription(null);
-            inspectButton.setVisible(false);
-            refreshCombineLabel();
+            double progress = (double) elapsed / duration;
+            double amplitude = shakeDistance * (1.0 - progress);
+            double offset = Math.sin(progress * Math.PI * 10) * amplitude;
+            int dx = (int) offset;
+
+            phoneScreen.setLocation(origScreenX + dx, phoneScreen.getY());
+            phoneHeading.setLocation(origHeadingX + dx, phoneHeading.getY());
+            phoneSubheading.setLocation(origSubheadingX + dx, phoneSubheading.getY());
+
+            num0.setLocation(origNum0X + dx, num0.getY()); num1.setLocation(origNum1X + dx, num1.getY());
+            num2.setLocation(origNum2X + dx, num2.getY()); num3.setLocation(origNum3X + dx, num3.getY());
+            num4.setLocation(origNum4X + dx, num4.getY()); num5.setLocation(origNum5X + dx, num5.getY());
+            num6.setLocation(origNum6X + dx, num6.getY()); num7.setLocation(origNum7X + dx, num7.getY());
+            num8.setLocation(origNum8X + dx, num8.getY()); num9.setLocation(origNum9X + dx, num9.getY());
+
+            pin1.setLocation(origPin1X + dx, pin1.getY()); pin2.setLocation(origPin2X + dx, pin2.getY());
+            pin3.setLocation(origPin3X + dx, pin3.getY()); pin4.setLocation(origPin4X + dx, pin4.getY());
+
+            backspace.setLocation(origBackspaceX + dx, backspace.getY());
+        });
+        timer.start();
+    }
+    
+    /** Shows the Clue screen when "Forgot Pin?" is clicked. */
+    private void showClueScreen() {
+        hideLockScreenKeypad();
+
+        phoneClueText.setVisible(true);
+        phoneBackText.setVisible(true);
+
+        phoneHeading.setText("Clue");
+        phoneHeading.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        phoneHeading.setVisible(true);
+
+        pinBuffer.setLength(0);
+    }
+
+    /** Returns to the normal lock screen from the Clue screen. */
+    private void returnToLockScreen() {
+        phoneClueText.setVisible(false);
+        phoneBackText.setVisible(false);
+
+        phoneHeading.setText("Enter Passcode");
+        showLockScreenKeypad();
+
+        refreshPinDots();
+    }
+
+     // =========================================================
+    // Slot behavior
+    // =========================================================
+
+    /** Wires hover + click listeners to a single slot. */
+    private void wireSlot(final Slot slot) {
+        final javax.swing.JLabel s = slot.label;
+
+        s.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
+                if (!slot.selected) slot.showHover();
+                AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+
+            @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                slot.refresh();
+            }
+
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (isGameOver) return;
+
+                if (e.getClickCount() == 2) {
+                    // Double-click → stage into a combine slot.
+                    if (!slot.isEmpty()) {
+                        stageForCombine(slot.itemId);
+                        AudioCache.play("/audio/sfx/ui/select.wav");
+                    }
+                    return;
+                }
+
+                // Single-click → highlight + description.
+                AudioCache.play("/audio/sfx/ui/select.wav");
+
+                if (slot.isEmpty()) {
+                    setDescription(null);
+                    inspectButton.setVisible(false);
+                    return;
+                }
+
+                if (selectedSlot != null && selectedSlot != slot) {
+                    selectedSlot.selected = false;
+                    selectedSlot.refresh();
+                }
+                slot.selected = true;
+                slot.refresh();
+                selectedSlot = slot;
+                setDescription(ItemDatabase.get(slot.itemId));
+
+                // Magnifier only for the phone.
+                inspectButton.setVisible("phone".equals(slot.itemId));
+            }
+        });
+    }
+
+    /** Places an item into combine slot A or B, whichever is free. */
+    private void stageForCombine(String itemId) {
+        if (itemId == null) return;
+
+        // Already staged? Ignore.
+        if (itemId.equals(combineItemA) || itemId.equals(combineItemB)) return;
+
+        if (combineItemA == null) {
+            combineItemA = itemId;
+            setCombineSlotIcon(combineSlotA, itemId);
+        } else if (combineItemB == null) {
+            combineItemB = itemId;
+            setCombineSlotIcon(combineSlotB, itemId);
+        } else {
+            AudioCache.play("/audio/sfx/ui/click.wav");
+            System.out.println("Combine slots full");
+            return;
         }
 
-        /**
-        * Sets the icon on a combine slot to the item's slot_<id>.png, and remembers
-        * the matching highlighted_slot_<id>.png so hover can swap to it.
-        */
-       private void setCombineSlotIcon(javax.swing.JLabel slot, String itemId) {
+        // Staging changed — no result until the player clicks COMBINE.
+        setDescription(null);
+        inspectButton.setVisible(false);
+    }
+
+    /**
+     * Sets the icon on a combine slot to the item's slot_<id>.png, and remembers
+     * the matching highlighted_slot_<id>.png so hover can swap to it.
+     */
+    private void setCombineSlotIcon(javax.swing.JLabel slot, String itemId) {
         java.net.URL normalUrl = getClass().getResource(
-            "/Images/gameplay/inventory/item_slots/slot_" + itemId + ".png");
+                "/Images/gameplay/inventory/item_slots/slot_" + itemId + ".png");
         if (normalUrl == null) {
             System.out.println("Missing combine icon for: " + itemId);
             return;
@@ -1463,293 +1339,238 @@ public class Inventory extends javax.swing.JFrame {
         slot.setIcon(new javax.swing.ImageIcon(normalUrl));
 
         java.net.URL hoverUrl = getClass().getResource(
-            "/Images/gameplay/inventory/item_slots/highlighted_slot_" + itemId + ".png");
+                "/Images/gameplay/inventory/item_slots/highlighted_slot_" + itemId + ".png");
 
         javax.swing.ImageIcon hover = (hoverUrl != null)
-            ? new javax.swing.ImageIcon(hoverUrl)
-            : new javax.swing.ImageIcon(normalUrl);
+                ? new javax.swing.ImageIcon(hoverUrl)
+                : new javax.swing.ImageIcon(normalUrl);
 
         if (slot == combineSlotA) combineAHover = hover;
         else if (slot == combineSlotB) combineBHover = hover;
     }
 
-        /** Removes whatever item is staged in the given combine slot. */
-        private void clearCombineSlot(boolean isA) {
-            if (isA) {
-                if (combineItemA == null) return;
-                combineItemA = null;
-                combineAHover = null;
-                combineSlotA.setIcon(emptyCombineIcon);
-            } else {
-                if (combineItemB == null) return;
-                combineItemB = null;
-                combineBHover = null;
-                combineSlotB.setIcon(emptyCombineIcon);
-            }
-
-            // Staging changed — reset the description panel and the COMBINE glow.
-            setDescription(null);
-            inspectButton.setVisible(false);
-            refreshCombineLabel();
-        }
-        
-        /**
-        * If both combine slots are filled and the pair matches a recipe,
-        * shows the resulting deduction in the description panel.
-        * Otherwise resets the description panel to its empty state.
-        */
-        private void tryCombine() {
-            if (isGameOver) return;
-            if (combineItemA == null || combineItemB == null) {
-                setDescription(null);
-                return;
-            }
-
-            String resultId = ItemDatabase.getRecipe(combineItemA, combineItemB);
-
-            // 1. Check if the combination doesn't exist at all
-            if (resultId == null) {
-                AudioCache.play("/audio/sfx/phone/phone_error.wav");
-                setDescription(null);
-                shakeDescription();
-                
-                GameState.setHealth(GameState.getHealth() - 2);
-                for (java.awt.Component c : contentPanel.getComponents()) {
-                    if (c instanceof HealthBar) {
-                        ((HealthBar) c).setCurrent(GameState.getHealth());
-                    }
-                }
-                if (GameState.getHealth() <= 0) showGameOver();
-                return;
-            }
-
-            // 2. Check if it's a phone recipe, and if the phone is locked
-            boolean usesPhone = ("phone".equals(combineItemA) || "phone".equals(combineItemB));
-            boolean isPhoneRecipe = ("opened_ledger".equals(resultId) || "jealousy".equals(resultId) || "audio_log".equals(resultId));
-            
-            if (usesPhone && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
-                AudioCache.play("/audio/sfx/phone/phone_error.wav"); 
-                setDescription(null);
-                System.out.println("You need to unlock the phone first.");
-                return;
-            }
-
-            // 3. We have a valid recipe and the phone is either not used, or it's unlocked
-            ItemDatabase.Item result = ItemDatabase.get(resultId);
-            if (result != null) {
-                boolean firstTime = !GameState.isDiscovered(resultId);
-
-                setDescription(result);
-            if (firstTime) {
-                GameState.markDiscovered(resultId);
-                AudioCache.play("/audio/sfx/ui/notification.wav");
-                showToast("/Images/ui/notification_new_discovery.png");
-                
-                // NEW: Check if they just completed the whole game
-                if (GameState.isFullyComplete()) {
-                    // Play a special sound or show a special toast!
-                    javax.swing.Timer delay = new javax.swing.Timer(3200, evt -> {
-                        AudioCache.play("/audio/sfx/ui/notification.wav");
-                        showToast("/Images/ui/notification_phase1.png"); 
-                    });
-                    delay.setRepeats(false);
-                    delay.start();
-                }
-            } else {
-                AudioCache.play("/audio/sfx/ui/select.wav");
-            }
-            }
-        }
-        
-        /** Updates the COMBINE label's color based on whether both slots are filled. */
-        private void refreshCombineLabel() {
-            boolean ready = (combineItemA != null && combineItemB != null);
-            combineLabel.setForeground(ready
-                ? new java.awt.Color(255, 230, 160)    
-                : new java.awt.Color(120, 120, 120));  
-        }
-
-        /** Clears both A and B and the result. */
-        private void clearAllCombineSlots() {
+    /** Removes whatever item is staged in the given combine slot. */
+    private void clearCombineSlot(boolean isA) {
+        if (isA) {
+            if (combineItemA == null) return;
             combineItemA = null;
-            combineItemB = null;
-            combineAHover = null;       
-            combineBHover = null;
+            combineAHover = null;
             combineSlotA.setIcon(emptyCombineIcon);
+        } else {
+            if (combineItemB == null) return;
+            combineItemB = null;
+            combineBHover = null;
             combineSlotB.setIcon(emptyCombineIcon);
-            refreshCombineLabel();
         }
 
-        /** Clears all slots, then fills them in order with the given ids. */
-        private void refreshSlots(java.util.List<String> collectedIds) {
-            if (slots == null) return;
-            for (Slot slot : slots) setSlotItem(slot, null);
-            if (collectedIds == null) return;
-
-            int n = Math.min(collectedIds.size(), slots.length);
-            for (int i = 0; i < n; i++) {
-                setSlotItem(slots[i], collectedIds.get(i));
-            }
-        }
-
-        /**
-         * Puts an item into the given slot (or empties it if {@code id} is null).
-         * Loads slot_<id>.png and highlighted_slot_<id>.png, falling back to the
-         * shared empty icons when the id is null or the art is missing.
-         */
-        private void setSlotItem(Slot slot, String id) {
-            if (slot == null) return;
-
-            if (id == null) {
-                slot.itemId = null;
-                slot.normal = emptyIcon;
-                slot.hover  = emptyHoverIcon;
-                slot.showNormal();
-                return;
-            }
-
-            java.net.URL normalUrl = getClass().getResource(
-                    "/Images/gameplay/inventory/item_slots/slot_" + id + ".png");
-            if (normalUrl == null) {
-                System.out.println("Missing item icon for: " + id);
-                return;
-            }
-
-            java.net.URL hoverUrl = getClass().getResource(
-                    "/Images/gameplay/inventory/item_slots/highlighted_slot_" + id + ".png");
-
-            slot.itemId = id;
-            slot.normal = new javax.swing.ImageIcon(normalUrl);
-            slot.hover  = (hoverUrl != null)
-                    ? new javax.swing.ImageIcon(hoverUrl)
-                    : slot.normal;    // no hover art — fall back to the normal icon
-            slot.showNormal();
-        }
-    
-    /** Returns a darkened copy of the given image (used for hover states). */
-    private static java.awt.Image darken(java.awt.Image src) {
-        java.awt.image.ImageFilter filter = new java.awt.image.RGBImageFilter() {
-            @Override
-            public int filterRGB(int x, int y, int rgb) {
-                int a = (rgb >> 24) & 0xff;
-                int r = (int)(((rgb >> 16) & 0xff) * 0.35);
-                int g = (int)(((rgb >> 8)  & 0xff) * 0.35);
-                int b = (int)((rgb & 0xff) * 0.35);
-                return (a << 24) | (r << 16) | (g << 8) | b;
-            }
-        };
-        return java.awt.Toolkit.getDefaultToolkit().createImage(
-                new java.awt.image.FilteredImageSource(src.getSource(), filter));
+        setDescription(null);
+        inspectButton.setVisible(false);
     }
-    
-    private java.awt.Font getCustomFont(float size) {
-        try {
-            java.io.InputStream is = getClass().getResourceAsStream("/fonts/press_start_2p.ttf");
-            java.awt.Font base = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, is);
-            return base.deriveFont(size);
-        } catch (Exception e) {
-            return new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, (int) size);
+
+    /** Clears both A and B. */
+    private void clearAllCombineSlots() {
+        combineItemA = null;
+        combineItemB = null;
+        combineAHover = null;
+        combineBHover = null;
+        combineSlotA.setIcon(emptyCombineIcon);
+        combineSlotB.setIcon(emptyCombineIcon);
+    }
+        
+    /**
+     * If both combine slots are filled and the pair matches a recipe,
+     * shows the resulting deduction. Otherwise resets the description panel.
+     */
+    private void tryCombine() {
+        if (isGameOver) return;
+        if (combineItemA == null || combineItemB == null) {
+            setDescription(null);
+            return;
         }
+
+        String resultId = ItemDatabase.getRecipe(combineItemA, combineItemB);
+
+        // 1. No such combination exists.
+        if (resultId == null) {
+            AudioCache.play("/audio/sfx/phone/phone_error.wav");
+            setDescription(null);
+            shakeDescription();
+            damage(2);
+            return;
+        }
+
+        // 2. Phone-only recipes require an unlocked phone.
+        boolean usesPhone = "phone".equals(combineItemA) || "phone".equals(combineItemB);
+        boolean isPhoneRecipe = "opened_ledger".equals(resultId)
+                || "jealousy".equals(resultId)
+                || "audio_log".equals(resultId);
+
+        if (usesPhone && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
+            AudioCache.play("/audio/sfx/phone/phone_error.wav");
+            setDescription(null);
+            System.out.println("You need to unlock the phone first.");
+            return;
+        }
+
+        // 3. Valid recipe.
+        ItemDatabase.Item result = ItemDatabase.get(resultId);
+        if (result == null) return;
+
+        boolean firstTime = !GameState.isDiscovered(resultId);
+        setDescription(result);
+
+        if (firstTime) {
+            GameState.markDiscovered(resultId);
+            AudioCache.play("/audio/sfx/ui/notification.wav");
+            showToast("/Images/ui/notification_new_discovery.png");
+
+            if (GameState.isFullyComplete()) {
+                javax.swing.Timer delay = new javax.swing.Timer(3200, evt -> {
+                    AudioCache.play("/audio/sfx/ui/notification.wav");
+                    showToast("/Images/ui/notification_phase1.png");
+                });
+                delay.setRepeats(false);
+                delay.start();
+            }
+        } else {
+            AudioCache.play("/audio/sfx/ui/select.wav");
+        }
+    }
+
+    /** Clears all slots, then fills them in order with the given ids. */
+    private void refreshSlots(java.util.List<String> collectedIds) {
+        if (slots == null) return;
+        for (Slot slot : slots) setSlotItem(slot, null);
+        if (collectedIds == null) return;
+
+        int n = Math.min(collectedIds.size(), slots.length);
+        for (int i = 0; i < n; i++) {
+            setSlotItem(slots[i], collectedIds.get(i));
+        }
+    }
+
+    /**
+     * Puts an item into the given slot (or empties it if {@code id} is null).
+     */
+    private void setSlotItem(Slot slot, String id) {
+        if (slot == null) return;
+
+        if (id == null) {
+            slot.itemId = null;
+            slot.normal = emptyIcon;
+            slot.hover  = emptyHoverIcon;
+            slot.showNormal();
+            return;
+        }
+
+        java.net.URL normalUrl = getClass().getResource(
+                "/Images/gameplay/inventory/item_slots/slot_" + id + ".png");
+        if (normalUrl == null) {
+            System.out.println("Missing item icon for: " + id);
+            return;
+        }
+
+        java.net.URL hoverUrl = getClass().getResource(
+                "/Images/gameplay/inventory/item_slots/highlighted_slot_" + id + ".png");
+
+        slot.itemId = id;
+        slot.normal = new javax.swing.ImageIcon(normalUrl);
+        slot.hover  = (hoverUrl != null)
+                ? new javax.swing.ImageIcon(hoverUrl)
+                : slot.normal;
+        slot.showNormal();
     }
     
     /**
-    * Slides a PNG toast in from the left edge of the frame, holds it, then
-    * slides it back out.
-    *
-    * @param pngPath classpath path of the toast PNG (text + icon baked in)
-    */
-   private void showToast(String pngPath) {
-       hideToast();   // never stack
+     * Slides a PNG toast in from the left edge of the frame, holds it, then
+     * slides it back out.
+     */
+    private void showToast(String pngPath) {
+        hideToast(); // never stack
 
-       java.net.URL url = getClass().getResource(pngPath);
-       if (url == null) {
-           System.out.println("Toast PNG missing: " + pngPath);
-           return;
-       }
-       final javax.swing.ImageIcon icon = new javax.swing.ImageIcon(url);
+        java.net.URL url = getClass().getResource(pngPath);
+        if (url == null) {
+            System.out.println("Toast PNG missing: " + pngPath);
+            return;
+        }
+        final javax.swing.ImageIcon icon = new javax.swing.ImageIcon(url);
 
-       final int w = icon.getIconWidth();
-       final int h = icon.getIconHeight();
+        final int w = icon.getIconWidth();
+        final int h = icon.getIconHeight();
+        final int y = (int) (getContentPane().getHeight() * 0.18);
 
-       // Vertical position — about 18% down the frame.
-       final int y = (int)(getContentPane().getHeight() * 0.18);
+        final int START_X = -w - 20;
+        final int REST_X  = -25;
 
-       // Slide boundaries.
-       final int START_X = -w - 20;   // fully off-screen
-       final int REST_X  = -25;        // resting position
+        javax.swing.JComponent toast = new javax.swing.JComponent() {
+            @Override protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(icon.getImage(), 0, 0, getWidth(), getHeight(), null);
+            }
+        };
+        toast.setOpaque(false);
+        toast.setBounds(START_X, y, w, h);
 
-       // The component just draws the PNG at its own origin.
-       javax.swing.JComponent toast = new javax.swing.JComponent() {
-           @Override protected void paintComponent(java.awt.Graphics g) {
-               super.paintComponent(g);
-               g.drawImage(icon.getImage(), 0, 0, getWidth(), getHeight(), null);
-           }
-       };
-       toast.setOpaque(false);
-       toast.setBounds(START_X, y, w, h);
+        getRootPane().getLayeredPane().add(toast, javax.swing.JLayeredPane.POPUP_LAYER);
+        getRootPane().getLayeredPane().repaint();
 
-       getRootPane().getLayeredPane().add(
-           toast, javax.swing.JLayeredPane.POPUP_LAYER);
-       getRootPane().getLayeredPane().repaint();
+        activeToast = toast;
 
-       activeToast = toast;
+        final int SLIDE_IN  = 320;
+        final int HOLD      = 2400;
+        final int SLIDE_OUT = 320;
+        final int TICK      = 16;
 
-       // ---- Animate: slide in → hold → slide out ----
-       final int SLIDE_IN  = 320;
-       final int HOLD      = 2400;
-       final int SLIDE_OUT = 320;
-       final int TICK      = 16;
+        final long start   = System.currentTimeMillis();
+        final int totalMs  = SLIDE_IN + HOLD + SLIDE_OUT;
 
-       final long start = System.currentTimeMillis();
-       final int totalMs = SLIDE_IN + HOLD + SLIDE_OUT;
+        javax.swing.Timer timer = new javax.swing.Timer(TICK, null);
+        timer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed >= totalMs) {
+                timer.stop();
+                hideToast();
+                return;
+            }
 
-       javax.swing.Timer timer = new javax.swing.Timer(TICK, null);
-       timer.addActionListener(e -> {
-           long elapsed = System.currentTimeMillis() - start;
-           if (elapsed >= totalMs) {
-               timer.stop();
-               hideToast();
-               return;
-           }
+            int x;
+            if (elapsed < SLIDE_IN) {
+                double t = elapsed / (double) SLIDE_IN;
+                double eased = 1 - Math.pow(1 - t, 3);
+                x = (int) (START_X + (REST_X - START_X) * eased);
+            } else if (elapsed < SLIDE_IN + HOLD) {
+                x = REST_X;
+            } else {
+                long t = elapsed - SLIDE_IN - HOLD;
+                double p = t / (double) SLIDE_OUT;
+                double eased = p * p * p;
+                x = (int) (REST_X + (START_X - REST_X) * eased);
+            }
 
-           int x;
-           if (elapsed < SLIDE_IN) {
-               double t = elapsed / (double) SLIDE_IN;
-               double eased = 1 - Math.pow(1 - t, 3);   // ease out
-               x = (int)(START_X + (REST_X - START_X) * eased);
-           } else if (elapsed < SLIDE_IN + HOLD) {
-               x = REST_X;
-           } else {
-               long t = elapsed - SLIDE_IN - HOLD;
-               double p = t / (double) SLIDE_OUT;
-               double eased = p * p * p;                // ease in
-               x = (int)(REST_X + (START_X - REST_X) * eased);
-           }
+            toast.setLocation(x, y);
+            getRootPane().getLayeredPane().repaint();
+        });
+        timer.start();
+    }
 
-           toast.setLocation(x, y);
-           getRootPane().getLayeredPane().repaint();
-       });
-       timer.start();
-   }
+    /** Removes the toast if one is showing. */
+    private void hideToast() {
+        if (activeToast != null) {
+            getRootPane().getLayeredPane().remove(activeToast);
+            getRootPane().getLayeredPane().repaint();
+            activeToast = null;
+        }
+    }
 
-   /** Removes the toast if one is showing. */
-   private void hideToast() {
-       if (activeToast != null) {
-           getRootPane().getLayeredPane().remove(activeToast);
-           getRootPane().getLayeredPane().repaint();
-           activeToast = null;
-       }
-   }
-   
     /** Shakes the description labels horizontally to indicate an error. */
     private void shakeDescription() {
-        final int origImgX = descImage.getX();
+        final int origImgX   = descImage.getX();
         final int origTitleX = descTitle.getX();
-        final int origTextX = descText.getX();
-        final int duration = 300; 
-        final int shakeDistance = 8; 
+        final int origTextX  = descText.getX();
+        final int duration      = 300;
+        final int shakeDistance = 8;
         final long start = System.currentTimeMillis();
-        
+
         javax.swing.Timer shakeTimer = new javax.swing.Timer(16, null);
         shakeTimer.addActionListener(e -> {
             long elapsed = System.currentTimeMillis() - start;
@@ -1764,41 +1585,29 @@ public class Inventory extends javax.swing.JFrame {
             double amplitude = shakeDistance * (1.0 - progress);
             double offset = Math.sin(progress * Math.PI * 10) * amplitude;
             int dx = (int) offset;
-            
+
             descImage.setLocation(origImgX + dx, descImage.getY());
             descTitle.setLocation(origTitleX + dx, descTitle.getY());
             descText.setLocation(origTextX + dx, descText.getY());
         });
         shakeTimer.start();
     }
-   
-    /** Updates the design-tab labels with the item's data. */
+
+    /** Updates the description panel with the item's data (or the empty hint). */
     private void setDescription(ItemDatabase.Item item) {
         if (item == null) {
-            // 1. Clear title and image
             descTitle.setText("");
             descImage.setIcon(null);
-            
-            // 2. Set the hint text to match the exact style of normal descriptions
-            String hintHtml = "<html><div style='width: 200px; text-align: center;'>" 
-                            + "Select an item to inspect" 
-                            + "</div></html>";
-            
+
+            String hintHtml = "<html><div style='width: 200px; text-align: center;'>"
+                    + "Select an item to inspect"
+                    + "</div></html>";
             descText.setText(hintHtml);
-            descText.setFont(getCustomFont(14f)); 
-            descText.setForeground(new java.awt.Color(150, 150, 150)); // Gray color so it looks like a hint
             return;
         }
 
-        // 1. Set the Title
-        descTitle.setText(item.displayName);
-        descTitle.setFont(getCustomFont(12f)); 
-        descTitle.setForeground(new java.awt.Color(200, 50, 45)); 
-
-        // 2. Set the Image (Check cache first!)
+        // Load image (cached or on-demand) and scale it.
         javax.swing.ImageIcon cachedIcon = descriptionCache.get(item.id);
-        
-        // If it's not in the cache (e.g., a newly combined item), load it now and save it
         if (cachedIcon == null) {
             java.net.URL u = getClass().getResource(ItemDatabase.descriptionImagePath(item.id));
             if (u != null) {
@@ -1809,74 +1618,68 @@ public class Inventory extends javax.swing.JFrame {
 
         if (cachedIcon != null) {
             java.awt.Image img = cachedIcon.getImage();
-            java.awt.Image newImg = img.getScaledInstance(199, 199, java.awt.Image.SCALE_REPLICATE);
-            descImage.setIcon(new javax.swing.ImageIcon(newImg));
+            java.awt.Image scaled = img.getScaledInstance(
+                    199, 199, java.awt.Image.SCALE_REPLICATE);
+            descImage.setIcon(new javax.swing.ImageIcon(scaled));
         } else {
             descImage.setIcon(null);
         }
-        
-        // 3. Set the Description Text
-        String htmlText = "<html><div style='width: 200px; text-align: justify;'>" 
-                        + item.description + "</div></html>";
-        
+
+        String htmlText = "<html><div style='width: 200px; text-align: justify;'>"
+                + item.description + "</div></html>";
         descText.setText(htmlText);
-        descText.setFont(getCustomFont(14f)); 
-        descText.setForeground(java.awt.Color.WHITE); 
     }
     
     private void showGameOver() {
         isGameOver = true;
-        
-        // 1. Set initial state
-        restartButton.setForeground(java.awt.Color.WHITE);
-        menuButton.setForeground(java.awt.Color.GRAY);
-        
-        // 2. Make them visible
+
+        // Reveal the game-over UI.
         gameoverLabel.setVisible(true);
         restartButton.setVisible(true);
         menuButton.setVisible(true);
-        
+
         gameoverLabel.setOpaque(false);
         restartButton.setOpaque(false);
         menuButton.setOpaque(false);
-        
+
         contentPanel.setComponentZOrder(gameoverLabel, 0);
         contentPanel.setComponentZOrder(restartButton, 0);
         contentPanel.setComponentZOrder(menuButton, 0);
-        
-        // 3. Create the fade animation overlay
+
+        // Fade the black overlay out.
         FadeOverlay fade = new FadeOverlay();
-        fade.setAlpha(1f); // Start solid black
-        contentPanel.add(fade, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
-        contentPanel.setComponentZOrder(fade, 0); 
-        
+        fade.setAlpha(1f);
+        contentPanel.add(fade,
+                new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, 680));
+        contentPanel.setComponentZOrder(fade, 0);
+
         final int DURATION_MS = 800;
         final long start = System.currentTimeMillis();
-        
+
         javax.swing.Timer fadeTimer = new javax.swing.Timer(16, null);
         fadeTimer.addActionListener(e -> {
             long elapsed = System.currentTimeMillis() - start;
             float p = Math.min(1f, elapsed / (float) DURATION_MS);
-            
+
             fade.setAlpha(1f - p);
-            
+
             if (p >= 1f) {
                 fadeTimer.stop();
-                contentPanel.remove(fade); 
+                contentPanel.remove(fade);
                 contentPanel.revalidate();
                 contentPanel.repaint();
             }
         });
         fadeTimer.start();
-        
-        // Stop all background audio and lock the game
+
+        // Lock the game.
         pauseMenu.hideOverlay();
         getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).clear();
         getRootPane().getActionMap().clear();
-        
+
         AudioCache.play("/audio/sfx/ui/splatter.wav");
     }
-    
+
     /** Simple black overlay that fades out. */
     private static class FadeOverlay extends javax.swing.JComponent {
         private float alpha = 1f;
@@ -1894,11 +1697,11 @@ public class Inventory extends javax.swing.JFrame {
         protected void paintComponent(java.awt.Graphics g) {
             if (alpha <= 0f) return;
             java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            g2.setColor(new java.awt.Color(0, 0, 0, (int)(alpha * 255)));
+            g2.setColor(new java.awt.Color(0, 0, 0, (int) (alpha * 255)));
             g2.fillRect(0, 0, getWidth(), getHeight());
             g2.dispose();
         }
-    }    
+    }
 
        public static void main(String args[]) {
            /* Set the Nimbus look and feel */
