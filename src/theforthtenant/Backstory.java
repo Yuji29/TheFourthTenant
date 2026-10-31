@@ -48,7 +48,6 @@ public class Backstory extends GameScreen {
     private long   savedTickMs     = 25;
     private double savedCharsPerTick = 1;
     private int    savedTotalChars = 0;
-    private SubtitleBox savedBox;
     private Runnable savedOnDone;
     private boolean typewriterWasRunning = false;
 
@@ -388,7 +387,6 @@ public class Backstory extends GameScreen {
 
                 // 4) Typewriter timer.
                 if (typewriterTimer != null && typewriterTimer.isRunning()) {
-                    typewriterWasRunning = true;
                     typewriterTimer.stop();
                 }
 
