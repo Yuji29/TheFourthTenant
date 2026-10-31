@@ -262,6 +262,46 @@ public class CrimeScene extends GameScreen {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_4, 0),     "openInterrogate");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, 0),     "openCaseFile");    
 
+        // ---- DEBUG CHEAT: Press '0' to unlock everything ----
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_0, 0), "debugUnlock");
+        am.put("debugUnlock", new javax.swing.AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (isMenuBlocked()) return;
+
+                // 1. Collect all evidence
+                String[] items = {"padlock", "belt", "dragpath", "phone", "footmarks", "drum", "usb", "boots", "mug", "toolbox", "prescription", "ledger", "rag", "love_letters"};
+                for (String item : items) {
+                    GameState.markCollected(item);
+                }
+
+                // 2. Unlock phone and discover all combines
+                GameState.setPhoneUnlocked(true);
+                String[] discoveries = {"damaged_lock", "drugged_coffee", "shoeprints", "blood_cleanup", "audio_log", "gym_bag_trace", "jealousy", "opened_ledger"};
+                for (String disc : discoveries) {
+                    GameState.markDiscovered(disc);
+                }
+
+                // 3. Mark all interrogations as complete
+                String[] topics = {"cardo_time", "cardo_boots", "cardo_damage_lock", "cardo_jealousy", "cathy_time", "cathy_audio", "cathy_rag", "cathy_gym_bag", "andy_time", "andy_debt", "andy_pills"};
+                for (String topic : topics) {
+                    GameState.markInterrogated(topic);
+                }
+
+                // 4. Skip straight to the arrest phase
+                GameState.setPoliceReportDone(true);
+                GameState.setCathyConfronted(true);
+
+                AudioCache.play("/audio/sfx/ui/notification.wav");
+                System.out.println("DEBUG: Game Unlocked! Reloading Scene...");
+                
+                // Reload the crime scene so the UI updates
+                CrimeScene cs = new CrimeScene();
+                cs.setLocation(getLocation());
+                cs.setVisible(true);
+                CrimeScene.this.dispose();
+            }
+        });        
+        
         am.put("scenePrev", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 if (isGameOver) return;

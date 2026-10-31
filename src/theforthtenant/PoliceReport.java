@@ -186,6 +186,15 @@ public class PoliceReport extends GameScreen {
             }
         });  
         
+        contentPanel.setComponentZOrder(prevButton, 0);
+        contentPanel.setComponentZOrder(nextButton, 0);
+        
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            requestFocusInWindow();
+            if (contentPanel != null) {
+                contentPanel.requestFocusInWindow();
+            }
+        });
         setLocationRelativeTo(null);
     }
 
@@ -708,7 +717,7 @@ public class PoliceReport extends GameScreen {
         dialogue0TextArea.setOpaque(false);
         jScrollPane1.setViewportView(dialogue0TextArea);
 
-        contentPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 570, 380, 40));
+        contentPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 590, 380, 40));
 
         nextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
         contentPanel.add(nextButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1110, 320, -1, -1));
@@ -719,6 +728,7 @@ public class PoliceReport extends GameScreen {
         contentPanel.add(prevButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, -1, -1));
 
         backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/policeReport/slide0.png"))); // NOI18N
+        backgroundLabel.setFocusable(false);
         contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 680));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

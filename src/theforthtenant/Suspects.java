@@ -617,6 +617,7 @@ public class Suspects extends GameScreen {
         
         if (isTrueEnding) {
             // Cathy is arrested: Hide Restart/Menu, show Back to Main Menu
+            AudioCache.play("/audio/sfx/ui/case_solved.wav");
             restartButton.setVisible(false);
             menuButton.setVisible(false);
             backToMainMenu.setVisible(true);
@@ -636,6 +637,7 @@ public class Suspects extends GameScreen {
             contentPanel.setComponentZOrder(backToMainMenu, 0);
             
         } else {
+            AudioCache.play("/audio/sfx/ui/splatter.wav");
             // Wrong suspect: Show Restart/Menu, hide Back to Main Menu
             restartButton.setVisible(true);
             menuButton.setVisible(true);
@@ -683,8 +685,6 @@ public class Suspects extends GameScreen {
         pauseMenu.hideOverlay();
         getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).clear();
         getRootPane().getActionMap().clear();
-
-        AudioCache.play("/audio/sfx/ui/splatter.wav");
     }   
     
     public static void main(String args[]) {

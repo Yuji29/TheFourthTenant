@@ -20,8 +20,6 @@ public class Backstory extends GameScreen {
     private int currentSlide = 0;
 
     // ---- UI components ----
-    private SubtitleBox subtitleBoxLeft;
-    private SubtitleBox subtitleBoxRight;
     private FadeOverlay fadeOverlay;
     private PauseMenu pauseMenu;
     private OptionsMenu optionsMenu;
@@ -183,6 +181,21 @@ public class Backstory extends GameScreen {
     
     @Override
     protected void setupScreen() {
+        
+        // ---- Style all text areas transparently ----
+        styleTextBox(dialogue1TextArea, jScrollPane1);
+        styleTextBox(dialogue3TextArea, jScrollPane2);
+        styleTextBox(dialogue4TextArea, jScrollPane3);
+        styleTextBox(dialogue5TextArea, jScrollPane4);
+        styleTextBox(dialogue6TextArea, jScrollPane5);
+        styleTextBox(dialogue7detectiveTextArea, jScrollPane6);
+        styleTextBox(dialogue7policeTextArea, jScrollPane7);
+        styleTextBox(dialogue8TextArea, jScrollPane8);
+        styleTextBox(dialogue9TextArea, jScrollPane9);
+        styleTextBox(dialogue10TextArea, jScrollPane10);
+        styleTextBox(dialogue11TextArea, jScrollPane11);
+       styleTextBox(dialogue12detectiveTextArea, jScrollPane12);
+        styleTextBox(dialogue12policeTextArea, jScrollPane13);
 
         // ---- Exit label (blood-stained door): hover + click ----
         final javax.swing.ImageIcon bloodNormal = new javax.swing.ImageIcon(
@@ -286,17 +299,6 @@ public class Backstory extends GameScreen {
         am.put("next", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { navigate(+1); }
         });
-
-        // ---- Subtitle boxes (reusable, one per side) ----
-        subtitleBoxLeft = new SubtitleBox();
-        subtitleBoxLeft.setVisible(false);
-        contentPanel.add(subtitleBoxLeft,
-            new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 100));
-
-        subtitleBoxRight = new SubtitleBox();
-        subtitleBoxRight.setVisible(false);
-        contentPanel.add(subtitleBoxRight,
-            new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 100));
 
         // ---- Fade-in overlay (covers the whole panel) ----
         fadeOverlay = new FadeOverlay();
@@ -415,11 +417,6 @@ public class Backstory extends GameScreen {
                     intenseClip.start();
                 }
 
-                // 3) Typewriter — resume if it was mid-typing.
-                if (typewriterWasRunning && savedBox != null) {
-                    resumeTypewriter();
-                }
-
                 // 4) Re-fire one-shot SFX if still relevant.
                 // (For now, skip — the clip already finished or will finish naturally.
                 // If you want them to resume too, use the hardening pattern below.)
@@ -468,6 +465,44 @@ public class Backstory extends GameScreen {
 
         contentPanel = new javax.swing.JPanel();
         exitDoor = new FadeLabel();
+        jScrollPane13 = new javax.swing.JScrollPane();
+        dialogue12policeTextArea = new javax.swing.JTextArea();
+        dialogue12police = new javax.swing.JLabel();
+        jScrollPane12 = new javax.swing.JScrollPane();
+        dialogue12detectiveTextArea = new javax.swing.JTextArea();
+        dialogue12detective = new javax.swing.JLabel();
+        jScrollPane11 = new javax.swing.JScrollPane();
+        dialogue11TextArea = new javax.swing.JTextArea();
+        dialogue11 = new javax.swing.JLabel();
+        jScrollPane10 = new javax.swing.JScrollPane();
+        dialogue10TextArea = new javax.swing.JTextArea();
+        dialogue10 = new javax.swing.JLabel();
+        jScrollPane9 = new javax.swing.JScrollPane();
+        dialogue9TextArea = new javax.swing.JTextArea();
+        dialogue9 = new javax.swing.JLabel();
+        jScrollPane8 = new javax.swing.JScrollPane();
+        dialogue8TextArea = new javax.swing.JTextArea();
+        dialogue8 = new javax.swing.JLabel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        dialogue7policeTextArea = new javax.swing.JTextArea();
+        dialogue7police = new javax.swing.JLabel();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        dialogue7detectiveTextArea = new javax.swing.JTextArea();
+        dialogue7detective = new javax.swing.JLabel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        dialogue6TextArea = new javax.swing.JTextArea();
+        dialogue6 = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        dialogue5TextArea = new javax.swing.JTextArea();
+        dialogue5 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        dialogue4TextArea = new javax.swing.JTextArea();
+        dialogue4 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        dialogue3TextArea = new javax.swing.JTextArea();
+        dialogue3 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        dialogue1TextArea = new javax.swing.JTextArea();
         nextButton = new javax.swing.JLabel();
         prevButton = new javax.swing.JLabel();
         slideImage = new javax.swing.JLabel();
@@ -481,6 +516,213 @@ public class Backstory extends GameScreen {
         exitDoor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/door_blood.png"))); // NOI18N
         contentPanel.add(exitDoor, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, -1, -1));
 
+        jScrollPane13.setBorder(null);
+        jScrollPane13.setOpaque(false);
+
+        dialogue12policeTextArea.setEditable(false);
+        dialogue12policeTextArea.setColumns(20);
+        dialogue12policeTextArea.setLineWrap(true);
+        dialogue12policeTextArea.setRows(5);
+        dialogue12policeTextArea.setWrapStyleWord(true);
+        dialogue12policeTextArea.setOpaque(false);
+        jScrollPane13.setViewportView(dialogue12policeTextArea);
+
+        contentPanel.add(jScrollPane13, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 70, 610, 150));
+
+        dialogue12police.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue10.2.png"))); // NOI18N
+        contentPanel.add(dialogue12police, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 20, -1, -1));
+
+        jScrollPane12.setBorder(null);
+        jScrollPane12.setOpaque(false);
+
+        dialogue12detectiveTextArea.setEditable(false);
+        dialogue12detectiveTextArea.setColumns(20);
+        dialogue12detectiveTextArea.setLineWrap(true);
+        dialogue12detectiveTextArea.setRows(5);
+        dialogue12detectiveTextArea.setWrapStyleWord(true);
+        dialogue12detectiveTextArea.setOpaque(false);
+        jScrollPane12.setViewportView(dialogue12detectiveTextArea);
+
+        contentPanel.add(jScrollPane12, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 560, 400, 60));
+
+        dialogue12detective.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue10.1.png"))); // NOI18N
+        contentPanel.add(dialogue12detective, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 510, -1, -1));
+
+        jScrollPane11.setBorder(null);
+        jScrollPane11.setOpaque(false);
+
+        dialogue11TextArea.setEditable(false);
+        dialogue11TextArea.setColumns(20);
+        dialogue11TextArea.setLineWrap(true);
+        dialogue11TextArea.setRows(5);
+        dialogue11TextArea.setWrapStyleWord(true);
+        dialogue11TextArea.setOpaque(false);
+        jScrollPane11.setViewportView(dialogue11TextArea);
+
+        contentPanel.add(jScrollPane11, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 540, 910, 80));
+
+        dialogue11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue9.png"))); // NOI18N
+        contentPanel.add(dialogue11, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 490, -1, -1));
+
+        jScrollPane10.setBorder(null);
+        jScrollPane10.setOpaque(false);
+
+        dialogue10TextArea.setEditable(false);
+        dialogue10TextArea.setColumns(20);
+        dialogue10TextArea.setLineWrap(true);
+        dialogue10TextArea.setRows(5);
+        dialogue10TextArea.setWrapStyleWord(true);
+        dialogue10TextArea.setOpaque(false);
+        jScrollPane10.setViewportView(dialogue10TextArea);
+
+        contentPanel.add(jScrollPane10, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 560, 910, 60));
+
+        dialogue10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue8.png"))); // NOI18N
+        contentPanel.add(dialogue10, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 510, -1, -1));
+
+        jScrollPane9.setBorder(null);
+        jScrollPane9.setOpaque(false);
+
+        dialogue9TextArea.setEditable(false);
+        dialogue9TextArea.setColumns(20);
+        dialogue9TextArea.setLineWrap(true);
+        dialogue9TextArea.setRows(5);
+        dialogue9TextArea.setWrapStyleWord(true);
+        dialogue9TextArea.setOpaque(false);
+        jScrollPane9.setViewportView(dialogue9TextArea);
+
+        contentPanel.add(jScrollPane9, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 586, 910, 40));
+
+        dialogue9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue7.png"))); // NOI18N
+        contentPanel.add(dialogue9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 540, -1, -1));
+
+        jScrollPane8.setBorder(null);
+        jScrollPane8.setOpaque(false);
+
+        dialogue8TextArea.setEditable(false);
+        dialogue8TextArea.setColumns(20);
+        dialogue8TextArea.setLineWrap(true);
+        dialogue8TextArea.setRows(5);
+        dialogue8TextArea.setWrapStyleWord(true);
+        dialogue8TextArea.setOpaque(false);
+        jScrollPane8.setViewportView(dialogue8TextArea);
+
+        contentPanel.add(jScrollPane8, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 520, 910, -1));
+
+        dialogue8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue6.png"))); // NOI18N
+        contentPanel.add(dialogue8, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 470, -1, -1));
+
+        jScrollPane7.setBorder(null);
+        jScrollPane7.setOpaque(false);
+
+        dialogue7policeTextArea.setEditable(false);
+        dialogue7policeTextArea.setColumns(20);
+        dialogue7policeTextArea.setLineWrap(true);
+        dialogue7policeTextArea.setRows(5);
+        dialogue7policeTextArea.setWrapStyleWord(true);
+        dialogue7policeTextArea.setOpaque(false);
+        jScrollPane7.setViewportView(dialogue7policeTextArea);
+
+        contentPanel.add(jScrollPane7, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 70, 610, 50));
+
+        dialogue7police.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue5.2.png"))); // NOI18N
+        contentPanel.add(dialogue7police, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 20, -1, -1));
+
+        jScrollPane6.setBorder(null);
+        jScrollPane6.setOpaque(false);
+
+        dialogue7detectiveTextArea.setEditable(false);
+        dialogue7detectiveTextArea.setColumns(20);
+        dialogue7detectiveTextArea.setLineWrap(true);
+        dialogue7detectiveTextArea.setRows(5);
+        dialogue7detectiveTextArea.setWrapStyleWord(true);
+        dialogue7detectiveTextArea.setOpaque(false);
+        jScrollPane6.setViewportView(dialogue7detectiveTextArea);
+
+        contentPanel.add(jScrollPane6, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 560, 400, 50));
+
+        dialogue7detective.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue5.1.png"))); // NOI18N
+        contentPanel.add(dialogue7detective, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 510, -1, -1));
+
+        jScrollPane5.setBorder(null);
+        jScrollPane5.setOpaque(false);
+
+        dialogue6TextArea.setEditable(false);
+        dialogue6TextArea.setColumns(20);
+        dialogue6TextArea.setLineWrap(true);
+        dialogue6TextArea.setRows(5);
+        dialogue6TextArea.setWrapStyleWord(true);
+        dialogue6TextArea.setOpaque(false);
+        jScrollPane5.setViewportView(dialogue6TextArea);
+
+        contentPanel.add(jScrollPane5, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 535, 910, -1));
+
+        dialogue6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue4.png"))); // NOI18N
+        contentPanel.add(dialogue6, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 490, -1, -1));
+
+        jScrollPane4.setBorder(null);
+        jScrollPane4.setOpaque(false);
+
+        dialogue5TextArea.setEditable(false);
+        dialogue5TextArea.setColumns(20);
+        dialogue5TextArea.setLineWrap(true);
+        dialogue5TextArea.setRows(5);
+        dialogue5TextArea.setWrapStyleWord(true);
+        dialogue5TextArea.setOpaque(false);
+        jScrollPane4.setViewportView(dialogue5TextArea);
+
+        contentPanel.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 570, 910, 50));
+
+        dialogue5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue3.png"))); // NOI18N
+        contentPanel.add(dialogue5, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 530, -1, -1));
+
+        jScrollPane3.setBorder(null);
+        jScrollPane3.setOpaque(false);
+
+        dialogue4TextArea.setEditable(false);
+        dialogue4TextArea.setColumns(20);
+        dialogue4TextArea.setLineWrap(true);
+        dialogue4TextArea.setRows(5);
+        dialogue4TextArea.setWrapStyleWord(true);
+        dialogue4TextArea.setOpaque(false);
+        jScrollPane3.setViewportView(dialogue4TextArea);
+
+        contentPanel.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 536, 910, 80));
+
+        dialogue4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue4.png"))); // NOI18N
+        contentPanel.add(dialogue4, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 490, -1, -1));
+
+        jScrollPane2.setBorder(null);
+        jScrollPane2.setOpaque(false);
+
+        dialogue3TextArea.setEditable(false);
+        dialogue3TextArea.setColumns(20);
+        dialogue3TextArea.setLineWrap(true);
+        dialogue3TextArea.setRows(5);
+        dialogue3TextArea.setWrapStyleWord(true);
+        dialogue3TextArea.setOpaque(false);
+        jScrollPane2.setViewportView(dialogue3TextArea);
+
+        contentPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 596, 910, 30));
+
+        dialogue3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/dialogue/dialogue1.png"))); // NOI18N
+        contentPanel.add(dialogue3, new org.netbeans.lib.awtextra.AbsoluteConstraints(92, 550, -1, -1));
+
+        jScrollPane1.setBorder(null);
+        jScrollPane1.setOpaque(false);
+
+        dialogue1TextArea.setEditable(false);
+        dialogue1TextArea.setColumns(20);
+        dialogue1TextArea.setFont(new java.awt.Font("Press Start 2P", 0, 12)); // NOI18N
+        dialogue1TextArea.setForeground(new java.awt.Color(255, 255, 255));
+        dialogue1TextArea.setLineWrap(true);
+        dialogue1TextArea.setRows(5);
+        dialogue1TextArea.setWrapStyleWord(true);
+        dialogue1TextArea.setOpaque(false);
+        jScrollPane1.setViewportView(dialogue1TextArea);
+
+        contentPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 590, 380, 40));
+
         nextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/common/next_button.png"))); // NOI18N
         contentPanel.add(nextButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1090, 310, 50, 60));
 
@@ -488,6 +730,7 @@ public class Backstory extends GameScreen {
         contentPanel.add(prevButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 310, -1, 50));
 
         slideImage.setBackground(new java.awt.Color(20, 20, 25));
+        slideImage.setForeground(new java.awt.Color(255, 255, 255));
         slideImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/backstory/slide1.png"))); // NOI18N
         contentPanel.add(slideImage, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
@@ -577,84 +820,218 @@ public class Backstory extends GameScreen {
         } else {
             System.out.println("Slide missing: " + s.imagePath);
         }
+        
+        // ---- Text Areas ----
+        // 1. Hide both text areas and clear them
+        dialogue1TextArea.setVisible(false);
+        jScrollPane1.setVisible(false);
+        dialogue1TextArea.setText(""); 
 
-        // ---- Left subtitle (bottom-left) ----
-        if (s.leftLines.isEmpty()) {
-            subtitleBoxLeft.clear();
-            subtitleBoxLeft.setVisible(false);
-        } else {
-            boolean plainCaption = (currentSlide == 0 || currentSlide == 1);
-            subtitleBoxLeft.setPlainMode(plainCaption);
-            subtitleBoxLeft.setCenterText(plainCaption);
+        dialogue3TextArea.setVisible(false);
+        jScrollPane2.setVisible(false);
+        dialogue3TextArea.setText("");       
+        dialogue3.setVisible(false);
+        
+        dialogue4TextArea.setVisible(false);
+        jScrollPane3.setVisible(false);
+        dialogue4TextArea.setText("");
+        dialogue4.setVisible(false);
+        
+        dialogue5TextArea.setVisible(false);
+        jScrollPane4.setVisible(false);
+        dialogue5TextArea.setText("");
+        dialogue5.setVisible(false);
+                
+        dialogue6TextArea.setVisible(false);
+        jScrollPane5.setVisible(false);
+        dialogue6TextArea.setText("");
+        dialogue6.setVisible(false);
+        
+        dialogue7detectiveTextArea.setVisible(false);
+        jScrollPane6.setVisible(false);
+        dialogue7detectiveTextArea.setText("");
+        dialogue7detective.setVisible(false);
 
-            subtitleBoxLeft.setLines(s.leftLines);
-            subtitleBoxLeft.setVisible(true);
+        dialogue7policeTextArea.setVisible(false);
+        jScrollPane7.setVisible(false);
+        dialogue7policeTextArea.setText("");
+        dialogue7police.setVisible(false);        
+        
+        dialogue8TextArea.setVisible(false);
+        jScrollPane8.setVisible(false);
+        dialogue8TextArea.setText("");
+        dialogue8.setVisible(false);  
+        
+        dialogue9TextArea.setVisible(false);
+        jScrollPane9.setVisible(false);
+        dialogue9TextArea.setText("");
+        dialogue9.setVisible(false);  
+        
+        dialogue10TextArea.setVisible(false);
+        jScrollPane10.setVisible(false);
+        dialogue10TextArea.setText("");
+        dialogue10.setVisible(false);  
+        
+        dialogue11TextArea.setVisible(false);
+        jScrollPane11.setVisible(false);
+        dialogue11TextArea.setText("");
+        dialogue11.setVisible(false);  
+        
+        dialogue12detectiveTextArea.setVisible(false);
+        jScrollPane12.setVisible(false);
+        dialogue12detectiveTextArea.setText("");
+        dialogue12detective.setVisible(false);
 
-            int boxW = 900;
-            int boxX = (1150 - boxW) / 2;   // centered horizontally
-            int boxH = subtitleBoxLeft.getPreferredHeight(boxW, s.leftLines);
-            int boxY = 680 - boxH - 40;     // near bottom
+        dialogue12policeTextArea.setVisible(false);
+        jScrollPane13.setVisible(false);
+        dialogue12policeTextArea.setText("");
+        dialogue12police.setVisible(false);   
 
-            // If this slide has a right box too, shift the left box to bottom-left.
-            if (!s.rightLines.isEmpty()) {
-                boxW = 620;
-                boxX = 40;
-                boxH = subtitleBoxLeft.getPreferredHeight(boxW, s.leftLines);
-                boxY = 680 - boxH - 40;
-            }
+        // 2. Show the correct text area based on the slide
+        if (currentSlide == 0) {
+            // Slide 1: [Phone ringing] (Centered with spaces)
+            jScrollPane1.setVisible(true);
+            dialogue1TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            
+            runTypewriterForArea(dialogue1TextArea, text, audio, null);
+            
+        } else if (currentSlide == 1) {
+            // Slide 2: [Receiver clicks]
+            jScrollPane1.setVisible(true);
+            dialogue1TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            
+            runTypewriterForArea(dialogue1TextArea, text, audio, null);
+            
+        } else if (currentSlide == 2) {
+            // Slide 3: Detective speaking.
+            dialogue3.setVisible(true);
+            jScrollPane2.setVisible(true);
+            dialogue3TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue3TextArea, text, audio, null);
+            
+        } else if (currentSlide == 3) {
+            // Slide 4: Officer Morales
+            dialogue4.setVisible(true);
+            jScrollPane3.setVisible(true);
+            dialogue4TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            
+        } else if (currentSlide == 4) {
+            // Slide 5: Detective asks for basics
+            dialogue3.setVisible(true);
+            jScrollPane2.setVisible(true);
+            dialogue3TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue3TextArea, text, audio, null);
+            
+        } else if (currentSlide == 5) {
+            // Slide 6: Morales describes the victim and scene
+            dialogue4.setVisible(true);
+            jScrollPane3.setVisible(true);
+            dialogue4TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            
+        } else if (currentSlide == 6) {
+            // Slide 7: Two lines! (Detective then Morales)
+            dialogue7detective.setVisible(true);
+            jScrollPane6.setVisible(true);
+            dialogue7detectiveTextArea.setVisible(true);
+            
+            String text1 = s.leftLines.get(0).text;
+            String audio1 = s.leftLines.get(0).audioPath;
+            
+            // 2. Type the Detective's line. When it's done, SHOW Morales's box (but keep the Detective's on screen!)
+            runTypewriterForArea(dialogue7detectiveTextArea, text1, audio1, () -> {
+                
+                // Show Morales
+                dialogue7police.setVisible(true);
+                jScrollPane7.setVisible(true);
+                dialogue7policeTextArea.setVisible(true);
+                
+                String text2 = s.rightLines.get(0).text;
+                String audio2 = s.rightLines.get(0).audioPath;
+                
+                runTypewriterForArea(dialogue7policeTextArea, text2, audio2, null);
+            });
+            
+        } else if (currentSlide == 7) {
+            // Slide 8: Morales gives coroner's preliminary findings
+            dialogue4.setVisible(true);
+            jScrollPane3.setVisible(true);
+            dialogue4TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue4TextArea, text, audio, null);
 
-            contentPanel.remove(subtitleBoxLeft);
-            contentPanel.add(subtitleBoxLeft,
-                new org.netbeans.lib.awtextra.AbsoluteConstraints(boxX, boxY, boxW, boxH));
+        } else if (currentSlide == 8) {
+            // Slide 9: Detective asks about scene security
+            dialogue3.setVisible(true);
+            jScrollPane2.setVisible(true);
+            dialogue3TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue3TextArea, text, audio, null);
+            
+        } else if (currentSlide == 9) {
+            // Slide 10: Morales confirms perimeter is sealed
+            dialogue4.setVisible(true);
+            jScrollPane3.setVisible(true);
+            dialogue4TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+                        
+        } else if (currentSlide == 10) {
+            // Slide 11: Morales lists tenants and containment
+            dialogue4.setVisible(true);
+            jScrollPane3.setVisible(true);
+            dialogue4TextArea.setVisible(true);
+            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
+            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
+            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            
+        } else if (currentSlide == 11) {
+            // Slide 12: Two lines (Detective then Morales)
+            
+            // 1. Show the Detective's NEW box (dialogue12detective)
+            dialogue12detective.setVisible(true);
+            jScrollPane12.setVisible(true);
+            dialogue12detectiveTextArea.setVisible(true);
+            
+            String text1 = s.leftLines.get(0).text;
+            String audio1 = s.leftLines.get(0).audioPath;
+            
+            // 2. Type Detective's line, then show Morales's NEW box (dialogue12police)
+            runTypewriterForArea(dialogue12detectiveTextArea, text1, audio1, () -> {
+                
+                dialogue12police.setVisible(true);
+                jScrollPane13.setVisible(true);
+                dialogue12policeTextArea.setVisible(true);
+                
+                String text2 = s.rightLines.get(0).text;
+                String audio2 = s.rightLines.get(0).audioPath;
+                
+                runTypewriterForArea(dialogue12policeTextArea, text2, audio2, null);
+            });
         }
-
-        // ---- Right subtitle (top-right, only used on two-box slides) ----
-        if (s.rightLines.isEmpty()) {
-            subtitleBoxRight.clear();
-            subtitleBoxRight.setVisible(false);
-        } else {
-            subtitleBoxRight.setPlainMode(false);
-            subtitleBoxRight.setCenterText(false);
-
-            subtitleBoxRight.setLines(s.rightLines);
-            subtitleBoxRight.setVisible(true);
-
-            int boxW = 500;
-            int boxX = 1150 - boxW - 40;    // top-right
-            int boxH = subtitleBoxRight.getPreferredHeight(boxW, s.rightLines);
-            int boxY = 40;
-
-            contentPanel.remove(subtitleBoxRight);
-            contentPanel.add(subtitleBoxRight,
-                new org.netbeans.lib.awtextra.AbsoluteConstraints(boxX, boxY, boxW, boxH));
-        }
-
-        // Bring subtitles to front.
-        contentPanel.setComponentZOrder(subtitleBoxLeft, 0);
-        contentPanel.setComponentZOrder(subtitleBoxRight, 0);
-
+        
         // ---- Arrows: hide at boundaries ----
         prevButton.setVisible(currentSlide > 0);
         nextButton.setVisible(currentSlide < slides.length - 1);
 
-        boolean hasLeft  = !s.leftLines.isEmpty();
-        boolean hasRight = !s.rightLines.isEmpty();
-
-        // Two-box slides: type the left box first, then reveal and type the right box.
-        if (hasLeft && hasRight) {
-            subtitleBoxRight.setVisible(false);
-            runTypewriterFor(subtitleBoxLeft, () -> {
-                subtitleBoxRight.setVisible(true);
-                runTypewriterFor(subtitleBoxRight, null);
-            });
-        } else if (hasLeft) {
-            runTypewriterFor(subtitleBoxLeft, null);
-        } else if (hasRight) {
-            runTypewriterFor(subtitleBoxRight, null);
-        }
-
         contentPanel.revalidate();
-        contentPanel.repaint();
+        contentPanel.repaint();      
     }
 
     /**
@@ -724,134 +1101,31 @@ public class Backstory extends GameScreen {
         bloodFadeTimer.start();
     }
 
-    /**
-     * Resumes the typewriter timer after a pause, picking up from the last
-     * visible character count without replaying key clicks.
-     */
-    private void resumeTypewriter() {
-        if (savedBox == null) return;
-
-        final double charsPerTick = savedCharsPerTick;
-        final int    totalChars   = savedTotalChars;
-        final SubtitleBox box     = savedBox;
-        final Runnable onDone     = savedOnDone;
-        final double[] accumulated = { savedCharsShown };
-
-        // Don't replay key clicks on resume — reset the "typing started" marker.
-        typewriterStartTime = System.currentTimeMillis();
-
-        typewriterTimer = new javax.swing.Timer((int) savedTickMs, null);
-        typewriterTimer.addActionListener(e -> {
-            accumulated[0] += charsPerTick;
-            int toShow = (int) accumulated[0];
-            savedCharsShown = toShow;
-            box.setVisibleChars(toShow);
-
-            if (toShow >= totalChars) {
-                typewriterTimer.stop();
-                box.showAllChars();
-                typewriterWasRunning = false;
-                if (onDone != null) onDone.run();
-            }
-        });
-        typewriterTimer.start();
-    }
-
-    /**
-     * Types out one box's contents character by character, synced to the
-     * box's voice-over audio (if its first line has one). Runs {@code onDone}
-     * when typing finishes.
-     */
-    private void runTypewriterFor(SubtitleBox box, Runnable onDone) {
-        if (typewriterTimer != null) typewriterTimer.stop();
-
-        // ---- 1) Audio path ----
-        String audioPath = box.getFirstAudioPath();
-
-        long audioDurationMs = 0;
-        javax.sound.sampled.Clip clip = null;
-
-        if (audioPath != null) {
-            clip = AudioCache.get(audioPath);
-            if (clip != null) {
-                clip.stop();
-                clip.setFramePosition(0);
-                audioDurationMs = clip.getMicrosecondLength() / 1000;
-                currentClip = clip;
-            }
-        }
-
-        int totalChars = box.getTotalChars();
-
-        // No text — just play the audio (if any) and finish immediately.
-        if (totalChars == 0) {
-            box.showAllChars();
-            if (clip != null) clip.start();
-            if (onDone != null) onDone.run();
-            return;
-        }
-
-        // ---- 2) Speed ----
-        // With audio: sync typing to narration length, sped up slightly so the
-        // text finishes a touch before the voice does.
-        // Without audio: fall back to a fixed reading pace.
-        final int DEFAULT_TICK_MS = 30;
-        final double DEFAULT_CHARS_PER_SEC = 50.0;
-        final double AUDIO_SYNC_MULTIPLIER = 1.2;
-
-        final int tickMs;
-        final double charsPerSecond;
-
-        if (clip != null && audioDurationMs > 0) {
-            tickMs = 25;
-            charsPerSecond = totalChars / (audioDurationMs / 1000.0) * AUDIO_SYNC_MULTIPLIER;
-        } else {
-            tickMs = DEFAULT_TICK_MS;
-            charsPerSecond = DEFAULT_CHARS_PER_SEC;
-        }
-
-        box.setVisibleChars(0);
-
-        // ---- 3) Play audio ----
-        final javax.sound.sampled.Clip clipToStop = clip;
-        if (clip != null) {
-            clip.setFramePosition(0);
-            clip.start();
-        }
-
-        // ---- 4) Typewriter ----
-        final double charsPerTick = charsPerSecond * (tickMs / 1000.0);
-        final double[] accumulated = {0.0};
-
-        // Save state for pause/resume.
-        savedBox          = box;
-        savedOnDone       = onDone;
-        savedTotalChars   = totalChars;
-        savedTickMs       = tickMs;
-        savedCharsPerTick = charsPerTick;
-        savedCharsShown   = 0;
-        savedStartTime    = System.currentTimeMillis();
-        typewriterWasRunning = true;
-
-        typewriterTimer = new javax.swing.Timer(tickMs, null);
-        typewriterTimer.addActionListener(e -> {
-
-            accumulated[0] += charsPerTick;
-            int toShow = (int) accumulated[0];
-            savedCharsShown = toShow;   // remember for pause
-            box.setVisibleChars(toShow);
-
-            if (toShow >= totalChars) {
-                typewriterTimer.stop();
-                box.showAllChars();
-                if (clipToStop != null) clipToStop.stop();
-                if (onDone != null) onDone.run();
-                typewriterWasRunning = false;
-            }
-        });
-        typewriterStartTime = System.currentTimeMillis();
-        typewriterTimer.start();
-    }
+    /** Applies the transparent interrogation style to a text area. */
+    private void styleTextBox(javax.swing.JTextArea area, javax.swing.JScrollPane pane) {
+        java.awt.Color clear = new java.awt.Color(0, 0, 0, 0);
+        
+        // 1. Text Area styling
+        area.setOpaque(false);
+        area.setBackground(clear);
+        area.setEditable(false);
+        area.setForeground(java.awt.Color.WHITE);
+        area.setFont(getCustomFont(12f));
+        area.setMargin(new java.awt.Insets(5, 5, 5, 5));
+        
+        // 2. The magic Nimbus fix
+        area.setUI(new javax.swing.plaf.basic.BasicTextAreaUI());
+        
+        // 3. ScrollPane styling
+        pane.setOpaque(false);
+        pane.setBackground(clear);
+        pane.setBorder(null);
+        pane.setViewportBorder(null);
+        pane.getViewport().setOpaque(false);
+        pane.getViewport().setBackground(clear);
+        pane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        pane.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    }       
 
     /** Returns a darkened copy of the given image (used for arrow hover states). */
     private static java.awt.Image darken(java.awt.Image src) {
@@ -950,6 +1224,54 @@ public class Backstory extends GameScreen {
         }
     }
     
+    /** Animates typing text into a standard JTextArea, synced to audio. */
+    private void runTypewriterForArea(final javax.swing.JTextArea area, final String text, final String audioPath, final Runnable onDone) {
+        if (typewriterTimer != null) typewriterTimer.stop();
+        if (currentClip != null) { currentClip.stop(); currentClip = null; }
+
+        area.setText("");
+        long audioDurationMs = 0;
+        javax.sound.sampled.Clip clip = null;
+
+        if (audioPath != null) {
+            clip = AudioCache.get(audioPath);
+            if (clip != null) {
+                clip.stop();
+                clip.setFramePosition(0);
+                audioDurationMs = clip.getMicrosecondLength() / 1000;
+                currentClip = clip;
+                clip.start();
+            }
+        }
+
+        // If the text contains HTML, display it instantly (typewriter breaks with HTML tags)
+        if (text.startsWith("<html>")) {
+            area.setText(text);
+            if (onDone != null) onDone.run();
+            return;
+        }
+
+        final int tickMs = 25;
+        final double charsPerSecond = (clip != null && audioDurationMs > 0) 
+                ? (text.length() / (audioDurationMs / 1000.0)) * 1.2 
+                : 50.0;
+                
+        final double charsPerTick = charsPerSecond * (tickMs / 1000.0);
+        final double[] accumulated = { 0.0 };
+
+        typewriterTimer = new javax.swing.Timer(tickMs, e -> {
+            accumulated[0] += charsPerTick;
+            int n = Math.min(text.length(), (int) accumulated[0]);
+            area.setText(text.substring(0, n));
+            
+            if (n >= text.length()) {
+                typewriterTimer.stop();
+                if (onDone != null) onDone.run();
+            }
+        });
+        typewriterTimer.start();
+    }
+    
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -974,7 +1296,45 @@ public class Backstory extends GameScreen {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel contentPanel;
+    private javax.swing.JLabel dialogue10;
+    private javax.swing.JTextArea dialogue10TextArea;
+    private javax.swing.JLabel dialogue11;
+    private javax.swing.JTextArea dialogue11TextArea;
+    private javax.swing.JLabel dialogue12detective;
+    private javax.swing.JTextArea dialogue12detectiveTextArea;
+    private javax.swing.JLabel dialogue12police;
+    private javax.swing.JTextArea dialogue12policeTextArea;
+    private javax.swing.JTextArea dialogue1TextArea;
+    private javax.swing.JLabel dialogue3;
+    private javax.swing.JTextArea dialogue3TextArea;
+    private javax.swing.JLabel dialogue4;
+    private javax.swing.JTextArea dialogue4TextArea;
+    private javax.swing.JLabel dialogue5;
+    private javax.swing.JTextArea dialogue5TextArea;
+    private javax.swing.JLabel dialogue6;
+    private javax.swing.JTextArea dialogue6TextArea;
+    private javax.swing.JLabel dialogue7detective;
+    private javax.swing.JTextArea dialogue7detectiveTextArea;
+    private javax.swing.JLabel dialogue7police;
+    private javax.swing.JTextArea dialogue7policeTextArea;
+    private javax.swing.JLabel dialogue8;
+    private javax.swing.JTextArea dialogue8TextArea;
+    private javax.swing.JLabel dialogue9;
+    private javax.swing.JTextArea dialogue9TextArea;
     private javax.swing.JLabel exitDoor;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane10;
+    private javax.swing.JScrollPane jScrollPane11;
+    private javax.swing.JScrollPane jScrollPane12;
+    private javax.swing.JScrollPane jScrollPane13;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JScrollPane jScrollPane8;
+    private javax.swing.JScrollPane jScrollPane9;
     private javax.swing.JLabel nextButton;
     private javax.swing.JLabel prevButton;
     private javax.swing.JLabel slideImage;
