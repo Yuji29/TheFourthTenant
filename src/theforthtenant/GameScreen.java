@@ -16,7 +16,7 @@ public abstract class GameScreen extends JFrame {
         
         setTitle("The Fourth Tenant");
         setResizable(false);
-        setLocationRelativeTo(null);
+        
     }
 
     protected abstract void setupScreen();

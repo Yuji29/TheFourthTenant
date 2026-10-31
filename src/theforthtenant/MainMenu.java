@@ -196,6 +196,8 @@ public class MainMenu extends GameScreen {
                 }
             }
         };
+        
+        setLocationRelativeTo(null);
 
         for (javax.swing.JButton btn : menuButtons) {
             btn.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(

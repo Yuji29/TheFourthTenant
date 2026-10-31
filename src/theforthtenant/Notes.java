@@ -155,7 +155,7 @@ public class Notes extends GameScreen {
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/ui/folder.wav");
                 CrimeScene cs = new CrimeScene();
                 cs.setLocation(getLocation());
                 cs.setVisible(true);
@@ -172,7 +172,7 @@ public class Notes extends GameScreen {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_3, 0), "backAction");
         am.put("backAction", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/ui/folder.wav");
                 CrimeScene cs = new CrimeScene();
                 cs.setLocation(getLocation());
                 cs.setVisible(true);
@@ -215,6 +215,8 @@ public class Notes extends GameScreen {
 
         // Call loadNotes() at the very end of the constructor
         loadNotes();
+        
+        setLocationRelativeTo(null);
     }
 
     /**

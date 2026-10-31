@@ -74,7 +74,7 @@ public class CaseFile extends GameScreen {
                 backButton.setIcon(backNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/ui/folder.wav");
                 goToCrimeScene();
             }
         });
@@ -98,13 +98,14 @@ public class CaseFile extends GameScreen {
                 .put(backKey, "closeCaseFileKey");
         root.getActionMap().put("closeCaseFileKey", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                AudioCache.play("/audio/sfx/ui/select.wav");
+                AudioCache.play("/audio/sfx/ui/folder.wav");
                 goToCrimeScene();
             }
         });
 
         // Populate the task label with the current objective.
         updateObjective();
+        setLocationRelativeTo(null);
     }
 
     /**

@@ -446,6 +446,8 @@ public class CrimeScene extends GameScreen {
                 }
             });
         }
+        
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -649,7 +651,7 @@ public class CrimeScene extends GameScreen {
 
     /** Opens the Suspects screen, preserving window location. */
     private void openSuspects() {
-        AudioCache.play("/audio/sfx/ui/select.wav");
+        AudioCache.play("/audio/sfx/ui/folder.wav");
         Suspects sus = new Suspects();
         sus.setLocation(getLocation());
         sus.setVisible(true);
@@ -658,7 +660,7 @@ public class CrimeScene extends GameScreen {
     
     /** Opens the Notes screen, preserving window location. */
     private void openNotes() {
-        AudioCache.play("/audio/sfx/ui/select.wav");
+        AudioCache.play("/audio/sfx/ui/folder.wav");
         Notes notes = new Notes();
         notes.setLocation(getLocation());
         notes.setVisible(true);
@@ -676,7 +678,7 @@ public class CrimeScene extends GameScreen {
 
     /** Opens the Case File screen, preserving window location. */
     private void openCaseFile() {
-        AudioCache.play("/audio/sfx/ui/select.wav");
+        AudioCache.play("/audio/sfx/ui/folder.wav");
         CaseFile cf = new CaseFile();
         cf.setLocation(getLocation());
         cf.setVisible(true);
@@ -1008,29 +1010,6 @@ public class CrimeScene extends GameScreen {
             ambienceClip = null;
         }
         super.dispose();
-    }
-    
-    /** Simple black overlay that fades out. */
-    private static class FadeOverlay extends javax.swing.JComponent {
-        private float alpha = 1f;
-
-        FadeOverlay() {
-            setOpaque(false);
-        }
-
-        void setAlpha(float a) {
-            this.alpha = Math.max(0f, Math.min(1f, a));
-            repaint();
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            if (alpha <= 0f) return;
-            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            g2.setColor(new java.awt.Color(0, 0, 0, (int)(alpha * 255)));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
-        }
     }
 
     private void showGameOver() {

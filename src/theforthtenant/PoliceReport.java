@@ -184,7 +184,9 @@ public class PoliceReport extends GameScreen {
                 AudioCache.play("/audio/sfx/gameplay/thud.wav"); // Optional: adds the standard navigation thud
                 advance();
             }
-        });     
+        });  
+        
+        setLocationRelativeTo(null);
     }
 
     private void showSlide(int index) {
@@ -559,30 +561,7 @@ public class PoliceReport extends GameScreen {
             }
         });
         t.start();
-    }
-
-    /** Simple black overlay that fades. */
-    private static class FadeOverlay extends javax.swing.JComponent {
-        private float alpha = 1f;
-
-        FadeOverlay() {
-            setOpaque(false);
-        }
-
-        void setAlpha(float a) {
-            this.alpha = Math.max(0f, Math.min(1f, a));
-            repaint();
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            if (alpha <= 0f) return;
-            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            g2.setColor(new java.awt.Color(0, 0, 0, (int)(alpha * 255)));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
-        }
-    }    
+    } 
 
     /**
      * This method is called from within the constructor to initialize the form.

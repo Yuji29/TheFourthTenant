@@ -611,6 +611,8 @@ public class Inventory extends GameScreen {
         contentPanel.setComponentZOrder(backButton, 0);
 
         contentPanel.repaint();
+        
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -1670,29 +1672,6 @@ public class Inventory extends GameScreen {
         getRootPane().getActionMap().clear();
 
         AudioCache.play("/audio/sfx/ui/splatter.wav");
-    }
-
-    /** Simple black overlay that fades out. */
-    private static class FadeOverlay extends javax.swing.JComponent {
-        private float alpha = 1f;
-
-        FadeOverlay() {
-            setOpaque(false);
-        }
-
-        void setAlpha(float a) {
-            this.alpha = Math.max(0f, Math.min(1f, a));
-            repaint();
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            if (alpha <= 0f) return;
-            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            g2.setColor(new java.awt.Color(0, 0, 0, (int) (alpha * 255)));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
-        }
     }
 
        public static void main(String args[]) {
