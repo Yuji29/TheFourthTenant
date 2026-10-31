@@ -271,7 +271,6 @@ public class Inventory extends javax.swing.JFrame {
         final javax.swing.ImageIcon backHover = new javax.swing.ImageIcon(
                 getClass().getResource("/Images/ui/back_button_hovered.png"));
 
-        backButton.setIcon(backNormal);
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -279,7 +278,6 @@ public class Inventory extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                backButton.setIcon(backNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;

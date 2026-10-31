@@ -90,8 +90,6 @@ public class Suspects extends javax.swing.JFrame {
         final javax.swing.ImageIcon backHover =
                 new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button_hovered.png"));
 
-        backButton.setIcon(backNormal);
-        backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return; 
@@ -120,8 +118,6 @@ public class Suspects extends javax.swing.JFrame {
                 new javax.swing.ImageIcon(getClass().getResource("/Images/common/previous_button_hovered.png"));
 
         // --- Prev Button ---
-        prevButton.setIcon(prevNormal);
-        prevButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         prevButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -129,7 +125,6 @@ public class Suspects extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                prevButton.setIcon(prevNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -138,9 +133,7 @@ public class Suspects extends javax.swing.JFrame {
             }
         });
 
-        // --- Next Button ---
-        nextButton.setIcon(nextNormal);
-        nextButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        // --- Next Button ---;
         nextButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -148,7 +141,6 @@ public class Suspects extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                nextButton.setIcon(nextNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -194,10 +186,6 @@ public class Suspects extends javax.swing.JFrame {
         // ---- Arrest Button Logic ----
         arrestNormal = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/suspects/arrest_btn.png"));
         arrestHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/suspects/arrest_btn_hovered.png"));
-
-        arrestButton.setIcon(arrestNormal);
-        arrestButton.setText(""); // Make sure no text overrides the image
-        arrestButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         
         arrestButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
@@ -206,7 +194,6 @@ public class Suspects extends javax.swing.JFrame {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                arrestButton.setIcon(arrestNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -216,14 +203,12 @@ public class Suspects extends javax.swing.JFrame {
         });
         
         // ---- Back to Main Menu Button (Only for True Ending) ----
-        backToMainMenu.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         backToMainMenu.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (!isGameOver || !isCathyArrestedEnding) return;
-                AudioCache.play("/audio/sfx/ui/hover.wav"); // <--- HOVER SOUND
+                AudioCache.play("/audio/sfx/ui/hover.wav"); 
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                // No visual change needed, but you can add one here if you want
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (!isGameOver || !isCathyArrestedEnding) return;
@@ -330,12 +315,14 @@ public class Suspects extends javax.swing.JFrame {
         backToMainMenu.setFont(new java.awt.Font("Press Start 2P", 0, 20)); // NOI18N
         backToMainMenu.setForeground(new java.awt.Color(255, 255, 255));
         backToMainMenu.setText("Back to Main Menu");
+        backToMainMenu.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(backToMainMenu, new org.netbeans.lib.awtextra.AbsoluteConstraints(405, 460, -1, -1));
 
         restartButton.setFont(new java.awt.Font("Press Start 2P", 0, 20)); // NOI18N
         restartButton.setForeground(new java.awt.Color(255, 255, 255));
         restartButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         restartButton.setText("RESTART");
+        restartButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         restartButton.setPreferredSize(new java.awt.Dimension(180, 32));
         contentPanel.add(restartButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 360, -1, -1));
 
@@ -343,6 +330,7 @@ public class Suspects extends javax.swing.JFrame {
         menuButton.setForeground(new java.awt.Color(255, 255, 255));
         menuButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         menuButton.setText("MAIN MENU");
+        menuButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         menuButton.setPreferredSize(new java.awt.Dimension(180, 32));
         contentPanel.add(menuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 410, -1, -1));
 
@@ -350,6 +338,7 @@ public class Suspects extends javax.swing.JFrame {
         contentPanel.add(gameoverLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         arrestButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/suspects/arrest_btn.png"))); // NOI18N
+        arrestButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(arrestButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 250, -1, -1));
 
         note3Alibi3Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/suspects/notes/icons/ledger.png"))); // NOI18N

@@ -70,8 +70,6 @@ public class CaseFile extends javax.swing.JFrame {
         final javax.swing.ImageIcon backHover =
                 new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button_hovered.png"));
 
-        backButton.setIcon(backNormal);
-        backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 backButton.setIcon(backHover);

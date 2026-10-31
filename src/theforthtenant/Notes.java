@@ -12,6 +12,7 @@ public class Notes extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Notes.class.getName());
 
+    private PauseMenu pauseMenu;
     private int currentBook = 0;
     
     /**
@@ -30,6 +31,39 @@ public class Notes extends javax.swing.JFrame {
         }
         
         setLocationRelativeTo(null);
+        
+        // ---- Options Menu ----
+        // Closing the options menu returns the player to the pause menu popup.
+        final OptionsMenu optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {
+            @Override public void onSoundChanged(int percent) {
+                AudioCache.play("/audio/sfx/ui/hover.wav");
+            }
+            @Override public void onClose() {
+                pauseMenu.showPopupOnly();
+            }
+        });
+
+        // ---- Pause Menu ----
+        pauseMenu = PauseMenu.attachTo(this, PauseMenu.Corner.TOP_LEFT, new PauseMenu.Callbacks() {
+            @Override public void onPause() {}
+            @Override public void onResume() {}
+            @Override public void onOptions() {
+                // Hide pause popup while the options menu is open.
+                pauseMenu.hidePopupOnly();
+                optionsMenu.show();
+            }
+            @Override public void onMainMenu() {
+                if (TransitionOverlay.isPlaying()) return;
+                pauseMenu.hideOverlay();
+
+                TransitionOverlay.play(Notes.this, () -> {
+                    MainMenu menu = new MainMenu();
+                    menu.setLocation(getLocation());
+                    menu.setVisible(true);
+                    Notes.this.dispose();
+                });
+            }
+        });           
         
         // Force both text areas and their scroll panes to be fully invisible backgrounds
         detectiveNotesLeft.setOpaque(false);
@@ -84,15 +118,12 @@ public class Notes extends javax.swing.JFrame {
         final javax.swing.ImageIcon backHover  = new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button_hovered.png"));
 
         // Next Button (Flip to right page)
-        nextButton.setIcon(nextNormal);
-        nextButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         nextButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 nextButton.setIcon(nextHover);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                nextButton.setIcon(nextNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 AudioCache.play("/audio/sfx/ui/select.wav");
@@ -104,15 +135,12 @@ public class Notes extends javax.swing.JFrame {
         });
 
         // Prev Button (Flip to left page)
-        prevButton.setIcon(prevNormal);
-        prevButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         prevButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 prevButton.setIcon(prevHover);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                prevButton.setIcon(prevNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 AudioCache.play("/audio/sfx/ui/select.wav");
@@ -125,15 +153,12 @@ public class Notes extends javax.swing.JFrame {
         });
 
         // Back Button (Exit to CrimeScene)
-        backButton.setIcon(backNormal);
-        backButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         backButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 backButton.setIcon(backHover);
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                backButton.setIcon(backNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 AudioCache.play("/audio/sfx/ui/select.wav");

@@ -265,47 +265,7 @@ public class CrimeScene extends javax.swing.JFrame {
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_2, 0),     "openSuspects");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_3, 0),     "openNotes");
         im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_4, 0),     "openInterrogate");
-        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, 0),     "openCaseFile");
-        
-        // ---- DEBUG CHEAT: Press '0' to unlock everything ----
-        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_0, 0), "debugUnlock");
-        am.put("debugUnlock", new javax.swing.AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (isMenuBlocked()) return;
-
-                // 1. Collect all evidence
-                String[] items = {"padlock", "belt", "dragpath", "phone", "footmarks", "drum", "usb", "boots", "mug", "toolbox", "prescription", "ledger", "rag", "love_letters"};
-                for (String item : items) {
-                    GameState.markCollected(item);
-                }
-
-                // 2. Unlock phone and discover all combines
-                GameState.setPhoneUnlocked(true);
-                String[] discoveries = {"damaged_lock", "drugged_coffee", "shoeprints", "blood_cleanup", "audio_log", "gym_bag_trace", "jealousy", "opened_ledger"};
-                for (String disc : discoveries) {
-                    GameState.markDiscovered(disc);
-                }
-
-                // 3. Mark all interrogations as complete
-                String[] topics = {"cardo_time", "cardo_boots", "cardo_damage_lock", "cardo_jealousy", "cathy_time", "cathy_audio", "cathy_rag", "cathy_gym_bag", "andy_time", "andy_debt", "andy_pills"};
-                for (String topic : topics) {
-                    GameState.markInterrogated(topic);
-                }
-
-                // 4. Skip straight to the arrest phase
-                GameState.setPoliceReportDone(true);
-                GameState.setCathyConfronted(true);
-
-                AudioCache.play("/audio/sfx/ui/notification.wav");
-                System.out.println("DEBUG: Game Unlocked! Reloading Scene...");
-                
-                // Reload the crime scene so the UI updates
-                CrimeScene cs = new CrimeScene();
-                cs.setLocation(getLocation());
-                cs.setVisible(true);
-                CrimeScene.this.dispose();
-            }
-        });        
+        im.put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, 0),     "openCaseFile");    
 
         am.put("scenePrev", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -362,28 +322,24 @@ public class CrimeScene extends javax.swing.JFrame {
         final javax.swing.ImageIcon nextDark = new javax.swing.ImageIcon(
                 getClass().getResource("/Images/common/next_button_hovered.png"));
 
-        prevButton.setIcon(prevNormal);
         prevButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 prevButton.setIcon(prevDark);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                prevButton.setIcon(prevNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 navigateScene(-1);
             }
         });
 
-        nextButton.setIcon(nextNormal);
         nextButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
                 nextButton.setIcon(nextDark);
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                nextButton.setIcon(nextNormal);
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 navigateScene(+1);
@@ -544,6 +500,7 @@ public class CrimeScene extends javax.swing.JFrame {
         restartButton.setForeground(new java.awt.Color(255, 255, 255));
         restartButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         restartButton.setText("RESTART");
+        restartButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         restartButton.setPreferredSize(new java.awt.Dimension(180, 32));
         contentPanel.add(restartButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 360, -1, -1));
 
@@ -551,6 +508,7 @@ public class CrimeScene extends javax.swing.JFrame {
         menuButton.setForeground(new java.awt.Color(255, 255, 255));
         menuButton.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         menuButton.setText("MAIN MENU");
+        menuButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         menuButton.setPreferredSize(new java.awt.Dimension(180, 32));
         contentPanel.add(menuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(485, 410, -1, -1));
 

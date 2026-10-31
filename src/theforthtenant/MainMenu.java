@@ -35,6 +35,8 @@ public class MainMenu extends javax.swing.JFrame {
         } catch (Exception e) {
             System.out.println("Logo not found: " + e.getMessage());
         }
+        
+        setLocationRelativeTo(null);
 
         // ---- Menu music (looping) ----
         musicClip = AudioCache.loop("/audio/music/menu.wav", AudioCache.Channel.MUSIC);
@@ -393,7 +395,7 @@ public class MainMenu extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new LoadingScreen().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new MainMenu().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

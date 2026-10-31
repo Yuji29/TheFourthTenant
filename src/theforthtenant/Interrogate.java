@@ -571,8 +571,6 @@ public class Interrogate extends javax.swing.JFrame {
             System.out.println("Logo not found: " + e.getMessage());
         }
 
-        setTitle("The Fourth Tenant");
-        setResizable(false);
         setLocationRelativeTo(null);
 
         // ---- Load Backgrounds ----
@@ -703,18 +701,9 @@ public class Interrogate extends javax.swing.JFrame {
         option3rightTextArea.setVisible(false);
         suspectAnswerTextArea.setVisible(false);        
         detectiveChosenTextArea.setVisible(false);
+        suspectNamePlate.setVisible(false);   
         contentPanel.revalidate();
-        contentPanel.repaint();
-        
-        // ---- Style the suspect name plate (JLabel) ----
-        suspectNamePlate.setOpaque(false);            // fully transparent
-        suspectNamePlate.setBorder(null);
-        suspectNamePlate.setFont(getCustomFont(16f).deriveFont(java.awt.Font.BOLD)); 
-        suspectNamePlate.setForeground(java.awt.Color.BLACK);
-        suspectNamePlate.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        suspectNamePlate.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
-        suspectNamePlate.setText("");
-        suspectNamePlate.setVisible(false);           // hidden in the lounge
+        contentPanel.repaint();         
         
         // ---- Custom pulsing Hint Text ----
         javax.swing.JComponent hintOverlay = new javax.swing.JComponent() {
@@ -828,11 +817,6 @@ public class Interrogate extends javax.swing.JFrame {
         final java.awt.Color hoverColor  = new java.awt.Color(150, 150, 150);
         final java.awt.Color normalColor = java.awt.Color.WHITE;
         final java.awt.Cursor handCursor = new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR);
-
-        // The text area and viewport have their own cursors, so set them all
-        jScrollPane1.setCursor(handCursor);
-        jScrollPane1.getViewport().setCursor(handCursor);
-        option1TextArea.setCursor(handCursor);
         
         wireChoices();
 
@@ -994,6 +978,7 @@ public class Interrogate extends javax.swing.JFrame {
         backgroundLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("The Fourth Tenant");
         setResizable(false);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -1002,14 +987,19 @@ public class Interrogate extends javax.swing.JFrame {
         contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, 60, 50));
 
         phoneImg.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/phone_img.png"))); // NOI18N
+        phoneImg.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(phoneImg, new org.netbeans.lib.awtextra.AbsoluteConstraints(379, 62, -1, -1));
 
         phoneScrim.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/phone_scrim.png"))); // NOI18N
+        phoneScrim.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(phoneScrim, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         phoneHighlighted.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/highlighted_phone.png"))); // NOI18N
+        phoneHighlighted.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(phoneHighlighted, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 260, -1, -1));
 
+        suspectNamePlate.setFont(new java.awt.Font("Press Start 2P", 1, 16)); // NOI18N
+        suspectNamePlate.setForeground(new java.awt.Color(0, 0, 0));
         suspectNamePlate.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         contentPanel.add(suspectNamePlate, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 492, 140, 40));
 
@@ -1043,9 +1033,11 @@ public class Interrogate extends javax.swing.JFrame {
         contentPanel.add(jScrollPane7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 536, 420, 70));
 
         option2right.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option2.png"))); // NOI18N
+        option2right.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option2right, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 520, -1, -1));
 
         option2left.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option2.png"))); // NOI18N
+        option2left.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option2left, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 520, -1, -1));
 
         jScrollPane6.setBorder(null);
@@ -1088,13 +1080,16 @@ public class Interrogate extends javax.swing.JFrame {
         contentPanel.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 500, 260, 100));
 
         option3right.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option3.png"))); // NOI18N
+        option3right.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option3right, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 475, -1, -1));
         option3right.getAccessibleContext().setAccessibleName("");
 
         option3middle.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option3.png"))); // NOI18N
+        option3middle.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option3middle, new org.netbeans.lib.awtextra.AbsoluteConstraints(325, 475, -1, -1));
 
         option3left.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option3.png"))); // NOI18N
+        option3left.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option3left, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 475, -1, -1));
 
         jScrollPane3.setBorder(null);
@@ -1127,6 +1122,7 @@ public class Interrogate extends javax.swing.JFrame {
         contentPanel.add(detectiveChosen, new org.netbeans.lib.awtextra.AbsoluteConstraints(101, 295, -1, -1));
 
         jScrollPane1.setBorder(null);
+        jScrollPane1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jScrollPane1.setOpaque(false);
 
         option1TextArea.setEditable(false);
@@ -1140,6 +1136,7 @@ public class Interrogate extends javax.swing.JFrame {
         contentPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 534, 510, 70));
 
         option1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option1.png"))); // NOI18N
+        option1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option1, new org.netbeans.lib.awtextra.AbsoluteConstraints(275, 520, -1, -1));
 
         andyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/andy.png"))); // NOI18N
