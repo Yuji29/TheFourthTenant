@@ -283,6 +283,10 @@ public class Backstory extends GameScreen {
         am.put("next", new javax.swing.AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { navigate(+1); }
         });
+        
+        // Force the window to grab keyboard focus so A/D and Arrows work immediately
+        contentPanel.setFocusable(true);
+        contentPanel.requestFocusInWindow();
 
         // ---- Fade-in overlay (covers the whole panel) ----
         fadeOverlay = new FadeOverlay();
