@@ -549,13 +549,13 @@ public class Interrogate extends GameScreen {
     /**
      * Creates new form Interrogate
      */
-        public Interrogate() {
-            initComponents();
-            setupScreen();
-        }
+    public Interrogate() {
+        initComponents();
+        setupScreen();
+    }
         
-        @Override
-        protected void setupScreen() {
+    @Override
+    protected void setupScreen() {
         
         // ---- Replace the form's JTextAreas with line-spaced ones ----
         option1TextArea         = spaced(jScrollPane1);
@@ -1165,30 +1165,6 @@ public class Interrogate extends GameScreen {
     /**
      * @param args the command line arguments
      */
-    
-    
-    /** A JLabel that supports a fading alpha value for animations. */
-    private static class FadeLabel extends javax.swing.JLabel {
-        private float alpha = 1f;
-
-        public FadeLabel() { 
-            setOpaque(false); 
-        }
-
-        public void setAlpha(float a) {
-            this.alpha = Math.max(0f, Math.min(1f, a));
-            repaint();
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            g2.setComposite(java.awt.AlphaComposite.getInstance(
-                java.awt.AlphaComposite.SRC_OVER, alpha));
-            super.paintComponent(g2);
-            g2.dispose();
-        }
-    }
     
     /** Opens the dialogue window for the chosen suspect. */
     private void openDialogue(Suspect s) {
