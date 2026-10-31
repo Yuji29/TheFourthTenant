@@ -54,40 +54,37 @@ public class Backstory extends GameScreen {
     // ---- Voice resume state ----
     private long savedClipMicros = 0;
 
-    /**
+     /**
      * Represents a single story slide: an image, optional voice-over line(s),
      * and an optional sound effect.
      */
     private static class Slide {
         final String imagePath;
-        final java.util.List<SubtitleBox.Line> leftLines;
-        final java.util.List<SubtitleBox.Line> rightLines;
         final String sfxPath;
+        final String leftText;
+        final String leftAudio;
+        final String rightText;
+        final String rightAudio;
 
-        Slide(String imagePath, SubtitleBox.Line... lines) {
-            this(imagePath, null, lines);
-        }
-
-        Slide(String imagePath, String sfxPath, SubtitleBox.Line... lines) {
+        // Constructor for 1 speaker
+        Slide(String imagePath, String sfxPath, String leftText, String leftAudio) {
             this.imagePath = imagePath;
             this.sfxPath = sfxPath;
-            this.leftLines = java.util.Arrays.asList(lines);
-            this.rightLines = java.util.Collections.emptyList();
+            this.leftText = leftText;
+            this.leftAudio = leftAudio;
+            this.rightText = null;
+            this.rightAudio = null;
         }
 
-        Slide(String imagePath, String sfxPath,
-              java.util.List<SubtitleBox.Line> leftLines,
-              java.util.List<SubtitleBox.Line> rightLines) {
+        // Constructor for 2 speakers
+        Slide(String imagePath, String sfxPath, String leftText, String leftAudio, String rightText, String rightAudio) {
             this.imagePath = imagePath;
             this.sfxPath = sfxPath;
-            this.leftLines = leftLines;
-            this.rightLines = rightLines;
+            this.leftText = leftText;
+            this.leftAudio = leftAudio;
+            this.rightText = rightText;
+            this.rightAudio = rightAudio;
         }
-    }
-
-    /** Convenience factory for a list of subtitle lines. */
-    private static java.util.List<SubtitleBox.Line> L(SubtitleBox.Line... lines) {
-        return java.util.Arrays.asList(lines);
     }
 
     /**
@@ -99,75 +96,63 @@ public class Backstory extends GameScreen {
         // 1 — Phone rings
         new Slide("/Images/backstory/slide1.png",
             "/audio/backstory_sfx/thunder.wav",
-            new SubtitleBox.Line(null, "[Phone ringing]")),
+            "[Phone ringing]", null),
 
         // 2 — Receiver clicks
         new Slide("/Images/backstory/slide2.png",
             "/audio/backstory_sfx/receiver_click.wav",
-            new SubtitleBox.Line(null, "[Receiver clicks]")),
+            "[Receiver clicks]", null),
 
         // 3 — Detective answers
-        new Slide("/Images/backstory/slide3.png",
-            new SubtitleBox.Line("Detective", "Detective speaking.",
-            "/audio/voice/backstory/s03_detective.wav")),
+        new Slide("/Images/backstory/slide3.png", null,
+            "Detective speaking.", "/audio/voice/backstory/s03_detective.wav"),
 
         // 4 — Morales briefs the detective
-        new Slide("/Images/backstory/slide4.png",
-            new SubtitleBox.Line("Officer Morales", "Detective, glad I caught you at your desk. We have a 10-54 code over at Barangay San Lorenzo—specifically the old three-story boarding house near the corner lot. We need you on-site immediately.",
-            "/audio/voice/backstory/s04_morales.wav")),
+        new Slide("/Images/backstory/slide4.png", null,
+            "Detective, glad I caught you at your desk. We have a 10-54 code over at Barangay San Lorenzo—specifically the old three-story boarding house near the corner lot. We need you on-site immediately.", "/audio/voice/backstory/s04_morales.wav"),
 
         // 5 — Detective asks for basics
-        new Slide("/Images/backstory/slide5.png",
-            new SubtitleBox.Line("Detective", "Give me the basics, Morales. What are we looking at?",
-            "/audio/voice/backstory/s05_detective.wav")),
+        new Slide("/Images/backstory/slide5.png", null,
+            "Give me the basics, Morales. What are we looking at?", "/audio/voice/backstory/s05_detective.wav"),
 
         // 6 — Morales describes the victim and scene
         new Slide("/Images/backstory/slide6.png",
             "/audio/backstory_sfx/siren_distant.wav",
-            new SubtitleBox.Line("Officer Morales", "Homicide. The victim is a female tenant named Abby Salle. She was stuffed inside an industrial blue water drum on the open rooftop.",
-                    "/audio/voice/backstory/s06_morales.wav")),
+            "Homicide. The victim is a female tenant named Abby Salle. She was stuffed inside an industrial blue water drum on the open rooftop.", "/audio/voice/backstory/s06_morales.wav"),
 
         // 7 — Detective asks about the ME; Morales gives discovery time
         new Slide("/Images/backstory/slide7.png",
             "/audio/backstory_sfx/wind_gust.wav",
-            L(new SubtitleBox.Line("Detective", "Has the medical examiner given an initial read?",
-                    "/audio/voice/backstory/s07_detective.wav")),
-            L(new SubtitleBox.Line("Officer Morales", "The body was discovered just twenty minutes ago, around 6:30 AM, by one of the housemates heading up to do laundry.",
-                    "/audio/voice/backstory/s07_morales.wav"))),
+            "Has the medical examiner given an initial read?", "/audio/voice/backstory/s07_detective.wav",
+            "The body was discovered just twenty minutes ago, around 6:30 AM, by one of the housemates heading up to do laundry.", "/audio/voice/backstory/s07_morales.wav"),
 
         // 8 — Morales gives coroner's preliminary findings
         new Slide("/Images/backstory/slide8.png",
-                "/audio/backstory_sfx/siren_distant.wav",
-            new SubtitleBox.Line("Officer Morales", "The coroner just did a preliminary check. Rigor mortis is fairly advanced—they're placing the estimated time of death between 1:30 AM and 2:30 AM earlier today. As for the primary cause of death, preliminary findings show severe head trauma and asphyxiation before she was folded into the drum.",
-                    "/audio/voice/backstory/s08_morales.wav")),
+            "/audio/backstory_sfx/siren_distant.wav",
+            "The coroner just did a preliminary check. Rigor mortis is fairly advanced—they're placing the estimated time of death between 1:30 AM and 2:30 AM earlier today. As for the primary cause of death, preliminary findings show severe head trauma and asphyxiation before she was folded into the drum.", "/audio/voice/backstory/s08_morales.wav"),
 
         // 9 — Detective asks about scene security
-        new Slide("/Images/backstory/slide9.png",
-            new SubtitleBox.Line("Detective", "Anyone secured the area? Who's at the location?",
-                    "/audio/voice/backstory/s09_detective.wav")),
+        new Slide("/Images/backstory/slide9.png", null,
+            "Anyone secured the area? Who's at the location?", "/audio/voice/backstory/s09_detective.wav"),
 
         // 10 — Morales confirms perimeter is sealed
         new Slide("/Images/backstory/slide10.png",
-                "/audio/backstory_sfx/siren_distant.wav",
-            new SubtitleBox.Line("Officer Morales", "The rooftop and the entire boarding house are sealed under standard perimeter protocol.",
-                    "/audio/voice/backstory/s10_morales.wav")),
+            "/audio/backstory_sfx/siren_distant.wav",
+            "The rooftop and the entire boarding house are sealed under standard perimeter protocol.", "/audio/voice/backstory/s10_morales.wav"),
 
         // 11 — Morales lists tenants and containment
-        new Slide("/Images/backstory/slide11.png",
-            new SubtitleBox.Line("Officer Morales", "Aside from the victim, three other tenants live in the building. We have all three detained downstairs in the common area until you arrive. Nobody enters, nobody leaves.",
-                    "/audio/voice/backstory/s11_morales.wav")),
+        new Slide("/Images/backstory/slide11.png", null,
+            "Aside from the victim, three other tenants live in the building. We have all three detained downstairs in the common area until you arrive. Nobody enters, nobody leaves.", "/audio/voice/backstory/s11_morales.wav"),
 
         // 12 — Detective asks about statements/weapons; Morales urges haste
-        new Slide("/Images/backstory/slide12.png",
-            null,
-            L(new SubtitleBox.Line("Detective", "Any initial statements or weapons recovered?",
-                    "/audio/voice/backstory/s12_detective.wav")),
-            L(new SubtitleBox.Line("Officer Morales", "Nothing yet. We didn't want to contaminate the crime scene or compromise preliminary interviews before lead gets here. The rain’s letting up, but we need you to process the rooftop and review the house before things get cold. Get down here right away, Detective.",
-                    "/audio/voice/backstory/s12_morales.wav"))),
+        new Slide("/Images/backstory/slide12.png", null,
+            "Any initial statements or weapons recovered?", "/audio/voice/backstory/s12_detective.wav",
+            "Nothing yet. We didn't want to contaminate the crime scene or compromise preliminary interviews before lead gets here. The rain’s letting up, but we need you to process the rooftop and review the house before things get cold. Get down here right away, Detective.", "/audio/voice/backstory/s12_morales.wav"),
 
         // 13 — Door creaks; player clicks to proceed
         new Slide("/Images/backstory/slide13.png",
-            "/audio/backstory_sfx/door_creak.wav")
+            "/audio/backstory_sfx/door_creak.wav",
+            null, null)
     };
 
     /**
@@ -890,55 +875,42 @@ public class Backstory extends GameScreen {
             // Slide 1: [Phone ringing] (Centered with spaces)
             jScrollPane1.setVisible(true);
             dialogue1TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
             
-            runTypewriterForArea(dialogue1TextArea, text, audio, null);
+            runTypewriterForArea(dialogue1TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 1) {
             // Slide 2: [Receiver clicks]
             jScrollPane1.setVisible(true);
             dialogue1TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            
-            runTypewriterForArea(dialogue1TextArea, text, audio, null);
+            runTypewriterForArea(dialogue1TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 2) {
             // Slide 3: Detective speaking.
             dialogue3.setVisible(true);
             jScrollPane2.setVisible(true);
             dialogue3TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue3TextArea, text, audio, null);
+            runTypewriterForArea(dialogue3TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 3) {
             // Slide 4: Officer Morales
             dialogue4.setVisible(true);
             jScrollPane3.setVisible(true);
             dialogue4TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            runTypewriterForArea(dialogue4TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 4) {
             // Slide 5: Detective asks for basics
             dialogue3.setVisible(true);
             jScrollPane2.setVisible(true);
             dialogue3TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue3TextArea, text, audio, null);
+            runTypewriterForArea(dialogue3TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 5) {
             // Slide 6: Morales describes the victim and scene
             dialogue4.setVisible(true);
             jScrollPane3.setVisible(true);
             dialogue4TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            runTypewriterForArea(dialogue4TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 6) {
             // Slide 7: Two lines! (Detective then Morales)
@@ -946,21 +918,15 @@ public class Backstory extends GameScreen {
             jScrollPane6.setVisible(true);
             dialogue7detectiveTextArea.setVisible(true);
             
-            String text1 = s.leftLines.get(0).text;
-            String audio1 = s.leftLines.get(0).audioPath;
-            
-            // 2. Type the Detective's line. When it's done, SHOW Morales's box (but keep the Detective's on screen!)
-            runTypewriterForArea(dialogue7detectiveTextArea, text1, audio1, () -> {
+            // 2. Type the Detective's line. When it's done, SHOW Morales's box
+            runTypewriterForArea(dialogue7detectiveTextArea, s.leftText, s.leftAudio, () -> {
                 
                 // Show Morales
                 dialogue7police.setVisible(true);
                 jScrollPane7.setVisible(true);
                 dialogue7policeTextArea.setVisible(true);
                 
-                String text2 = s.rightLines.get(0).text;
-                String audio2 = s.rightLines.get(0).audioPath;
-                
-                runTypewriterForArea(dialogue7policeTextArea, text2, audio2, null);
+                runTypewriterForArea(dialogue7policeTextArea, s.rightText, s.rightAudio, null);
             });
             
         } else if (currentSlide == 7) {
@@ -968,36 +934,28 @@ public class Backstory extends GameScreen {
             dialogue4.setVisible(true);
             jScrollPane3.setVisible(true);
             dialogue4TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            runTypewriterForArea(dialogue4TextArea, s.leftText, s.leftAudio, null);
 
         } else if (currentSlide == 8) {
             // Slide 9: Detective asks about scene security
             dialogue3.setVisible(true);
             jScrollPane2.setVisible(true);
             dialogue3TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue3TextArea, text, audio, null);
+            runTypewriterForArea(dialogue3TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 9) {
             // Slide 10: Morales confirms perimeter is sealed
             dialogue4.setVisible(true);
             jScrollPane3.setVisible(true);
             dialogue4TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            runTypewriterForArea(dialogue4TextArea, s.leftText, s.leftAudio, null);
                         
         } else if (currentSlide == 10) {
             // Slide 11: Morales lists tenants and containment
             dialogue4.setVisible(true);
             jScrollPane3.setVisible(true);
             dialogue4TextArea.setVisible(true);
-            String text = s.leftLines.isEmpty() ? "" : s.leftLines.get(0).text;
-            String audio = s.leftLines.isEmpty() ? null : s.leftLines.get(0).audioPath;
-            runTypewriterForArea(dialogue4TextArea, text, audio, null);
+            runTypewriterForArea(dialogue4TextArea, s.leftText, s.leftAudio, null);
             
         } else if (currentSlide == 11) {
             // Slide 12: Two lines (Detective then Morales)
@@ -1007,20 +965,14 @@ public class Backstory extends GameScreen {
             jScrollPane12.setVisible(true);
             dialogue12detectiveTextArea.setVisible(true);
             
-            String text1 = s.leftLines.get(0).text;
-            String audio1 = s.leftLines.get(0).audioPath;
-            
             // 2. Type Detective's line, then show Morales's NEW box (dialogue12police)
-            runTypewriterForArea(dialogue12detectiveTextArea, text1, audio1, () -> {
+            runTypewriterForArea(dialogue12detectiveTextArea, s.leftText, s.leftAudio, () -> {
                 
                 dialogue12police.setVisible(true);
                 jScrollPane13.setVisible(true);
                 dialogue12policeTextArea.setVisible(true);
                 
-                String text2 = s.rightLines.get(0).text;
-                String audio2 = s.rightLines.get(0).audioPath;
-                
-                runTypewriterForArea(dialogue12policeTextArea, text2, audio2, null);
+                runTypewriterForArea(dialogue12policeTextArea, s.rightText, s.rightAudio, null);
             });
         }
         
