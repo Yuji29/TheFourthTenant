@@ -11,7 +11,7 @@ package theforthtenant;
  * or the crime scene.
  *
  */
-public class Backstory extends javax.swing.JFrame {
+public class Backstory extends GameScreen {
 
     private static final java.util.logging.Logger logger =
             java.util.logging.Logger.getLogger(Backstory.class.getName());
@@ -178,19 +178,11 @@ public class Backstory extends javax.swing.JFrame {
      */
     public Backstory() {
         initComponents();
-
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
-
-        setTitle("The Fourth Tenant");
-        setResizable(false);
-        setLocationRelativeTo(null);
+        setupScreen();
+    }
+    
+    @Override
+    protected void setupScreen() {
 
         // ---- Exit label (blood-stained door): hover + click ----
         final javax.swing.ImageIcon bloodNormal = new javax.swing.ImageIcon(

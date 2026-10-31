@@ -11,7 +11,8 @@ package theforthtenant;
  *
  * @author yuji
  */
-public class CrimeScene extends javax.swing.JFrame {
+public class CrimeScene extends GameScreen {
+    
 
     // ---- Background scene rotation ----
     private final String[] sceneImages = {
@@ -92,16 +93,12 @@ public class CrimeScene extends javax.swing.JFrame {
      */
     public CrimeScene() {
         initComponents();
-
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
-
+        setupScreen();
+    }    
+        
+    @Override
+    protected void setupScreen() {
+        
         // Warm the SFX cache on a background thread.
         new javax.swing.SwingWorker<Void, Void>() {
             @Override protected Void doInBackground() {
@@ -163,8 +160,6 @@ public class CrimeScene extends javax.swing.JFrame {
                         : java.awt.Cursor.getDefaultCursor());
             }
         });
-
-        setLocationRelativeTo(null);
 
         // ---- Bottom menu-bar labels ----
         final javax.swing.JLabel[] menuLabels = {

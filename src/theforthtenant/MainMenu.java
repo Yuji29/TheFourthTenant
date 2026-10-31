@@ -10,7 +10,7 @@ package theforthtenant;
  *
  * @author yuji
  */
-public class MainMenu extends javax.swing.JFrame {
+public class MainMenu extends GameScreen {
 
     private static final java.util.logging.Logger logger =
             java.util.logging.Logger.getLogger(MainMenu.class.getName());
@@ -26,17 +26,11 @@ public class MainMenu extends javax.swing.JFrame {
      */
     public MainMenu() {
         initComponents();
-
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
+        setupScreen();
+    }    
         
-        setLocationRelativeTo(null);
+    @Override
+    protected void setupScreen() {
 
         // ---- Menu music (looping) ----
         musicClip = AudioCache.loop("/audio/music/menu.wav", AudioCache.Channel.MUSIC);

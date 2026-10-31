@@ -8,7 +8,7 @@ package theforthtenant;
  *
  * @author yuji
  */
-public class Suspects extends javax.swing.JFrame {
+public class Suspects extends GameScreen {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Suspects.class.getName()); 
     
@@ -40,18 +40,12 @@ public class Suspects extends javax.swing.JFrame {
      */
     public Suspects() {
         initComponents();
-
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
-
-        setLocationRelativeTo(null);
-
+        setupScreen();
+    }
+    
+    @Override
+    protected void setupScreen() {    
+    
         // ---- Options Menu ----
         // Closing options returns the player to the pause menu popup.
         final OptionsMenu optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {

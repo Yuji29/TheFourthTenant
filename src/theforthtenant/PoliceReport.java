@@ -8,7 +8,7 @@ package theforthtenant;
  *
  * @author yuji
  */
-public class PoliceReport extends javax.swing.JFrame {
+public class PoliceReport extends GameScreen {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(PoliceReport.class.getName());
     
@@ -42,19 +42,11 @@ public class PoliceReport extends javax.swing.JFrame {
      */
     public PoliceReport() {
         initComponents();
-        
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
+        setupScreen();
+    }
 
-        setTitle("The Fourth Tenant");
-        setResizable(false);
-        setLocationRelativeTo(null);
+    @Override
+    protected void setupScreen() {
         
         // ---- Options Menu ----
         optionsMenu = OptionsMenu.attachTo(this, new OptionsMenu.Callbacks() {

@@ -8,7 +8,7 @@ package theforthtenant;
  *
  * @author yuji
  */
-public class Inventory extends javax.swing.JFrame {
+public class Inventory extends GameScreen {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Inventory.class.getName());
     
@@ -104,19 +104,13 @@ public class Inventory extends javax.swing.JFrame {
     /**
      * Creates new form Inventory
      */
-     public Inventory() {
+    public Inventory() {
         initComponents();
+        setupScreen(); 
+    }    
 
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
-
-        setLocationRelativeTo(null);
+    @Override
+    protected void setupScreen() {    
 
         // ---- Empty slot icons (shared across all 20 slots) ----
         emptyIcon = new javax.swing.ImageIcon(

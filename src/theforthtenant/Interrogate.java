@@ -12,7 +12,7 @@ import javax.swing.JLabel;
  *
  * @author yuji
  */
-public class Interrogate extends javax.swing.JFrame {
+public class Interrogate extends GameScreen {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Interrogate.class.getName());
     
@@ -550,7 +550,12 @@ public class Interrogate extends javax.swing.JFrame {
      * Creates new form Interrogate
      */
         public Interrogate() {
-        initComponents();
+            initComponents();
+            setupScreen();
+        }
+        
+        @Override
+        protected void setupScreen() {
         
         // ---- Replace the form's JTextAreas with line-spaced ones ----
         option1TextArea         = spaced(jScrollPane1);
@@ -561,17 +566,6 @@ public class Interrogate extends javax.swing.JFrame {
         option3rightTextArea    = spaced(jScrollPane6);
         option2leftTextArea     = spaced(jScrollPane7);
         option2rightTextArea    = spaced(jScrollPane8);        
-
-        // ---- Window icon ----
-        try {
-            java.awt.Image icon = javax.imageio.ImageIO.read(
-                getClass().getResourceAsStream("/Images/common/logo.png"));
-            setIconImage(icon);
-        } catch (Exception e) {
-            System.out.println("Logo not found: " + e.getMessage());
-        }
-
-        setLocationRelativeTo(null);
 
         // ---- Load Backgrounds ----
         loungeBgIcon = loadIcon("/Images/gameplay/interrogate/lounge_bg.png");
