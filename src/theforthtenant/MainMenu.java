@@ -303,7 +303,16 @@ public class MainMenu extends GameScreen {
     private void howToPlayButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_howToPlayButtonActionPerformed
         playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("HOW TO PLAY button clicked!");
-        // Later: Code to open a how to play window goes here
+        
+        if (musicClip != null) {
+            musicClip.stop();
+            musicClip = null;
+        }
+
+        HowToPlay htp = new HowToPlay();
+        htp.setLocation(getLocation());
+        htp.setVisible(true);
+        dispose();
     }//GEN-LAST:event_howToPlayButtonActionPerformed
 
     private void optionsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionsButtonActionPerformed
@@ -321,7 +330,17 @@ public class MainMenu extends GameScreen {
     private void creditsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_creditsButtonActionPerformed
         playSound("/audio/sfx/ui/select.wav", false);
         System.out.println("CREDITS button clicked!");
-        // Later: Code to open a credits window goes here
+        
+        // Stop the menu music while reading the credits
+        if (musicClip != null) {
+            musicClip.stop();
+            musicClip = null;
+        }
+
+        Credits c = new Credits();
+        c.setLocation(getLocation());
+        c.setVisible(true);
+        dispose();
     }//GEN-LAST:event_creditsButtonActionPerformed
 
     /**

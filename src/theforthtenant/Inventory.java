@@ -1120,11 +1120,11 @@ public class Inventory extends GameScreen {
             hideLockScreenKeypad();
             pinBuffer.setLength(0);
         } else {
-            // Wrong — clear, shake, and take 2 damage.
+            // Wrong — clear, shake, and take 5 damage.
             pinBuffer.setLength(0);
             refreshPinDots();
             shakePhone();
-            damage(2);
+            damage(5);
         }
     }
 
@@ -1389,7 +1389,7 @@ public class Inventory extends GameScreen {
             AudioCache.play("/audio/sfx/phone/phone_error.wav");
             setDescription(null);
             shakeDescription();
-            damage(2);
+            damage(5);
             return;
         }
 

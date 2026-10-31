@@ -181,6 +181,8 @@ public class Suspects extends GameScreen {
         arrestNormal = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/suspects/arrest_btn.png"));
         arrestHover = new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/suspects/arrest_btn_hovered.png"));
         
+        arrestButton.setIcon(arrestNormal); 
+        
         arrestButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseEntered(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;
@@ -188,6 +190,7 @@ public class Suspects extends GameScreen {
                 AudioCache.play("/audio/sfx/ui/hover.wav");
             }
             @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                arrestButton.setIcon(arrestNormal); 
             }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (isGameOver) return;

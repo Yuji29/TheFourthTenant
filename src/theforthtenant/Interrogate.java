@@ -699,6 +699,32 @@ public class Interrogate extends GameScreen {
         contentPanel.revalidate();
         contentPanel.repaint();         
         
+        // ---- Simplified Nameplate Hover Logic ----
+        
+        // Force hide them on startup
+        cardoNamePlate.setVisible(false);
+        cathyNamePlate.setVisible(false);
+        andyNamePlate.setVisible(false);
+        
+        cardoButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) { cardoNamePlate.setVisible(true); }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) { cardoNamePlate.setVisible(false); }
+        });
+        cathyButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) { cathyNamePlate.setVisible(true); }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) { cathyNamePlate.setVisible(false); }
+        });
+        andyButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) { andyNamePlate.setVisible(true); }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) { andyNamePlate.setVisible(false); }
+        });
+
+        // Make sure the nameplates are in front of the characters but behind the back button
+        contentPanel.setComponentZOrder(cardoNamePlate, 0);
+        contentPanel.setComponentZOrder(cathyNamePlate, 0);
+        contentPanel.setComponentZOrder(andyNamePlate, 0);
+        contentPanel.setComponentZOrder(backButton, 0);        
+        
         // ---- Custom pulsing Hint Text ----
         javax.swing.JComponent hintOverlay = new javax.swing.JComponent() {
             @Override
@@ -752,14 +778,12 @@ public class Interrogate extends GameScreen {
                     if (hover != null) lbl.setIcon(hover);
                     lbl.setLocation(lbl.getX() + s.hoverDx,
                                     lbl.getY() + s.hoverDy);
-                    showTooltip(lbl, "/Images/gameplay/interrogate/tooltip_investigate.png");
                     AudioCache.play("/audio/sfx/ui/hover.wav");
                 }
                 @Override public void mouseExited(java.awt.event.MouseEvent e) {
                     if (normal != null) lbl.setIcon(normal);
                     lbl.setLocation(lbl.getX() - s.hoverDx,
                                     lbl.getY() - s.hoverDy);
-                    hideTooltip();
                 }
                 @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                     if (TransitionOverlay.isPlaying()) return;
@@ -769,6 +793,8 @@ public class Interrogate extends GameScreen {
                     
                     // CALL THE TRANSITION METHOD HERE
                     startInterrogation(suspectIndex); 
+                    
+                    setLocationRelativeTo(null);
                 }
             });
         }
@@ -924,11 +950,9 @@ public class Interrogate extends GameScreen {
                     Interrogate.this.dispose();
                 });
             }
-        });
-        
+        });         
         setLocationRelativeTo(null);
-    }
-        
+    }    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -939,6 +963,13 @@ public class Interrogate extends GameScreen {
     private void initComponents() {
 
         contentPanel = new javax.swing.JPanel();
+        andyNamePlate = new javax.swing.JLabel();
+        cathyNamePlate = new javax.swing.JLabel();
+        cardoNamePlate = new javax.swing.JLabel();
+        andyButton = new javax.swing.JLabel();
+        cathyButton = new javax.swing.JLabel();
+        cardoButton = new javax.swing.JLabel();
+        backgroundLabel = new javax.swing.JLabel();
         backButton = new javax.swing.JLabel();
         phoneImg = new javax.swing.JLabel();
         phoneScrim = new javax.swing.JLabel();
@@ -968,16 +999,34 @@ public class Interrogate extends GameScreen {
         jScrollPane1 = new javax.swing.JScrollPane();
         option1TextArea = new javax.swing.JTextArea();
         option1 = new javax.swing.JLabel();
-        andyButton = new javax.swing.JLabel();
-        cathyButton = new javax.swing.JLabel();
-        cardoButton = new javax.swing.JLabel();
-        backgroundLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("The Fourth Tenant");
         setResizable(false);
 
         contentPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        andyNamePlate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/nameplates/andy_normal.png"))); // NOI18N
+        contentPanel.add(andyNamePlate, new org.netbeans.lib.awtextra.AbsoluteConstraints(715, 200, -1, -1));
+
+        cathyNamePlate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/nameplates/cathy_normal.png"))); // NOI18N
+        contentPanel.add(cathyNamePlate, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 200, -1, -1));
+
+        cardoNamePlate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/nameplates/cardo_normal.png"))); // NOI18N
+        contentPanel.add(cardoNamePlate, new org.netbeans.lib.awtextra.AbsoluteConstraints(295, 200, -1, -1));
+
+        andyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/andy.png"))); // NOI18N
+        contentPanel.add(andyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(686, 266, -1, 410));
+
+        cathyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/cathy.png"))); // NOI18N
+        contentPanel.add(cathyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 278, -1, 340));
+
+        cardoButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/cardo.png"))); // NOI18N
+        cardoButton.setPreferredSize(new java.awt.Dimension(237, 239));
+        contentPanel.add(cardoButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 250, -1, 430));
+
+        backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/lounge_bg.png"))); // NOI18N
+        contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, -1));
 
         backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/ui/back_button.png"))); // NOI18N
         contentPanel.add(backButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 630, 60, 50));
@@ -1134,19 +1183,6 @@ public class Interrogate extends GameScreen {
         option1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/dialogue/detective_option1.png"))); // NOI18N
         option1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         contentPanel.add(option1, new org.netbeans.lib.awtextra.AbsoluteConstraints(275, 520, -1, -1));
-
-        andyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/andy.png"))); // NOI18N
-        contentPanel.add(andyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(686, 266, -1, 410));
-
-        cathyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/cathy.png"))); // NOI18N
-        contentPanel.add(cathyButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 278, -1, 340));
-
-        cardoButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/suspects/cardo.png"))); // NOI18N
-        cardoButton.setPreferredSize(new java.awt.Dimension(237, 239));
-        contentPanel.add(cardoButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 250, -1, 430));
-
-        backgroundLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/gameplay/interrogate/interrogation/andy_phone.png"))); // NOI18N
-        contentPanel.add(backgroundLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1150, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1683,10 +1719,13 @@ public class Interrogate extends GameScreen {
         hideTooltip();
         currentSuspect = suspectIndex;
 
-        // 1. Hide the lounge buttons
+        // 1. Hide the lounge buttons and nameplates
         cardoButton.setVisible(false);
         cathyButton.setVisible(false);
         andyButton.setVisible(false);
+        cardoNamePlate.setVisible(false);
+        cathyNamePlate.setVisible(false);
+        andyNamePlate.setVisible(false);      
 
         // 2. Get the correct icon
         javax.swing.ImageIcon idleIcon = null;
@@ -1810,6 +1849,9 @@ public class Interrogate extends GameScreen {
         cardoButton.setVisible(true);
         cathyButton.setVisible(true);
         andyButton.setVisible(true);
+        cardoNamePlate.setVisible(true);
+        cathyNamePlate.setVisible(true);
+        andyNamePlate.setVisible(true);        
         
         // Reset their images back to the lounge portraits
         cardoButton.setIcon(loadIcon("/Images/gameplay/interrogate/suspects/cardo.png"));
@@ -2014,10 +2056,13 @@ public class Interrogate extends GameScreen {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel andyButton;
+    private javax.swing.JLabel andyNamePlate;
     private javax.swing.JLabel backButton;
     private javax.swing.JLabel backgroundLabel;
     private javax.swing.JLabel cardoButton;
+    private javax.swing.JLabel cardoNamePlate;
     private javax.swing.JLabel cathyButton;
+    private javax.swing.JLabel cathyNamePlate;
     private javax.swing.JPanel contentPanel;
     private javax.swing.JLabel detectiveChosen;
     private javax.swing.JTextArea detectiveChosenTextArea;

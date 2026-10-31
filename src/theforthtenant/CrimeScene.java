@@ -133,7 +133,7 @@ public class CrimeScene extends GameScreen {
                 } else {
                     // Missed an item -> take damage.
                     AudioCache.play("/audio/sfx/ui/click.wav");
-                    GameState.setHealth(GameState.getHealth() - 1);
+                    GameState.setHealth(GameState.getHealth() - 3);
 
                     // Update the health bar.
                     for (java.awt.Component c : contentPanel.getComponents()) {
