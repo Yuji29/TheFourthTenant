@@ -404,17 +404,20 @@ public class Suspects extends GameScreen {
     // Suspect carousel helpers
     // ------------------------------------------------------------------
 
-    /** Moves to the previous suspect, wrapping around. */
+    /** Moves to the previous suspect. Does not loop. */
     private void prevSuspect() {
-        currentSuspectIndex =
-                (currentSuspectIndex - 1 + suspectFiles.length) % suspectFiles.length;
-        updateBackground();
+        if (currentSuspectIndex > 0) {
+            currentSuspectIndex--;
+            updateBackground();
+        }
     }
 
-    /** Moves to the next suspect, wrapping around. */
+    /** Moves to the next suspect. Does not loop. */
     private void nextSuspect() {
-        currentSuspectIndex = (currentSuspectIndex + 1) % suspectFiles.length;
-        updateBackground();
+        if (currentSuspectIndex < suspectFiles.length - 1) {
+            currentSuspectIndex++;
+            updateBackground();
+        }
     }
 
     /** Opens the Crime Scene screen and closes this one. */
@@ -478,6 +481,10 @@ public class Suspects extends GameScreen {
         if (isEndgame) {
             contentPanel.setComponentZOrder(arrestButton, 0);
         }        
+        
+        // Hide arrows if we are at the start or end of the list
+        prevButton.setVisible(currentSuspectIndex > 0);
+        nextButton.setVisible(currentSuspectIndex < suspectFiles.length - 1);        
 
         contentPanel.revalidate();
         contentPanel.repaint();

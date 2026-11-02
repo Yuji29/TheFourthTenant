@@ -323,6 +323,7 @@ public class Inventory extends GameScreen {
         javax.swing.JRootPane root = getRootPane();
         javax.swing.KeyStroke backKey =
                 javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, 0);
+        
         root.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(backKey, "closeInventoryKey");
         root.getActionMap().put("closeInventoryKey", new javax.swing.AbstractAction() {
@@ -1393,16 +1394,23 @@ public class Inventory extends GameScreen {
             return;
         }
 
-        // 2. Phone-only recipes require an unlocked phone.
-        boolean usesPhone = "phone".equals(combineItemA) || "phone".equals(combineItemB);
+        // 2. Recipes involving the phone or the USB require an unlocked phone.
+        boolean usesPhoneOrUsb = "phone".equals(combineItemA) || "phone".equals(combineItemB) 
+                              || "usb".equals(combineItemA) || "usb".equals(combineItemB);
+                              
         boolean isPhoneRecipe = "opened_ledger".equals(resultId)
                 || "jealousy".equals(resultId)
                 || "audio_log".equals(resultId);
 
-        if (usesPhone && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
+        if (usesPhoneOrUsb && isPhoneRecipe && !GameState.isPhoneUnlocked()) {
             AudioCache.play("/audio/sfx/phone/phone_error.wav");
             setDescription(null);
-            System.out.println("You need to unlock the phone first.");
+            shakeDescription();
+            
+            // Deduct health (you can change 5 to whatever damage you want)
+            damage(5); 
+            
+            System.out.println("You need to unlock the phone first. Player took damage!");
             return;
         }
 
